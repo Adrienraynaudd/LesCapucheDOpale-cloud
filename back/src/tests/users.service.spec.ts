@@ -20,7 +20,10 @@ describe('UsersService', () => {
       },
     } as any;
 
-    service = new UsersService(prisma);
+    service = new UsersService(
+      prisma,
+      { signAsync: jest.fn().mockResolvedValue('fakeJwtToken') } as any
+    );
     (hashPassword as jest.Mock).mockResolvedValue('hashedPassword123');
     (comparePassword as jest.Mock).mockResolvedValue(true);
   });
@@ -47,9 +50,12 @@ describe('UsersService', () => {
 
     expect(hashPassword).toHaveBeenCalledWith('secret');
     expect(result).toEqual({
-      id: 1,
-      name: 'Alice',
-      email: 'alice@mail.com',
+      user: {
+        id: 1,
+        name: 'Alice',
+        email: 'alice@mail.com',
+      },
+      access_token: 'fakeJwtToken',
     });
   });
 

@@ -3,36 +3,49 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { hashPassword, comparePassword } from '../utils/password.util';
+import { JwtService } from '@nestjs/jwt';
 
 
 @Injectable()
 export class UsersService {
-constructor(private prisma: PrismaService) {}
+constructor(private prisma: PrismaService, private jwtService: JwtService) {}
 
 
-async create(createUserDto: CreateUserDto) {
-const existing = await this.prisma.user.findUnique({ where: { email: createUserDto.email } });
-if (existing) {
-throw new ConflictException('Email already in use');
-}
+ async create(createUserDto: CreateUserDto) {
+    const existing = await this.prisma.user.findUnique({ where: { email: createUserDto.email } });
+    if (existing) {
+      throw new ConflictException('Email already in use');
+    }
 
+    const hashed = await hashPassword(createUserDto.password);
 
-const hashed = await hashPassword(createUserDto.password);
+    const user = await this.prisma.user.create({
+      data: {
+        name: createUserDto.name,
+        email: createUserDto.email,
+        password: hashed,
+        roleId: createUserDto.roleId,
+      },
+      select: { id: true, name: true, email: true, roleId: true },
+    });
 
+    const payload = { sub: user.id, email: user.email, roleId: user.roleId };
+    let token: string;
 
-const user = await this.prisma.user.create({
-data: {
-name: createUserDto.name,
-email: createUserDto.email,
-password: hashed,
-roleId: createUserDto.roleId,
-},
-select: { id: true, name: true, email: true },
-});
+    if (user.roleId === 1) { // Admin
+      token = await this.jwtService.signAsync(payload, {
+        secret: process.env.JWT_SECRET_ADMIN,
+        expiresIn: '4h',
+      });
+    } else {
+      token = await this.jwtService.signAsync(payload, {
+        secret: process.env.JWT_SECRET,
+        expiresIn: '1h',
+      });
+    }
 
-
-return user;
-}
+    return { user, access_token: token };
+  }
 
 
 async findAll() {
