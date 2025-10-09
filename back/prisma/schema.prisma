@@ -50,7 +50,6 @@ model Equipment {
   maxDurability   Int
   currentDurability Int
   stock           EquipmentStock?
-  quests          Quest[]
 }
 
 model EquipmentType {
@@ -65,6 +64,7 @@ model EquipmentStock {
   equipmentId  Int        @unique
   durability   Int
   equipment    Equipment  @relation(fields: [equipmentId], references: [id])
+  quests          Quest[]
 }
 
 model Consumable {
@@ -94,7 +94,7 @@ model Quest {
   estimatedDuration Int
   recommendedXP    Int
   adventurers      Adventurer[]
-  equipments       Equipment[]
+  equipmentStocks   EquipmentStock[]
   UserId          Int
   user            User                @relation(fields: [UserId], references: [id])
 }
