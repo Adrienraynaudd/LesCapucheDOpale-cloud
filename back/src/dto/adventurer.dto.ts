@@ -1,7 +1,7 @@
 import { Prisma } from '@prisma/client';
 
 export const adventurerInclude = Prisma.validator<Prisma.AdventurerInclude>()({
-    specialty: true,
+    speciality: true,
     equipmentTypes: true,
     consumableTypes: true,
 });

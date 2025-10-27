@@ -14,7 +14,7 @@ export class UpdateAdventurerDto {
     @IsOptional()
     @IsInt()
     @IsPositive()
-    specialtyId?: number;
+    specialityId?: number;
 
     @IsOptional()
     @IsArray()

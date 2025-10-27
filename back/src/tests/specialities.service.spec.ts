@@ -1,14 +1,14 @@
 import { ConflictException, NotFoundException } from '@nestjs/common';
-import { SpecialtiesService } from '../services/specialties.service';
+import { SpecialitiesService } from '../services/specialities.service';
 import { PrismaService } from '../prisma/prisma.service';
 
-describe('SpecialtiesService', () => {
-    let service: SpecialtiesService;
+describe('SpecialitiesService', () => {
+    let service: SpecialitiesService;
     let prisma: PrismaService;
 
     beforeEach(() => {
         prisma = {
-            specialty: {
+            speciality: {
                 findFirst: jest.fn(),
                 create: jest.fn(),
                 findMany: jest.fn(),
@@ -18,7 +18,7 @@ describe('SpecialtiesService', () => {
             },
         } as any;
 
-        service = new SpecialtiesService(prisma);
+        service = new SpecialitiesService(prisma);
     });
 
     afterEach(() => jest.clearAllMocks());
@@ -26,9 +26,9 @@ describe('SpecialtiesService', () => {
     // ------------------------
     // CREATE
     // ------------------------
-    it('should create a new specialty', async () => {
-        (prisma.specialty.findFirst as jest.Mock).mockResolvedValue(null);
-        (prisma.specialty.create as jest.Mock).mockResolvedValue({
+    it('should create a new speciality', async () => {
+        (prisma.speciality.findFirst as jest.Mock).mockResolvedValue(null);
+        (prisma.speciality.create as jest.Mock).mockResolvedValue({
             id: 1,
             name: 'Warrior',
         });
@@ -42,7 +42,7 @@ describe('SpecialtiesService', () => {
     });
 
     it('should throw ConflictException if name already exists', async () => {
-        (prisma.specialty.findFirst as jest.Mock).mockResolvedValue({ id: 1, name: 'Warrior' });
+        (prisma.speciality.findFirst as jest.Mock).mockResolvedValue({ id: 1, name: 'Warrior' });
 
         await expect(service.create({ name: 'Warrior' })).rejects.toThrow(ConflictException);
     });
@@ -50,27 +50,27 @@ describe('SpecialtiesService', () => {
     // ------------------------
     // FIND ALL
     // ------------------------
-    it('should return all specialties', async () => {
-        const specialties = [{ id: 1, name: 'Mage' }];
-        (prisma.specialty.findMany as jest.Mock).mockResolvedValue(specialties);
+    it('should return all specialities', async () => {
+        const specialities = [{ id: 1, name: 'Mage' }];
+        (prisma.speciality.findMany as jest.Mock).mockResolvedValue(specialities);
 
         const result = await service.findAll();
-        expect(result).toEqual(specialties);
+        expect(result).toEqual(specialities);
     });
 
     // ------------------------
     // FIND ONE
     // ------------------------
-    it('should return a specialty by id', async () => {
-        const specialty = { id: 1, name: 'Warrior' };
-        (prisma.specialty.findUnique as jest.Mock).mockResolvedValue(specialty);
+    it('should return a speciality by id', async () => {
+        const speciality = { id: 1, name: 'Warrior' };
+        (prisma.speciality.findUnique as jest.Mock).mockResolvedValue(speciality);
 
         const result = await service.findOne(1);
-        expect(result).toEqual(specialty);
+        expect(result).toEqual(speciality);
     });
 
-    it('should throw NotFoundException if specialty not found', async () => {
-        (prisma.specialty.findUnique as jest.Mock).mockResolvedValue(null);
+    it('should throw NotFoundException if speciality not found', async () => {
+        (prisma.speciality.findUnique as jest.Mock).mockResolvedValue(null);
 
         await expect(service.findOne(999)).rejects.toThrow(NotFoundException);
     });
@@ -78,31 +78,31 @@ describe('SpecialtiesService', () => {
     // ------------------------
     // UPDATE
     // ------------------------
-    it('should update a specialty', async () => {
+    it('should update a speciality', async () => {
         const updated = { id: 1, name: 'Updated' };
-        (prisma.specialty.update as jest.Mock).mockResolvedValue(updated);
+        (prisma.speciality.update as jest.Mock).mockResolvedValue(updated);
 
         const result = await service.update(1, { name: 'Updated' });
         expect(result).toEqual(updated);
     });
 
-    it('should throw NotFoundException if updating non-existent specialty', async () => {
-        (prisma.specialty.update as jest.Mock).mockRejectedValue({ code: 'P2025' });
+    it('should throw NotFoundException if updating non-existent speciality', async () => {
+        (prisma.speciality.update as jest.Mock).mockRejectedValue({ code: 'P2025' });
         await expect(service.update(999, { name: 'Ghost' })).rejects.toThrow(NotFoundException);
     });
 
     // ------------------------
     // REMOVE
     // ------------------------
-    it('should delete a specialty', async () => {
-        (prisma.specialty.delete as jest.Mock).mockResolvedValue({ id: 1 });
+    it('should delete a speciality', async () => {
+        (prisma.speciality.delete as jest.Mock).mockResolvedValue({ id: 1 });
 
         const result = await service.remove(1);
         expect(result).toEqual({ id: 1 });
     });
 
-    it('should throw NotFoundException if deleting non-existent specialty', async () => {
-        (prisma.specialty.delete as jest.Mock).mockRejectedValue({ code: 'P2025' });
+    it('should throw NotFoundException if deleting non-existent speciality', async () => {
+        (prisma.speciality.delete as jest.Mock).mockRejectedValue({ code: 'P2025' });
         await expect(service.remove(999)).rejects.toThrow(NotFoundException);
     });
 });

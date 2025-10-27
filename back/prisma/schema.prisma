@@ -26,8 +26,8 @@ model Role {
 model Adventurer {
   id             Int          @id @default(autoincrement())
   name           String
-  specialtyId    Int
-  specialty      Specialty    @relation(fields: [specialtyId], references: [id])
+  specialityId    Int
+  speciality      Speciality    @relation(fields: [specialityId], references: [id])
   dailyRate      Int
   equipmentTypes      EquipmentType[]
   consumableTypes    ConsumableType[]
@@ -35,7 +35,7 @@ model Adventurer {
   quests             Quest[]
 }
 
-model Specialty {
+model Speciality {
   id           Int          @id @default(autoincrement())
   name         String
   adventurers  Adventurer[]

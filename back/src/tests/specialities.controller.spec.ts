@@ -1,15 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { SpecialtiesController } from '../controllers/specialties.controller';
-import { SpecialtiesService } from '../services/specialties.service';
+import { SpecialitiesController } from '../controllers/specialities.controller';
+import { SpecialitiesService } from '../services/specialities.service';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { RolesGuard } from '../guards/roles.guard';
 import { ExecutionContext } from '@nestjs/common';
 
-describe('SpecialtiesController', () => {
-    let controller: SpecialtiesController;
-    let service: SpecialtiesService;
+describe('SpecialitiesController', () => {
+    let controller: SpecialitiesController;
+    let service: SpecialitiesService;
 
-    const mockSpecialtiesService = {
+    const mockSpecialitiesService = {
         create: jest.fn(),
         findAll: jest.fn(),
         findOne: jest.fn(),
@@ -31,8 +31,8 @@ describe('SpecialtiesController', () => {
 
     beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
-            controllers: [SpecialtiesController],
-            providers: [{ provide: SpecialtiesService, useValue: mockSpecialtiesService }],
+            controllers: [SpecialitiesController],
+            providers: [{ provide: SpecialitiesService, useValue: mockSpecialitiesService }],
         })
             .overrideGuard(JwtAuthGuard)
             .useValue(mockJwtAuthGuard)
@@ -40,15 +40,15 @@ describe('SpecialtiesController', () => {
             .useValue(mockRolesGuard)
             .compile();
 
-        controller = module.get<SpecialtiesController>(SpecialtiesController);
-        service = module.get<SpecialtiesService>(SpecialtiesService);
+        controller = module.get<SpecialitiesController>(SpecialitiesController);
+        service = module.get<SpecialitiesService>(SpecialitiesService);
     });
 
     afterEach(() => jest.clearAllMocks());
 
     it('should call service.create()', async () => {
         const dto = { name: 'Warrior' };
-        mockSpecialtiesService.create.mockResolvedValue({ id: 1, ...dto });
+        mockSpecialitiesService.create.mockResolvedValue({ id: 1, ...dto });
 
         const result = await controller.create(dto);
 
@@ -57,28 +57,28 @@ describe('SpecialtiesController', () => {
     });
 
     it('should call service.findAll()', async () => {
-        const specialties = [{ id: 1, name: 'Mage' }];
-        mockSpecialtiesService.findAll.mockResolvedValue(specialties);
+        const specialities = [{ id: 1, name: 'Mage' }];
+        mockSpecialitiesService.findAll.mockResolvedValue(specialities);
 
         const result = await controller.findAll();
 
         expect(service.findAll).toHaveBeenCalled();
-        expect(result).toEqual(specialties);
+        expect(result).toEqual(specialities);
     });
 
     it('should call service.findOne()', async () => {
-        const specialty = { id: 1, name: 'Warrior' };
-        mockSpecialtiesService.findOne.mockResolvedValue(specialty);
+        const speciality = { id: 1, name: 'Warrior' };
+        mockSpecialitiesService.findOne.mockResolvedValue(speciality);
 
         const result = await controller.findOne(1);
 
         expect(service.findOne).toHaveBeenCalledWith(1);
-        expect(result).toEqual(specialty);
+        expect(result).toEqual(speciality);
     });
 
     it('should call service.update()', async () => {
         const updated = { id: 1, name: 'Updated' };
-        mockSpecialtiesService.update.mockResolvedValue(updated);
+        mockSpecialitiesService.update.mockResolvedValue(updated);
 
         const result = await controller.update(1, { name: 'Updated' });
 
@@ -88,7 +88,7 @@ describe('SpecialtiesController', () => {
 
     it('should call service.remove()', async () => {
         const deleted = { id: 1 };
-        mockSpecialtiesService.remove.mockResolvedValue(deleted);
+        mockSpecialitiesService.remove.mockResolvedValue(deleted);
 
         const result = await controller.remove(1);
 

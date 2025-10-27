@@ -1,6 +1,6 @@
 import { IsString } from 'class-validator';
 
-export class CreateSpecialtyDto {
+export class CreateSpecialityDto {
     @IsString()
     name: string;
 }

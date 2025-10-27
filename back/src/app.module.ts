@@ -3,7 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './modules/users.module';
 import { AdventurersModule } from "./modules/adventurers.module";
-import { SpecialtiesModule } from "./modules/specialties.module";
+import { SpecialitiesModule } from "./modules/specialities.module";
 import { EquipmentTypesModule } from "./modules/equipment-types.module";
 import { ConsumableTypesModule } from "./modules/consumable-types.module";
 import { PrismaModule } from './prisma/prisma.service';
@@ -13,7 +13,7 @@ import { PrismaModule } from './prisma/prisma.service';
       PrismaModule,
       UsersModule,
       AdventurersModule,
-      SpecialtiesModule,
+      SpecialitiesModule,
       EquipmentTypesModule,
       ConsumableTypesModule
   ],

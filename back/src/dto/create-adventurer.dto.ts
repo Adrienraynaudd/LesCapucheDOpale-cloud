@@ -7,7 +7,7 @@ export class CreateAdventurerDto {
 
     @IsInt()
     @IsPositive()
-    specialtyId!: number;
+    specialityId!: number;
 
     @IsInt()
     @Min(0)

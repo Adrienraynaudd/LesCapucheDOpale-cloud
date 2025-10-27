@@ -11,18 +11,18 @@ export class AdventurersService {
     async create(createAdventurerDto: CreateAdventurerDto) {
         const {
             name,
-            specialtyId,
+            specialityId,
             dailyRate,
             equipmentTypeIds = [],
             consumableTypeIds = [],
         } = createAdventurerDto;
 
-        const specialtyEntity = await this.prisma.specialty.findUnique({
-            where: { id: specialtyId },
+        const specialityEntity = await this.prisma.speciality.findUnique({
+            where: { id: specialityId },
             select: { id: true },
         });
-        if (!specialtyEntity) {
-            throw new NotFoundException("Specialty not found");
+        if (!specialityEntity) {
+            throw new NotFoundException("Speciality not found");
         }
 
         if (equipmentTypeIds.length) {
@@ -56,7 +56,7 @@ export class AdventurersService {
         return this.prisma.adventurer.create({
             data: {
                 name,
-                specialtyId,
+                specialityId,
                 dailyRate,
                 experience: 0,
                 equipmentTypes: equipmentTypeIds.length
@@ -67,7 +67,7 @@ export class AdventurersService {
                     : undefined,
             },
             include: {
-                specialty: true,
+                speciality: true,
                 equipmentTypes: true,
                 consumableTypes: true,
             },
@@ -76,19 +76,19 @@ export class AdventurersService {
 
     async update(id: number, dto: UpdateAdventurerDto) {
         const {
-            specialtyId,
+            specialityId,
             equipmentTypeIds,
             consumableTypeIds,
             ...scalars
         } = dto;
 
-        if (typeof specialtyId === 'number') {
-            const spec = await this.prisma.specialty.findUnique({
-                where: { id: specialtyId },
+        if (typeof specialityId === 'number') {
+            const spec = await this.prisma.speciality.findUnique({
+                where: { id: specialityId },
                 select: { id: true },
             });
             if (!spec) {
-                throw new NotFoundException('Specialty not found');
+                throw new NotFoundException('Speciality not found');
             }
         }
 
@@ -118,7 +118,7 @@ export class AdventurersService {
 
         const data: Prisma.AdventurerUpdateInput = {
             ...scalars,
-            ...(typeof specialtyId === 'number' ? { specialtyId } : {}),
+            ...(typeof specialityId === 'number' ? { specialityId } : {}),
             ...(Array.isArray(equipmentTypeIds)
                 ? { equipmentTypes: { set: equipmentTypeIds.map(id => ({ id })) } }
                 : {}),
@@ -132,7 +132,7 @@ export class AdventurersService {
                 where: { id },
                 data,
                 include: {
-                    specialty: true,
+                    speciality: true,
                     equipmentTypes: true,
                     consumableTypes: true,
                 },
