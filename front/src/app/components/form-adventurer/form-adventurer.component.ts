@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { ReactiveFormsModule, FormControl, FormGroup, Validators } from '@angular/forms';
-import { AdventurerFormData, ConsumableType, EquipmentType, Specialty } from '../../models/models';
+import { AdventurerFormData, ConsumableType, EquipmentType, Speciality } from '../../models/models';
 
 import { forkJoin } from 'rxjs';
 import { SpecialityService } from '../../services/speciality/speciality.service';
@@ -19,7 +19,7 @@ export class FormAdventurerComponent implements OnInit {
 
   protected adventurerForm = new FormGroup({
     name: new FormControl('', [Validators.required, Validators.minLength(3)]),
-    specialty: new FormControl(0, [Validators.required]),
+    speciality: new FormControl(0, [Validators.required]),
     equipmentType: new FormControl([] as number[], []),
     consumableType: new FormControl([] as number[], []),
     dailyRatePo: new FormControl(0, [Validators.required, Validators.min(0)]),
@@ -27,24 +27,24 @@ export class FormAdventurerComponent implements OnInit {
     dailyRatePc: new FormControl(0, [Validators.required, Validators.min(0)]),
   });
 
-  protected specialties: Specialty[] = [];
+  protected specialities: Speciality[] = [];
   protected equipmentTypes: EquipmentType[] = [];
   protected consumableTypes: ConsumableType[] = [];
   protected hasSubmitted = false;
 
   constructor(
-    private readonly specialtyService: SpecialityService,
+    private readonly specialityService: SpecialityService,
     private readonly equipmentService: EquipmentService,
     private readonly consumableService: ConsumableService
   ) { }
 
   ngOnInit(): void {
     forkJoin({
-      specialties: this.specialtyService.getSpecialties(),
+      specialities: this.specialityService.getSpecialities(),
       equipment: this.equipmentService.getEquipment(),
       consumables: this.consumableService.getConsumables()
-    }).subscribe(({ specialties, equipment, consumables }) => {
-      this.specialties = specialties;
+    }).subscribe(({ specialities, equipment, consumables }) => {
+      this.specialities = specialities;
       this.equipmentTypes = equipment;
       this.consumableTypes = consumables;
     });
@@ -52,7 +52,7 @@ export class FormAdventurerComponent implements OnInit {
     if (this.initialData) {
       this.adventurerForm.patchValue({
         name: this.initialData.name,
-        specialty: this.initialData.specialty,
+        speciality: this.initialData.speciality,
         equipmentType: this.initialData.equipmentType,
         consumableType: this.initialData.consumableType,
         dailyRatePo: Math.floor((this.initialData.dailyRate || 0) / 100),
@@ -80,7 +80,7 @@ export class FormAdventurerComponent implements OnInit {
     this.formSubmitted.emit(
       {
         name: this.adventurerForm.get('name')?.value ?? '',
-        specialty: +(this.adventurerForm.get('specialty')?.value ?? 0),
+        speciality: +(this.adventurerForm.get('speciality')?.value ?? 0),
         equipmentType: this.adventurerForm.get('equipmentType')?.value ?? [],
         consumableType: this.adventurerForm.get('consumableType')?.value ?? [],
         dailyRate: (this.adventurerForm.get('dailyRatePo')?.value ?? 0) * 100 +

@@ -1,17 +1,18 @@
-import { ConsumableType, EquipmentType, Specialty } from "./models";
+import { ConsumableType, EquipmentType, Speciality } from "./models";
 
 export interface Adventurer {
-  id?: number;
+  id: number;
   name: string;
-  specialty: Specialty;
+  speciality: Speciality;
   equipmentType: EquipmentType[];
   consumableType: ConsumableType[];
   dailyRate: number; // in copper pieces
+  experience: number;
 }
 
 export interface AdventurerFormData {
   name: string;
-  specialty: number;
+  speciality: number;
   equipmentType: number[];
   consumableType: number[];
   dailyRate: number; // in copper pieces

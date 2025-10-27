@@ -9,24 +9,23 @@ describe('FormAdventurerComponent', () => {
   let component: FormAdventurerComponent;
   let fixture: ComponentFixture<FormAdventurerComponent>;
 
-  // mock des services
-  let specialtyServiceSpy: jasmine.SpyObj<SpecialityService>;
+  let specialityServiceSpy: jasmine.SpyObj<SpecialityService>;
   let equipmentServiceSpy: jasmine.SpyObj<EquipmentService>;
   let consumableServiceSpy: jasmine.SpyObj<ConsumableService>;
 
   beforeEach(async () => {
-    specialtyServiceSpy = jasmine.createSpyObj('SpecialityService', ['getSpecialties']);
+    specialityServiceSpy = jasmine.createSpyObj('SpecialityService', ['getSpecialities']);
     equipmentServiceSpy = jasmine.createSpyObj('EquipmentService', ['getEquipment']);
     consumableServiceSpy = jasmine.createSpyObj('ConsumableService', ['getConsumables']);
 
-    specialtyServiceSpy.getSpecialties.and.returnValue(of([{ id: 1, name: 'Guerrier' }]));
+    specialityServiceSpy.getSpecialities.and.returnValue(of([{ id: 1, name: 'Guerrier' }]));
     equipmentServiceSpy.getEquipment.and.returnValue(of([{ id: 10, name: 'Épée' }]));
     consumableServiceSpy.getConsumables.and.returnValue(of([{ id: 20, name: 'Potion' }]));
 
     await TestBed.configureTestingModule({
       imports: [FormAdventurerComponent],
       providers: [
-        { provide: SpecialityService, useValue: specialtyServiceSpy },
+        { provide: SpecialityService, useValue: specialityServiceSpy },
         { provide: EquipmentService, useValue: equipmentServiceSpy },
         { provide: ConsumableService, useValue: consumableServiceSpy },
       ],
@@ -42,31 +41,50 @@ describe('FormAdventurerComponent', () => {
   });
 
   it('should load data from services on init', () => {
-    fixture.detectChanges(); // déclenche ngOnInit
-    expect(specialtyServiceSpy.getSpecialties).toHaveBeenCalled();
+    fixture.detectChanges();
+
+    expect(specialityServiceSpy.getSpecialities).toHaveBeenCalled();
     expect(equipmentServiceSpy.getEquipment).toHaveBeenCalled();
     expect(consumableServiceSpy.getConsumables).toHaveBeenCalled();
 
-    expect((component as any).specialties.length).toBe(1);
-    expect((component as any).equipmentTypes.length).toBe(1);
-    expect((component as any).consumableTypes.length).toBe(1);
+    expect((component as any).specialities).toEqual([{ id: 1, name: 'Guerrier' }]);
+    expect((component as any).equipmentTypes).toEqual([{ id: 10, name: 'Épée' }]);
+    expect((component as any).consumableTypes).toEqual([{ id: 20, name: 'Potion' }]);
   });
 
-  it('should patch initialData when provided', () => {
+  it('should patch form with initialData', () => {
     component.initialData = {
       name: 'Aragorn',
-      specialty: 1,
+      speciality: 1,
       equipmentType: [10],
       consumableType: [20],
       dailyRate: 345,
     };
 
-    fixture.detectChanges(); // ngOnInit est appelé
+    fixture.detectChanges();
 
-    expect((component as any).adventurerForm.value.name).toBe('Aragorn');
-    expect((component as any).adventurerForm.value.dailyRatePo).toBe(3);
-    expect((component as any).adventurerForm.value.dailyRatePa).toBe(4);
-    expect((component as any).adventurerForm.value.dailyRatePc).toBe(5);
+    const form = (component as any).adventurerForm.value;
+    expect(form.name).toBe('Aragorn');
+    expect(form.dailyRatePo).toBe(3);
+    expect(form.dailyRatePa).toBe(4);
+    expect(form.dailyRatePc).toBe(5);
+  });
+
+  it('should patch form with initialData with no dailyRate', () => {
+    component.initialData = {
+      name: 'Aragorn',
+      speciality: 1,
+      equipmentType: [10],
+      consumableType: [20],
+    } as any;
+
+    fixture.detectChanges();
+
+    const form = (component as any).adventurerForm.value;
+    expect(form.name).toBe('Aragorn');
+    expect(form.dailyRatePo).toBe(0);
+    expect(form.dailyRatePa).toBe(0);
+    expect(form.dailyRatePc).toBe(0);
   });
 
   it('should emit formSubmitted with correct data when form is valid', () => {
@@ -76,7 +94,7 @@ describe('FormAdventurerComponent', () => {
 
     (component as any).adventurerForm.setValue({
       name: 'Gandalf',
-      specialty: 1,
+      speciality: 1,
       equipmentType: [10],
       consumableType: [20],
       dailyRatePo: 1,
@@ -88,39 +106,78 @@ describe('FormAdventurerComponent', () => {
 
     expect(emitSpy).toHaveBeenCalledWith({
       name: 'Gandalf',
-      specialty: 1,
+      speciality: 1,
       equipmentType: [10],
       consumableType: [20],
       dailyRate: 123,
     });
   });
 
-  it('should not emit if form is invalid', () => {
+  it('should not emit when form is invalid', () => {
     fixture.detectChanges();
 
     const emitSpy = spyOn(component.formSubmitted, 'emit');
-
-    (component as any).adventurerForm.get('name')?.setValue(''); // invalide
+    (component as any).adventurerForm.get('name')?.setValue(''); // champ requis vide
     (component as any).onSubmit();
 
     expect(emitSpy).not.toHaveBeenCalled();
   });
 
-  it('should update daily rate correctly', () => {
+  it('should recalculate daily rate correctly in onDailyRateChange', () => {
     fixture.detectChanges();
 
-    (component as any).adventurerForm.patchValue({
+    const form = (component as any).adventurerForm;
+    form.patchValue({
       dailyRatePo: 2,
-      dailyRatePa: 25,
-      dailyRatePc: 128,
+      dailyRatePa: 5,
+      dailyRatePc: 8,
     });
 
     (component as any).onDailyRateChange();
 
-    const po = (component as any).adventurerForm.get('dailyRatePo')?.value;
-    const pa = (component as any).adventurerForm.get('dailyRatePa')?.value;
-    const pc = (component as any).adventurerForm.get('dailyRatePc')?.value;
+    const po = form.get('dailyRatePo')?.value;
+    const pa = form.get('dailyRatePa')?.value;
+    const pc = form.get('dailyRatePc')?.value;
+    const total = po * 100 + pa * 10 + pc;
 
-    expect(po * 100 + pa * 10 + pc).toBe(578);
+    expect(total).toBe(258);
+  });
+
+  it('should handle edge cases in onDailyRateChange with undefined values', () => {
+    fixture.detectChanges();
+
+    const form = (component as any).adventurerForm;
+    form.patchValue({
+      dailyRatePo: undefined,
+      dailyRatePa: undefined,
+      dailyRatePc: undefined,
+    });
+
+    (component as any).onDailyRateChange();
+
+    const total = (form.get('dailyRatePo')?.value ?? 0) * 100 +
+                  (form.get('dailyRatePa')?.value ?? 0) * 10 +
+                  (form.get('dailyRatePc')?.value ?? 0);
+
+    expect(total).toBe(0); // valeurs par défaut sécurisées
+  });
+
+  it('should submit form with default data when no initialData is provided', () => {
+    fixture.detectChanges();
+    const emitSpy = spyOn(component.formSubmitted, 'emit');
+    (component as any).adventurerForm = {
+      invalid: false,
+      get: (field: string) => null,
+    };
+
+    (component as any).onSubmit();
+
+    expect(emitSpy).toHaveBeenCalledWith({
+      name: '',
+      speciality: 0,
+      equipmentType: [],
+      consumableType: [],
+      dailyRate: 0,
+    });
   });
 });

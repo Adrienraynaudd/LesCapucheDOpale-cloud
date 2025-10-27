@@ -1,0 +1,7 @@
+<div class="container">
+    @for (adventurer of adventurers; track adventurer.id) {
+        <app-item-adventurer [adventurer]="adventurer" (click)="onAdventurerClick(adventurer.id)"></app-item-adventurer>
+    } @empty {
+        <p>Aucun élément</p>
+    }
+</div>

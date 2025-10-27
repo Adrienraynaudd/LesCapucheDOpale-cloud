@@ -14,4 +14,16 @@ export class AdventurerService {
   createAdventurer(data: AdventurerFormData): Observable<Adventurer> {
     return this.http.post<Adventurer>(this.baseUrl, data);
   }
+
+  getAll(): Observable<Adventurer[]> {
+    return this.http.get<Adventurer[]>(this.baseUrl);
+  }
+
+  getAdventurerById(id: number): Observable<Adventurer> {
+    return this.http.get<Adventurer>(`${this.baseUrl}/${id}`);
+  }
+
+  updateAdventurer(id: number, data: AdventurerFormData): Observable<Adventurer> {
+    return this.http.put<Adventurer>(`${this.baseUrl}/${id}`, data);
+  }
 }

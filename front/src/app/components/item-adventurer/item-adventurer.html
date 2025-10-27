@@ -1,0 +1,21 @@
+<div class="adventurer-item">
+    <p>{{ adventurer.name }}</p>
+    <span><label class="bold" for="speciality">Spécialité : </label>
+        <p id="speciality">{{ adventurer.speciality.name }}</p>
+    </span>
+    <span><label class="bold" for="experience">Expérience : </label>
+        <p id="experience">{{ adventurer.experience }}</p>
+    </span>
+    <span>
+        <label class="bold" for="dailyRate">Taux journalier : </label>
+        <p id="dailyRate">{{ adventurer.dailyRate }}</p>
+    </span>
+    <span>
+        <label class="bold" for="equipment">Équipement : </label>
+        <p id="equipment">{{ getEquipmentNames(adventurer) }}</p>
+    </span>
+    <span>
+        <label class="bold" for="consumables">Consommables : </label>
+        <p id="consumables">{{ getConsumableNames(adventurer) }}</p>
+    </span>
+</div>

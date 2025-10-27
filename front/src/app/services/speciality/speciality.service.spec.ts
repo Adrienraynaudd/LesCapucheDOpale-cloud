@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { SpecialityService } from './speciality.service';
-import { Specialty } from '../../models/models';
+import { Speciality } from '../../models/models';
 import { provideHttpClient } from '@angular/common/http';
 
 describe('SpecialityService', () => {
@@ -25,20 +25,20 @@ describe('SpecialityService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('should retrieve specialties from the API via GET', () => {
-    const mockSpecialties: Specialty[] = [
+  it('should retrieve specialities from the API via GET', () => {
+    const mockSpecialities: Speciality[] = [
       { id: 1, name: 'Cardiology' },
       { id: 2, name: 'Neurology' },
     ];
 
-    service.getSpecialties().subscribe((specialties) => {
-      expect(specialties).toEqual(mockSpecialties);
-      expect(specialties.length).toBe(2);
-      expect(specialties[0].name).toBe('Cardiology');
+    service.getSpecialities().subscribe((specialities) => {
+      expect(specialities).toEqual(mockSpecialities);
+      expect(specialities.length).toBe(2);
+      expect(specialities[0].name).toBe('Cardiology');
     });
 
-    const req = httpMock.expectOne(`/api/specialties`);
+    const req = httpMock.expectOne(`/api/specialities`);
     expect(req.request.method).toBe('GET');
-    req.flush(mockSpecialties);
+    req.flush(mockSpecialities);
   });
 });

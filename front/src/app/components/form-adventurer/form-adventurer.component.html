@@ -10,13 +10,13 @@
   </div>
 
   <div class="form-group">
-    <label for="specialty">Spécialité:</label>
-    <select id="specialty" formControlName="specialty">
-      @for (spe of specialties; track spe) {
+    <label for="speciality">Spécialité:</label>
+    <select id="speciality" formControlName="speciality">
+      @for (spe of specialities; track spe) {
       <option [value]="spe.id">{{ spe.name }}</option>
       }
     </select>
-    @if ((adventurerForm.get('specialty')?.touched || hasSubmitted) && adventurerForm.get('specialty')?.invalid) {
+    @if ((adventurerForm.get('speciality')?.touched || hasSubmitted) && adventurerForm.get('speciality')?.invalid) {
     <p class="error">
       La spécialité est requise.
     </p>

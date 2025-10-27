@@ -43,7 +43,7 @@ describe('NewAdventurerComponent', () => {
     // Arrange
     const mockFormData: AdventurerFormData = {
       name: 'Aragorn',
-      specialty: 1,
+      speciality: 1,
       equipmentType: [],
       consumableType: [],
       dailyRate: 123,
@@ -51,10 +51,12 @@ describe('NewAdventurerComponent', () => {
 
     const mockResponse: Adventurer = {
       name: 'Aragorn',
-      specialty: { id: 1, name: 'Guerrier' },
+      speciality: { id: 1, name: 'Guerrier' },
       equipmentType: [],
       consumableType: [],
       dailyRate: 123,
+      id: 1,
+      experience: 0
     };
 
     adventurerServiceSpy.createAdventurer.and.returnValue(of(mockResponse));
@@ -72,7 +74,7 @@ describe('NewAdventurerComponent', () => {
     // Arrange
     const mockFormData: AdventurerFormData = {
       name: 'Legolas',
-      specialty: 2,
+      speciality: 2,
       equipmentType: [],
       consumableType: [],
       dailyRate: 150,
