@@ -1,0 +1,73 @@
+<form [formGroup]="adventurerForm" (ngSubmit)="onSubmit()">
+  <div class="form-group">
+    <label for="name">Nom:</label>
+    <input id="name" formControlName="name" />
+    @if ((adventurerForm.get('name')?.touched || hasSubmitted) && adventurerForm.get('name')?.invalid) {
+    <p class="error">
+      Le nom doit contenir au moins 3 caractères.
+    </p>
+    }
+  </div>
+
+  <div class="form-group">
+    <label for="specialty">Spécialité:</label>
+    <select id="specialty" formControlName="specialty">
+      @for (spe of specialties; track spe) {
+      <option [value]="spe.id">{{ spe.name }}</option>
+      }
+    </select>
+    @if ((adventurerForm.get('specialty')?.touched || hasSubmitted) && adventurerForm.get('specialty')?.invalid) {
+    <p class="error">
+      La spécialité est requise.
+    </p>
+    }
+  </div>
+
+  <div class="form-group">
+    <label for="equipmentType">Type d'équipement:</label>
+    <select id="equipmentType" formControlName="equipmentType" multiple>
+      @for (type of equipmentTypes; track type) {
+      <option [value]="type.id">{{ type.name }}</option>
+      }
+    </select>
+    @if ((adventurerForm.get('equipmentType')?.touched || hasSubmitted) && adventurerForm.get('equipmentType')?.invalid)
+    {
+    <p class="error">
+      Le type d'équipement est requis.
+    </p>
+    }
+  </div>
+
+  <div class="form-group">
+    <label for="consumableType">Type de consommable:</label>
+    <select id="consumableType" formControlName="consumableType" multiple>
+      @for (type of consumableTypes; track type) {
+      <option [value]="type.id">{{ type.name }}</option>
+      }
+    </select>
+    @if ((adventurerForm.get('consumableType')?.touched || hasSubmitted) &&
+    adventurerForm.get('consumableType')?.invalid) {
+    <p class="error">
+      Le type de consommable est requis.
+    </p>
+    }
+  </div>
+
+  <div class="form-group">
+    <label for="dailyRate">Taux journalier:</label>
+    <span>
+      <label for="dailyRatePo">PO</label>
+      <input id="dailyRatePo" type="number" (change)="onDailyRateChange()" formControlName="dailyRatePo" min="0" />
+    </span>
+    <span>
+      <label for="dailyRatePa">PA</label>
+      <input id="dailyRatePa" type="number" (change)="onDailyRateChange()" formControlName="dailyRatePa" min="0" />
+    </span>
+    <span>
+      <label for="dailyRatePc">PC</label>
+      <input id="dailyRatePc" type="number" (change)="onDailyRateChange()" formControlName="dailyRatePc" min="0" />
+    </span>
+  </div>
+
+  <button type="submit">Créer un aventurier</button>
+</form>
