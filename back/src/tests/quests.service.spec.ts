@@ -18,10 +18,19 @@ describe('QuestsService', () => {
     equipmentStock: {
       findMany: jest.fn(),
     },
+    questStockEquipment: {
+      findMany: jest.fn(),
+      createMany: jest.fn(),
+      deleteMany: jest.fn(),
+    },
     quest: {
       create: jest.fn(),
       update: jest.fn(),
+      findMany: jest.fn(),
+      findUnique: jest.fn(),
+
     },
+    $transaction: jest.fn(),
   };
 
   beforeEach(() => {
@@ -63,7 +72,7 @@ describe('QuestsService', () => {
           statusId: 7,
           UserId: 42,
           adventurers: { connect: (dto.adventurerIds ?? []).map(id => ({ id })) },
-          questStockEquipments: { connect: (dto.equipmentStockIds ?? []).map(id => ({ id })) },
+          questStockEquipments: { create: (dto.equipmentStockIds ?? []).map(id => ({ equipmentStockId: id })) },
         },
         include: {
           status: true,
@@ -172,4 +181,132 @@ describe('QuestsService', () => {
       await expect(service.update(1, dto)).rejects.toThrow(/EquipmentStock id\(s\) not found/);
     });
   });
+
+  it('should return quests with relations', async () => {
+  const quests = [{ id: 1, name: 'Quest1' }];
+  mockPrisma.quest.findMany.mockResolvedValue(quests);
+  const res = await service.findAll();
+  expect(res).toBe(quests);
+  expect(mockPrisma.quest.findMany).toHaveBeenCalledWith({
+    include: { status: true, adventurers: true, questStockEquipments: true, user: true },
+    orderBy: { id: 'desc' },
+  });
+});
+
+it('should return quest by id', async () => {
+  const quest = { id: 1, name: 'Quest1' };
+  mockPrisma.quest.findUnique.mockResolvedValue(quest);
+  const res = await service.findOne(1);
+  expect(res).toBe(quest);
+});
+
+it('should throw NotFoundException if quest not found', async () => {
+  mockPrisma.quest.findUnique.mockResolvedValue(null);
+  await expect(service.findOne(999)).rejects.toThrow(NotFoundException);
+});
+
+it('should update quest status by id', async () => {
+  const quest = { id: 1, statusId: 2 };
+  mockPrisma.status.findFirst.mockResolvedValue({ id: 2 });
+  mockPrisma.quest.update.mockResolvedValue(quest);
+
+  const res = await service.updateStatus(1, { statusName: 'Active' });
+  expect(res).toBe(quest);
+});
+
+it('should throw NotFoundException if status not found', async () => {
+  mockPrisma.status.findFirst.mockResolvedValue(null);
+  await expect(service.updateStatus(1, { statusName: 'Bad' })).rejects.toThrow(NotFoundException);
+});
+
+it('should throw BadRequestException if no status info provided', async () => {
+  await expect(service.updateStatus(1, {})).rejects.toThrow('Provide statusId or statusName');
+});
+
+it('should attach adventurers to a quest', async () => {
+  mockPrisma.adventurer.findMany.mockResolvedValue([{ id: 1 }]);
+  mockPrisma.quest.update.mockResolvedValue({ id: 1, adventurers: [{ id: 1 }] });
+
+  const res = await service.attachAdventurers(1, [1]);
+
+  expect(mockPrisma.adventurer.findMany).toHaveBeenCalled();
+  expect(mockPrisma.quest.update).toHaveBeenCalledWith({
+    where: { id: 1 },
+    data: { adventurers: { connect: [{ id: 1 }] } },
+    include: expect.any(Object),
+  });
+  expect(res).toEqual({ id: 1, adventurers: [{ id: 1 }] });
+});
+
+it('should detach adventurers from a quest', async () => {
+  mockPrisma.adventurer.findMany.mockResolvedValue([{ id: 1 }]);
+  mockPrisma.quest.update.mockResolvedValue({ id: 1, adventurers: [] });
+
+  const res = await service.detachAdventurers(1, [1]);
+
+  expect(mockPrisma.quest.update).toHaveBeenCalledWith({
+    where: { id: 1 },
+    data: { adventurers: { disconnect: [{ id: 1 }] } },
+    include: expect.any(Object),
+  });
+  expect(res).toEqual({ id: 1, adventurers: [] });
+});
+
+it('should set adventurers for a quest', async () => {
+  mockPrisma.adventurer.findMany.mockResolvedValue([{ id: 2 }]);
+  mockPrisma.quest.update.mockResolvedValue({ id: 1, adventurers: [{ id: 2 }] });
+
+  const res = await service.setAdventurers(1, [2]);
+  expect(mockPrisma.quest.update).toHaveBeenCalledWith({
+    where: { id: 1 },
+    data: { adventurers: { set: [{ id: 2 }] } },
+    include: expect.any(Object),
+  });
+  expect(res).toEqual({ id: 1, adventurers: [{ id: 2 }] });
+});
+
+it('should attach equipment stocks to a quest', async () => {
+  mockPrisma.equipmentStock.findMany.mockResolvedValue([{ id: 10 }]);
+  mockPrisma.questStockEquipment.findMany.mockResolvedValue([]);
+  mockPrisma.questStockEquipment.createMany.mockResolvedValue({});
+  mockPrisma.quest.findUnique.mockResolvedValue({ id: 1 });
+
+  const res = await service.attachEquipmentStocks(1, [10]);
+  expect(mockPrisma.questStockEquipment.createMany).toHaveBeenCalledWith({
+    data: [{ questId: 1, equipmentStockId: 10 }],
+  });
+  expect(res).toEqual({ id: 1 });
+});
+
+it('should detach equipment stocks from a quest', async () => {
+  mockPrisma.equipmentStock.findMany.mockResolvedValue([{ id: 10 }]);
+  mockPrisma.questStockEquipment.deleteMany.mockResolvedValue({});
+  mockPrisma.quest.findUnique.mockResolvedValue({ id: 1 });
+
+  const res = await service.detachEquipmentStocks(1, [10]);
+  expect(mockPrisma.questStockEquipment.deleteMany).toHaveBeenCalledWith({
+    where: { questId: 1, equipmentStockId: { in: [10] } },
+  });
+  expect(res).toEqual({ id: 1 });
+});
+
+it('should set equipment stocks for a quest', async () => {
+  mockPrisma.equipmentStock.findMany.mockResolvedValue([{ id: 10 }]);
+  mockPrisma.questStockEquipment.deleteMany.mockResolvedValue({});
+  mockPrisma.questStockEquipment.createMany.mockResolvedValue({});
+  mockPrisma.$transaction.mockImplementation(async ops => {
+    for (const op of ops) await op;
+  });
+  mockPrisma.quest.findUnique.mockResolvedValue({ id: 1 });
+
+  const res = await service.setEquipmentStocks(1, [10]);
+  expect(mockPrisma.questStockEquipment.deleteMany).toHaveBeenCalledWith({ where: { questId: 1 } });
+  expect(mockPrisma.questStockEquipment.createMany).toHaveBeenCalledWith({
+    data: [{ questId: 1, equipmentStockId: 10 }],
+  });
+  expect(res).toEqual({ id: 1 });
+});
+
+
+
 });

@@ -44,9 +44,9 @@ jobs:
               run: npm run build
               working-directory: ./back
 
-            # - name: Back - Lint
-            #   run: npm run lint
-            #   working-directory: ./back
+            - name: Back - Lint
+              run: npm run lint
+              working-directory: ./back
               
             - name: Back - Test
               run: npm run test --coverage
