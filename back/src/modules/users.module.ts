@@ -6,13 +6,10 @@ import { PrismaModule } from '../prisma/prisma.service';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { RolesGuard } from '../guards/roles.guard';
 
-
 @Module({
-imports: [PrismaModule,
-    JwtModule.register({})
-  ],
-controllers: [UsersController],
-providers: [UsersService, RolesGuard,JwtAuthGuard],
-exports: [UsersService],
+  imports: [PrismaModule, JwtModule.register({})],
+  controllers: [UsersController],
+  providers: [UsersService, RolesGuard, JwtAuthGuard],
+  exports: [UsersService],
 })
 export class UsersModule {}

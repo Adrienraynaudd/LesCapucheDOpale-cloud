@@ -26,7 +26,9 @@ describe('User DTOs', () => {
 
     const errors = await validate(dto);
     expect(errors.length).toBeGreaterThan(0);
-    expect(errors.map(e => e.property)).toEqual(expect.arrayContaining(['name','email','password','roleId']));
+    expect(errors.map((e) => e.property)).toEqual(
+      expect.arrayContaining(['name', 'email', 'password', 'roleId']),
+    );
   });
 
   it('should validate a correct UpdateUserDto', async () => {

@@ -1,4 +1,4 @@
-import { IsInt, IsPositive } from 'class-validator';
+import { IsInt } from 'class-validator';
 
 export class CreateQuestStockEquipmentDto {
   @IsInt()

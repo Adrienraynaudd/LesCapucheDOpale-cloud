@@ -1,4 +1,14 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { EquipmentStocksService } from '../services/equipment-stocks.service';
 import { CreateEquipmentStockDto } from '../dto/create-equipment-stock.dto';
 import { UpdateEquipmentStockDto } from '../dto/update-equipment-stock.dto';
@@ -30,7 +40,10 @@ export class EquipmentStocksController {
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(1, 2)
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateEquipmentStockDto) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateEquipmentStockDto,
+  ) {
     return this.service.update(id, dto);
   }
 

@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { Prisma } from '@prisma/client';
 import { CreateEquipmentStockDto } from '../dto/create-equipment-stock.dto';
 import { UpdateEquipmentStockDto } from '../dto/update-equipment-stock.dto';
 import { equipmentStockInclude } from '../dto/equipment-stock.dto';
@@ -17,7 +18,9 @@ export class EquipmentStocksService {
   }
 
   findAll() {
-    return this.prisma.equipmentStock.findMany({ include: equipmentStockInclude });
+    return this.prisma.equipmentStock.findMany({
+      include: equipmentStockInclude,
+    });
   }
 
   async findOne(id: number) {
@@ -37,8 +40,13 @@ export class EquipmentStocksService {
         data: dto,
         include: equipmentStockInclude,
       });
-    } catch (e: any) {
-      if (e.code === 'P2025') throw new NotFoundException('EquipmentStock not found');
+    } catch (e) {
+      if (
+        e instanceof Prisma.PrismaClientKnownRequestError &&
+        e.code === 'P2025'
+      ) {
+        throw new NotFoundException('EquipmentStock not found');
+      }
       throw e;
     }
   }
@@ -46,14 +54,21 @@ export class EquipmentStocksService {
   async delete(id: number) {
     try {
       return await this.prisma.equipmentStock.delete({ where: { id } });
-    } catch (e: any) {
-      if (e.code === 'P2025') throw new NotFoundException('EquipmentStock not found');
+    } catch (e) {
+      if (
+        e instanceof Prisma.PrismaClientKnownRequestError &&
+        e.code === 'P2025'
+      ) {
+        throw new NotFoundException('EquipmentStock not found');
+      }
       throw e;
     }
   }
 
   private async findEquipment(equipmentId: number) {
-    const e = await this.prisma.equipment.findUnique({ where: { id: equipmentId } });
+    const e = await this.prisma.equipment.findUnique({
+      where: { id: equipmentId },
+    });
     if (!e) throw new NotFoundException(`Equipment ${equipmentId} not found`);
   }
 }

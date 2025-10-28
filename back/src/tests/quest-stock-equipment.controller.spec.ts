@@ -17,16 +17,19 @@ describe('QuestStockEquipmentController', () => {
     jest.clearAllMocks();
     const module: TestingModule = await Test.createTestingModule({
       controllers: [QuestStockEquipmentController],
-      providers: [{ provide: QuestStockEquipmentService, useValue: mockService }],
+      providers: [
+        { provide: QuestStockEquipmentService, useValue: mockService },
+      ],
     })
-      // override guards to avoid needing JwtService in the test context
       .overrideGuard(JwtAuthGuard)
       .useValue({ canActivate: jest.fn(() => true) })
       .overrideGuard(RolesGuard)
       .useValue({ canActivate: jest.fn(() => true) })
       .compile();
 
-    controller = module.get<QuestStockEquipmentController>(QuestStockEquipmentController);
+    controller = module.get<QuestStockEquipmentController>(
+      QuestStockEquipmentController,
+    );
   });
 
   it('should call service.findAll without questId', () => {
@@ -42,7 +45,10 @@ describe('QuestStockEquipmentController', () => {
   });
 
   it('should call service.attach with dto', () => {
-    const dto: CreateQuestStockEquipmentDto = { questId: 1, equipmentStockId: 2 };
+    const dto: CreateQuestStockEquipmentDto = {
+      questId: 1,
+      equipmentStockId: 2,
+    };
     mockService.attach.mockReturnValue({ id: 10, ...dto });
     expect(controller.attach(dto)).toEqual({ id: 10, ...dto });
     expect(mockService.attach).toHaveBeenCalledWith(dto);

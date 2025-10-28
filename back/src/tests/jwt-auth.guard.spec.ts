@@ -11,13 +11,14 @@ describe('JwtAuthGuard', () => {
     guard = new JwtAuthGuard(jwtService);
   });
 
-  const mockExecutionContext = (authHeader?: string): ExecutionContext => ({
-    switchToHttp: () => ({
-      getRequest: () => ({
-        headers: authHeader ? { authorization: authHeader } : {},
+  const mockExecutionContext = (authHeader?: string): ExecutionContext =>
+    ({
+      switchToHttp: () => ({
+        getRequest: () => ({
+          headers: authHeader ? { authorization: authHeader } : {},
+        }),
       }),
-    }),
-  } as unknown as ExecutionContext);
+    }) as unknown as ExecutionContext;
 
   it('should allow valid token', () => {
     const token = jwtService.sign({ sub: 1, email: 'user@mail.com', role: 2 });

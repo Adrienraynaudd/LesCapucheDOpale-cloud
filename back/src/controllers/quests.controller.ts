@@ -1,4 +1,14 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { QuestsService } from '../services/quests.service';
 import { CreateQuestDto } from '../dto/create-quest.dto';
 import { UpdateQuestDto } from '../dto/update-quest.dto';
@@ -7,13 +17,17 @@ import { RolesGuard } from '../guards/roles.guard';
 import { Roles } from '../guards/roles.decorator';
 import { UpdateStatusDto } from '../dto/update-quest-status.dto';
 import { IdsDto } from '../dto/quest_id.dto';
+import { UserDto } from 'src/dto/user.dto';
 
+export interface AuthenticatedRequest extends Request {
+  user: UserDto & { sub: number };
+}
 @Controller('quests')
 export class QuestsController {
   constructor(private readonly questsService: QuestsService) {}
 
-   @Get()
-   @UseGuards(JwtAuthGuard, RolesGuard)
+  @Get()
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(1, 2)
   findAll() {
     return this.questsService.findAll();
@@ -29,10 +43,10 @@ export class QuestsController {
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(1, 2)
-  create(@Req() req, @Body() dto: CreateQuestDto) {
-  const userId = req?.user?.sub;
-  return this.questsService.create(userId, dto);
-}
+  create(@Req() req: AuthenticatedRequest, @Body() dto: CreateQuestDto) {
+    const userId = req.user.sub;
+    return this.questsService.create(userId, dto);
+  }
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -54,14 +68,20 @@ export class QuestsController {
   @Patch(':id/adventurers/attach')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(1, 2)
-  attachAdventurers(@Param('id', ParseIntPipe) id: number, @Body() body: IdsDto) {
+  attachAdventurers(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: IdsDto,
+  ) {
     return this.questsService.attachAdventurers(id, body.ids);
   }
 
   @Patch(':id/adventurers/detach')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(1, 2)
-  detachAdventurers(@Param('id', ParseIntPipe) id: number, @Body() body: IdsDto) {
+  detachAdventurers(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: IdsDto,
+  ) {
     return this.questsService.detachAdventurers(id, body.ids);
   }
 

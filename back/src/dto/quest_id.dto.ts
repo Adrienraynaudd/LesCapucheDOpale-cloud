@@ -1,5 +1,5 @@
-import { Type } from "class-transformer";
-import { ArrayNotEmpty, IsArray, IsInt } from "class-validator";
+import { Type } from 'class-transformer';
+import { ArrayNotEmpty, IsArray, IsInt } from 'class-validator';
 
 class IdsDto {
   @IsArray()
@@ -9,4 +9,3 @@ class IdsDto {
   ids: number[];
 }
 export { IdsDto };
-

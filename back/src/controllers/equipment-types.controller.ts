@@ -1,34 +1,42 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { EquipmentTypesService } from '../services/equipment-types.service';
 import { CreateEquipmentTypeDto } from '../dto/create-equipment-type.dto';
 import { UpdateEquipmentTypeDto } from '../dto/update-equipment-type.dto';
 
 @Controller('equipment-types')
 export class EquipmentTypesController {
-    constructor(private readonly equipmentTypesService: EquipmentTypesService) {}
+  constructor(private readonly equipmentTypesService: EquipmentTypesService) {}
 
-    @Post()
-    create(@Body() dto: CreateEquipmentTypeDto) {
-        return this.equipmentTypesService.create(dto);
-    }
+  @Post()
+  create(@Body() dto: CreateEquipmentTypeDto) {
+    return this.equipmentTypesService.create(dto);
+  }
 
-    @Get()
-    findAll() {
-        return this.equipmentTypesService.findAll();
-    }
+  @Get()
+  findAll() {
+    return this.equipmentTypesService.findAll();
+  }
 
-    @Get(':id')
-    findOne(@Param('id') id: number) {
-        return this.equipmentTypesService.findOne(id);
-    }
+  @Get(':id')
+  findOne(@Param('id') id: number) {
+    return this.equipmentTypesService.findOne(id);
+  }
 
-    @Patch(':id')
-    update(@Param('id') id: number, @Body() dto: UpdateEquipmentTypeDto) {
-        return this.equipmentTypesService.update(id, dto);
-    }
+  @Patch(':id')
+  update(@Param('id') id: number, @Body() dto: UpdateEquipmentTypeDto) {
+    return this.equipmentTypesService.update(id, dto);
+  }
 
-    @Delete(':id')
-    delete(@Param('id') id: number) {
-        return this.equipmentTypesService.delete(id);
-    }
+  @Delete(':id')
+  delete(@Param('id') id: number) {
+    return this.equipmentTypesService.delete(id);
+  }
 }

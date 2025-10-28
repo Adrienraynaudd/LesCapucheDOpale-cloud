@@ -26,18 +26,30 @@ describe('AuthController', () => {
 
   it('should return a token on successful login', async () => {
     const mockDto = { email: 'user@mail.com', password: 'password123' };
-    (authService.login as jest.Mock).mockResolvedValue({ access_token: 'mockedToken' });
+    (authService.login as jest.Mock).mockResolvedValue({
+      access_token: 'mockedToken',
+    });
 
     const result = await authController.login(mockDto);
     expect(result).toEqual({ access_token: 'mockedToken' });
-    expect(authService.login).toHaveBeenCalledWith(mockDto.email, mockDto.password);
+    expect(authService.login).toHaveBeenCalledWith(
+      mockDto.email,
+      mockDto.password,
+    );
   });
 
   it('should throw UnauthorizedException if login fails', async () => {
     const mockDto = { email: 'wrong@mail.com', password: 'badpass' };
-    (authService.login as jest.Mock).mockRejectedValue(new UnauthorizedException('Invalid credentials'));
+    (authService.login as jest.Mock).mockRejectedValue(
+      new UnauthorizedException('Invalid credentials'),
+    );
 
-    await expect(authController.login(mockDto)).rejects.toThrow(UnauthorizedException);
-    expect(authService.login).toHaveBeenCalledWith(mockDto.email, mockDto.password);
+    await expect(authController.login(mockDto)).rejects.toThrow(
+      UnauthorizedException,
+    );
+    expect(authService.login).toHaveBeenCalledWith(
+      mockDto.email,
+      mockDto.password,
+    );
   });
 });

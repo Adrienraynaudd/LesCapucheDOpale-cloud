@@ -22,7 +22,6 @@ describe('EquipmentController', () => {
       controllers: [EquipmentController],
       providers: [{ provide: EquipmentService, useValue: mockService }],
     })
-      // override guards so we don't need JwtService in the test context
       .overrideGuard(JwtAuthGuard)
       .useValue({ canActivate: jest.fn(() => true) })
       .overrideGuard(RolesGuard)
@@ -51,8 +50,16 @@ describe('EquipmentController', () => {
       maxDurability: 30,
       equipmentTypeId: 1,
     };
-    mockService.create.mockReturnValue({ id: 1, ...dto, currentDurability: dto.maxDurability });
-    expect(controller.create(dto)).toEqual({ id: 1, ...dto, currentDurability: dto.maxDurability });
+    mockService.create.mockReturnValue({
+      id: 1,
+      ...dto,
+      currentDurability: dto.maxDurability,
+    });
+    expect(controller.create(dto)).toEqual({
+      id: 1,
+      ...dto,
+      currentDurability: dto.maxDurability,
+    });
     expect(mockService.create).toHaveBeenCalledWith(dto);
   });
 

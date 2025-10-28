@@ -22,14 +22,16 @@ describe('EquipmentStocksController', () => {
       controllers: [EquipmentStocksController],
       providers: [{ provide: EquipmentStocksService, useValue: mockService }],
     })
-      // override guards that require external providers (JwtService etc.)
+      
       .overrideGuard(JwtAuthGuard)
       .useValue({ canActivate: jest.fn(() => true) })
       .overrideGuard(RolesGuard)
       .useValue({ canActivate: jest.fn(() => true) })
       .compile();
 
-    controller = module.get<EquipmentStocksController>(EquipmentStocksController);
+    controller = module.get<EquipmentStocksController>(
+      EquipmentStocksController,
+    );
   });
 
   it('should call service.findAll', () => {

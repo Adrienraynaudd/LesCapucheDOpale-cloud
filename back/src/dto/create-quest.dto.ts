@@ -1,4 +1,13 @@
-import { IsArray, IsDate, IsInt, IsNotEmpty, IsOptional, IsPositive, IsString, Min } from 'class-validator';
+import {
+  IsArray,
+  IsDate,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsPositive,
+  IsString,
+  Min,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateQuestDto {
@@ -21,10 +30,6 @@ export class CreateQuestDto {
   @IsInt()
   @IsPositive()
   estimatedDuration: number;
-
-  @IsInt()
-  @Min(0)
-  recommendedXP: number;
 
   @IsOptional()
   @IsArray()

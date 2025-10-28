@@ -4,8 +4,8 @@ import { ConsumableTypesController } from '../controllers/consumable-types.contr
 import { PrismaModule } from '../prisma/prisma.service';
 
 @Module({
-    imports: [PrismaModule],
-    controllers: [ConsumableTypesController],
-    providers: [ConsumableTypesService],
+  imports: [PrismaModule],
+  controllers: [ConsumableTypesController],
+  providers: [ConsumableTypesService],
 })
 export class ConsumableTypesModule {}

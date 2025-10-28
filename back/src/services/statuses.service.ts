@@ -18,8 +18,10 @@ export class StatusesService {
   async update(id: number, dto: UpdateStatusDto) {
     try {
       return await this.prisma.status.update({ where: { id }, data: dto });
-    } catch (e: any) {
-      if (e.code === 'P2025') throw new NotFoundException('Status not found');
+    } catch (e: unknown) {
+      if (isPrismaNotFoundError(e)) {
+        throw new NotFoundException('Status not found');
+      }
       throw e;
     }
   }
@@ -27,9 +29,20 @@ export class StatusesService {
   async delete(id: number) {
     try {
       return await this.prisma.status.delete({ where: { id } });
-    } catch (e: any) {
-      if (e.code === 'P2025') throw new NotFoundException('Status not found');
+    } catch (e: unknown) {
+      if (isPrismaNotFoundError(e)) {
+        throw new NotFoundException('Status not found');
+      }
       throw e;
     }
   }
+}
+
+function isPrismaNotFoundError(error: unknown): error is { code: 'P2025' } {
+  if (typeof error !== 'object' || error === null) return false;
+
+  if (!('code' in error)) return false;
+
+  const maybeError = error as { code?: unknown };
+  return maybeError.code === 'P2025';
 }

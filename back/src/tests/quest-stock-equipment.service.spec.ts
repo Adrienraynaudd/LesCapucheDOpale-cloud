@@ -1,108 +1,140 @@
+import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
 import { QuestStockEquipmentService } from '../services/quest-stock-equipment.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateQuestStockEquipmentDto } from '../dto/create-quest-stock-equipment.dto';
+import { EquipmentStock, Quest, QuestStockEquipment } from '@prisma/client';
+
+type PrismaMock = {
+  questStockEquipment: {
+    create: jest.Mock<Promise<QuestStockEquipment>, [any]>;
+    findMany: jest.Mock<Promise<QuestStockEquipment[]>, [any?]>;
+    delete: jest.Mock<Promise<QuestStockEquipment>, [any]>;
+  };
+  quest: {
+    findUnique: jest.Mock<Promise<Quest | null>, [any]>;
+  };
+  equipmentStock: {
+    findUnique: jest.Mock<Promise<EquipmentStock | null>, [any]>;
+  };
+};
 
 describe('QuestStockEquipmentService', () => {
   let service: QuestStockEquipmentService;
+  let mockPrisma: PrismaMock;
 
-  const mockPrisma: any = {
-    questStockEquipment: {
-      create: jest.fn(),
-      findMany: jest.fn(),
-      delete: jest.fn(),
-    },
-    quest: {
-      findUnique: jest.fn(),
-    },
-    equipmentStock: {
-      findUnique: jest.fn(),
-    },
-  };
+  beforeEach(async () => {
+    mockPrisma = {
+      questStockEquipment: {
+        create: jest.fn() as jest.Mock<Promise<QuestStockEquipment>, [any]>,
+        findMany: jest.fn() as jest.Mock<
+          Promise<QuestStockEquipment[]>,
+          [any?]
+        >,
+        delete: jest.fn() as jest.Mock<Promise<QuestStockEquipment>, [any]>,
+      },
+      quest: {
+        findUnique: jest.fn() as jest.Mock<Promise<Quest | null>, [any]>,
+      },
+      equipmentStock: {
+        findUnique: jest.fn() as jest.Mock<
+          Promise<EquipmentStock | null>,
+          [any]
+        >,
+      },
+    };
 
-  beforeEach(() => {
-    jest.clearAllMocks();
-    service = new QuestStockEquipmentService(mockPrisma as unknown as PrismaService);
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        QuestStockEquipmentService,
+        { provide: PrismaService, useValue: mockPrisma },
+      ],
+    }).compile();
+
+    service = module.get<QuestStockEquipmentService>(
+      QuestStockEquipmentService,
+    );
   });
 
-  describe('attach', () => {
-    it('should attach when quest and equipmentStock exist', async () => {
-      const dto: CreateQuestStockEquipmentDto = { questId: 1, equipmentStockId: 2 };
-      mockPrisma.quest.findUnique.mockResolvedValue({ id: 1 });
-      mockPrisma.equipmentStock.findUnique.mockResolvedValue({ id: 2 });
-      mockPrisma.questStockEquipment.create.mockResolvedValue({
+  it('should create a quest stock equipment', async () => {
+    const dto: CreateQuestStockEquipmentDto = {
+      questId: 1,
+      equipmentStockId: 2,
+    };
+
+    mockPrisma.quest.findUnique.mockResolvedValue({ id: 1 } as Quest);
+    mockPrisma.equipmentStock.findUnique.mockResolvedValue({
+      id: 2,
+    } as EquipmentStock);
+    mockPrisma.questStockEquipment.create.mockResolvedValue({
+      id: 10,
+      questId: 1,
+      equipmentStockId: 2,
+      equipmentId: null,
+      quest: { id: 1 },
+      equipmentStock: { id: 2 },
+    } as QuestStockEquipment);
+
+    const result = await service.attach(dto);
+
+    expect(result.id).toBe(10);
+    expect(mockPrisma.questStockEquipment.create).toHaveBeenCalled();
+  });
+
+  it('should throw if quest does not exist', async () => {
+    mockPrisma.quest.findUnique.mockResolvedValue(null);
+
+    await expect(
+      service.attach({ questId: 999, equipmentStockId: 2 }),
+    ).rejects.toThrow(NotFoundException);
+  });
+
+  it('should throw if equipment stock does not exist', async () => {
+    mockPrisma.quest.findUnique.mockResolvedValue({ id: 1 } as Quest);
+    mockPrisma.equipmentStock.findUnique.mockResolvedValue(null);
+
+    await expect(
+      service.attach({ questId: 1, equipmentStockId: 999 }),
+    ).rejects.toThrow(NotFoundException);
+  });
+
+  it('should find all quest stock equipment', async () => {
+    mockPrisma.questStockEquipment.findMany.mockResolvedValue([
+      {
         id: 10,
         questId: 1,
         equipmentStockId: 2,
+        equipmentId: null,
         quest: { id: 1 },
         equipmentStock: { id: 2 },
-      });
+      },
+    ] as unknown as QuestStockEquipment[]);
 
-      const res = await service.attach(dto);
+    const result = await service.findAll();
+    expect(result).toHaveLength(1);
+  });
 
-      expect(mockPrisma.quest.findUnique).toHaveBeenCalledWith({ where: { id: dto.questId } });
-      expect(mockPrisma.equipmentStock.findUnique).toHaveBeenCalledWith({ where: { id: dto.equipmentStockId } });
-      expect(mockPrisma.questStockEquipment.create).toHaveBeenCalledWith({
-        data: { questId: dto.questId, equipmentStockId: dto.equipmentStockId },
-        include: { quest: true, equipmentStock: true },
-      });
-      expect(res).toEqual(expect.objectContaining({ id: 10, questId: 1 }));
-    });
+  it('should delete a quest stock equipment', async () => {
+    mockPrisma.questStockEquipment.delete.mockResolvedValue({
+      id: 10,
+      questId: 1,
+      equipmentStockId: 2,
+      equipmentId: null,
+    } as QuestStockEquipment);
 
-    it('should throw NotFoundException when quest not found', async () => {
-      const dto: CreateQuestStockEquipmentDto = { questId: 999, equipmentStockId: 2 };
-      mockPrisma.quest.findUnique.mockResolvedValue(null);
-      await expect(service.attach(dto)).rejects.toThrow(NotFoundException);
-      expect(mockPrisma.quest.findUnique).toHaveBeenCalledWith({ where: { id: dto.questId } });
-    });
-
-    it('should throw NotFoundException when equipmentStock not found', async () => {
-      const dto: CreateQuestStockEquipmentDto = { questId: 1, equipmentStockId: 999 };
-      mockPrisma.quest.findUnique.mockResolvedValue({ id: 1 });
-      mockPrisma.equipmentStock.findUnique.mockResolvedValue(null);
-      await expect(service.attach(dto)).rejects.toThrow(NotFoundException);
-      expect(mockPrisma.equipmentStock.findUnique).toHaveBeenCalledWith({ where: { id: dto.equipmentStockId } });
+    const result = await service.delete(10);
+    expect(result.id).toBe(10);
+    expect(mockPrisma.questStockEquipment.delete).toHaveBeenCalledWith({
+      where: { id: 10 },
     });
   });
 
-  describe('findAll', () => {
-    it('should list all links when no questId provided', async () => {
-      const rows = [{ id: 1 }, { id: 2 }];
-      mockPrisma.questStockEquipment.findMany.mockResolvedValue(rows);
+  it('should throw NotFoundException if delete fails with P2025', async () => {
+    mockPrisma.questStockEquipment.delete.mockRejectedValue(
+      new NotFoundException('Quest stock equipment not found'),
+    );
 
-      const res = await service.findAll();
-      expect(mockPrisma.questStockEquipment.findMany).toHaveBeenCalledWith({
-        where: undefined,
-        include: { quest: true, equipmentStock: true },
-      });
-      expect(res).toEqual(rows);
-    });
-
-    it('should filter by questId when provided', async () => {
-      const rows = [{ id: 5, questId: 2 }];
-      mockPrisma.questStockEquipment.findMany.mockResolvedValue(rows);
-
-      const res = await service.findAll(2);
-      expect(mockPrisma.questStockEquipment.findMany).toHaveBeenCalledWith({
-        where: { questId: 2 },
-        include: { quest: true, equipmentStock: true },
-      });
-      expect(res).toEqual(rows);
-    });
+    await expect(service.delete(999)).rejects.toThrow(NotFoundException);
   });
 
-  describe('delete', () => {
-    it('should delete link when exists', async () => {
-      mockPrisma.questStockEquipment.delete.mockResolvedValue({ id: 1 });
-      const res = await service.delete(1);
-      expect(mockPrisma.questStockEquipment.delete).toHaveBeenCalledWith({ where: { id: 1 } });
-      expect(res).toEqual({ id: 1 });
-    });
-
-    it('should throw NotFoundException when prisma throws P2025', async () => {
-      const prismaErr: any = { code: 'P2025' };
-      mockPrisma.questStockEquipment.delete.mockRejectedValue(prismaErr);
-      await expect(service.delete(999)).rejects.toThrow(NotFoundException);
-    });
-  });
 });

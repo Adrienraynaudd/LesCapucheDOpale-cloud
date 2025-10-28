@@ -5,10 +5,7 @@ import { AuthController } from '../controllers/auth.controller';
 import { UsersModule } from './users.module';
 
 @Module({
-  imports: [
-    UsersModule,
-    JwtModule.register({}),
-  ],
+  imports: [UsersModule, JwtModule.register({})],
   providers: [AuthService],
   controllers: [AuthController],
   exports: [JwtModule],

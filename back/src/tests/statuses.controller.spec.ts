@@ -21,7 +21,6 @@ describe('StatusesController', () => {
       controllers: [StatusesController],
       providers: [{ provide: StatusesService, useValue: mockService }],
     })
-      // override guards so tests don't require JwtService
       .overrideGuard(JwtAuthGuard)
       .useValue({ canActivate: jest.fn(() => true) })
       .overrideGuard(RolesGuard)

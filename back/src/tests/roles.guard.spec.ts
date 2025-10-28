@@ -6,12 +6,22 @@ describe('RolesGuard', () => {
   let guard: RolesGuard;
   let reflector: Reflector;
 
+  const mockReflector = {
+    get: jest.fn(),
+  };
+
   beforeEach(() => {
-    reflector = { get: jest.fn() } as any;
+    reflector = mockReflector as unknown as Reflector;
     guard = new RolesGuard(reflector);
+    jest.clearAllMocks();
   });
 
-  const mockContext = (user: any, roles: number[] | undefined) => {
+  type User = { id?: number; roleId?: number };
+
+  const mockContext = (
+    user: User,
+    roles: number[] | undefined,
+  ): ExecutionContext => {
     const context = {
       switchToHttp: () => ({
         getRequest: () => ({ user }),
@@ -20,7 +30,7 @@ describe('RolesGuard', () => {
       getClass: jest.fn(),
     } as unknown as ExecutionContext;
 
-    (reflector.get as jest.Mock).mockReturnValue(roles);
+    mockReflector.get.mockReturnValue(roles);
     return context;
   };
 
@@ -30,7 +40,6 @@ describe('RolesGuard', () => {
   });
 
   it('should allow if user has required role', () => {
-    // Exemple : roleId 1 = admin
     const context = mockContext({ id: 1, roleId: 1 }, [1]);
     expect(guard.canActivate(context)).toBe(true);
   });

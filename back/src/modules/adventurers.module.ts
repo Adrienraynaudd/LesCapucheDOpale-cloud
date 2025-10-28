@@ -4,8 +4,8 @@ import { AdventurersController } from '../controllers/adventurers.controller';
 import { PrismaModule } from '../prisma/prisma.service';
 
 @Module({
-    imports: [PrismaModule],
-    controllers: [AdventurersController],
-    providers: [AdventurersService],
+  imports: [PrismaModule],
+  controllers: [AdventurersController],
+  providers: [AdventurersService],
 })
 export class AdventurersModule {}

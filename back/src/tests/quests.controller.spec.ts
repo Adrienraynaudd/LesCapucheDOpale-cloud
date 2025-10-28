@@ -5,10 +5,14 @@ import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { RolesGuard } from '../guards/roles.guard';
 import { CreateQuestDto } from '../dto/create-quest.dto';
 import { UpdateQuestDto } from '../dto/update-quest.dto';
+import { AuthenticatedRequest } from '../controllers/quests.controller';
+import { UpdateStatusDto } from '../dto/update-quest-status.dto';
+import { IdsDto } from '../dto/quest_id.dto';
 
 describe('QuestsController', () => {
   let controller: QuestsController;
-  const mockService = {
+
+  const mockService: Partial<Record<keyof QuestsService, jest.Mock>> = {
     create: jest.fn(),
     update: jest.fn(),
     findAll: jest.fn(),
@@ -38,99 +42,114 @@ describe('QuestsController', () => {
   });
 
   it('should call service.create with userId from req and dto', () => {
-    const dto: CreateQuestDto = { name: 'C1' } as any;
-    const req = { user: { sub: 123 } } as any;
-    mockService.create.mockReturnValue({ id: 1, ...dto });
+    const dto: CreateQuestDto = {
+      name: 'C1',
+      description: '',
+      finalDate: new Date(),
+      reward: 0,
+      estimatedDuration: 0,
+    };
 
-    expect(controller.create(req, dto)).toEqual({ id: 1, ...dto });
+    const req: Partial<AuthenticatedRequest> = {
+      user: { sub: 123 } as AuthenticatedRequest['user'],
+    };
+
+    mockService.create!.mockReturnValue({ id: 1, ...dto });
+
+    expect(controller.create(req as AuthenticatedRequest, dto)).toEqual({
+      id: 1,
+      ...dto,
+    });
     expect(mockService.create).toHaveBeenCalledWith(123, dto);
   });
 
   it('should call service.update with id and dto', () => {
-    const dto: UpdateQuestDto = { name: 'Up' } as any;
-    mockService.update.mockReturnValue({ id: 2, ...dto });
+    const dto: UpdateQuestDto = { name: 'Up' };
+    mockService.update!.mockReturnValue({ id: 2, ...dto });
 
     expect(controller.update(2, dto)).toEqual({ id: 2, ...dto });
     expect(mockService.update).toHaveBeenCalledWith(2, dto);
   });
 
   it('should call service.findAll', () => {
-  const mock = [{ id: 1, name: 'Q1' }];
-  mockService.findAll = jest.fn().mockReturnValue(mock);
+    const mock = [{ id: 1, name: 'Q1' }];
+    mockService.findAll!.mockReturnValue(mock);
 
-  expect(controller.findAll()).toBe(mock);
-  expect(mockService.findAll).toHaveBeenCalled();
-});
+    expect(controller.findAll()).toBe(mock);
+    expect(mockService.findAll).toHaveBeenCalled();
+  });
 
-it('should call service.findOne with id', () => {
-  const quest = { id: 5, name: 'Quest' };
-  mockService.findOne = jest.fn().mockReturnValue(quest);
+  it('should call service.findOne with id', () => {
+    const quest = { id: 5, name: 'Quest' };
+    mockService.findOne!.mockReturnValue(quest);
 
-  expect(controller.findOne(5)).toBe(quest);
-  expect(mockService.findOne).toHaveBeenCalledWith(5);
-});
+    expect(controller.findOne(5)).toBe(quest);
+    expect(mockService.findOne).toHaveBeenCalledWith(5);
+  });
 
-it('should call service.updateStatus', () => {
-  const dto = { statusId: 2 };
-  const res = { id: 1, statusId: 2 };
-  mockService.updateStatus = jest.fn().mockReturnValue(res);
+  it('should call service.updateStatus', () => {
+    const dto: UpdateStatusDto = { statusId: 2 };
+    const res = { id: 1, statusId: 2 };
+    mockService.updateStatus!.mockReturnValue(res);
 
-  expect(controller.updateStatus(1, dto)).toBe(res);
-  expect(mockService.updateStatus).toHaveBeenCalledWith(1, dto);
-});
+    expect(controller.updateStatus(1, dto)).toBe(res);
+    expect(mockService.updateStatus).toHaveBeenCalledWith(1, dto);
+  });
 
-it('should call service.attachAdventurers', () => {
-  const body = { ids: [1, 2] };
-  const res = { id: 10 };
-  mockService.attachAdventurers = jest.fn().mockReturnValue(res);
+  it('should call service.attachAdventurers', () => {
+    const body: IdsDto = { ids: [1, 2] };
+    const res = { id: 10 };
+    mockService.attachAdventurers!.mockReturnValue(res);
 
-  expect(controller.attachAdventurers(10, body)).toBe(res);
-  expect(mockService.attachAdventurers).toHaveBeenCalledWith(10, body.ids);
-});
+    expect(controller.attachAdventurers(10, body)).toBe(res);
+    expect(mockService.attachAdventurers).toHaveBeenCalledWith(10, body.ids);
+  });
 
-it('should call service.detachAdventurers', () => {
-  const body = { ids: [3] };
-  const res = { id: 10 };
-  mockService.detachAdventurers = jest.fn().mockReturnValue(res);
+  it('should call service.detachAdventurers', () => {
+    const body: IdsDto = { ids: [3] };
+    const res = { id: 10 };
+    mockService.detachAdventurers!.mockReturnValue(res);
 
-  expect(controller.detachAdventurers(10, body)).toBe(res);
-  expect(mockService.detachAdventurers).toHaveBeenCalledWith(10, body.ids);
-});
+    expect(controller.detachAdventurers(10, body)).toBe(res);
+    expect(mockService.detachAdventurers).toHaveBeenCalledWith(10, body.ids);
+  });
 
-it('should call service.setAdventurers', () => {
-  const body = { ids: [1, 2, 3] };
-  const res = { id: 12 };
-  mockService.setAdventurers = jest.fn().mockReturnValue(res);
+  it('should call service.setAdventurers', () => {
+    const body: IdsDto = { ids: [1, 2, 3] };
+    const res = { id: 12 };
+    mockService.setAdventurers!.mockReturnValue(res);
 
-  expect(controller.setAdventurers(12, body)).toBe(res);
-  expect(mockService.setAdventurers).toHaveBeenCalledWith(12, body.ids);
-});
+    expect(controller.setAdventurers(12, body)).toBe(res);
+    expect(mockService.setAdventurers).toHaveBeenCalledWith(12, body.ids);
+  });
 
-it('should call service.attachEquipment', () => {
-  const body = { ids: [9] };
-  const res = { id: 15 };
-  mockService.attachEquipmentStocks = jest.fn().mockReturnValue(res);
+  it('should call service.attachEquipment', () => {
+    const body: IdsDto = { ids: [9] };
+    const res = { id: 15 };
+    mockService.attachEquipmentStocks!.mockReturnValue(res);
 
-  expect(controller.attachEquipment(15, body)).toBe(res);
-  expect(mockService.attachEquipmentStocks).toHaveBeenCalledWith(15, body.ids);
-});
+    expect(controller.attachEquipment(15, body)).toBe(res);
+    expect(mockService.attachEquipmentStocks).toHaveBeenCalledWith(
+      15,
+      body.ids,
+    );
+  });
 
-it('should call service.detachEquipment', () => {
-  const body = { ids: [5] };
-  const res = { id: 7 };
-  mockService.detachEquipmentStocks = jest.fn().mockReturnValue(res);
+  it('should call service.detachEquipment', () => {
+    const body: IdsDto = { ids: [5] };
+    const res = { id: 7 };
+    mockService.detachEquipmentStocks!.mockReturnValue(res);
 
-  expect(controller.detachEquipment(7, body)).toBe(res);
-  expect(mockService.detachEquipmentStocks).toHaveBeenCalledWith(7, body.ids);
-});
+    expect(controller.detachEquipment(7, body)).toBe(res);
+    expect(mockService.detachEquipmentStocks).toHaveBeenCalledWith(7, body.ids);
+  });
 
-it('should call service.setEquipment', () => {
-  const body = { ids: [11, 12] };
-  const res = { id: 20 };
-  mockService.setEquipmentStocks = jest.fn().mockReturnValue(res);
+  it('should call service.setEquipment', () => {
+    const body: IdsDto = { ids: [11, 12] };
+    const res = { id: 20 };
+    mockService.setEquipmentStocks!.mockReturnValue(res);
 
-  expect(controller.setEquipment(20, body)).toBe(res);
-  expect(mockService.setEquipmentStocks).toHaveBeenCalledWith(20, body.ids);
-});
-
+    expect(controller.setEquipment(20, body)).toBe(res);
+    expect(mockService.setEquipmentStocks).toHaveBeenCalledWith(20, body.ids);
+  });
 });

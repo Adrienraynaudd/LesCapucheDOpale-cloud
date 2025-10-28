@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateQuestStockEquipmentDto } from '../dto/create-quest-stock-equipment.dto';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class QuestStockEquipmentService {
@@ -29,8 +30,13 @@ export class QuestStockEquipmentService {
   async delete(id: number) {
     try {
       return await this.prisma.questStockEquipment.delete({ where: { id } });
-    } catch (e: any) {
-      if (e.code === 'P2025') throw new NotFoundException('Link not found');
+    } catch (e) {
+      if (
+        e instanceof Prisma.PrismaClientKnownRequestError &&
+        e.code === 'P2025'
+      ) {
+        throw new NotFoundException('Link not found');
+      }
       throw e;
     }
   }

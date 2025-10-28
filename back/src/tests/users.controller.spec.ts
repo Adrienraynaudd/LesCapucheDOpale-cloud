@@ -7,7 +7,6 @@ import { ExecutionContext } from '@nestjs/common';
 
 describe('UsersController', () => {
   let controller: UsersController;
-  let service: UsersService;
 
   const mockUsersService = {
     create: jest.fn(),
@@ -17,16 +16,23 @@ describe('UsersController', () => {
     delete: jest.fn(),
   };
 
+  interface RequestWithUser {
+    user: { id: number; email: string; roleId: number };
+    [key: string]: unknown;
+  }
+
   const mockJwtAuthGuard = {
-    canActivate: (context: ExecutionContext) => {
-      const req = context.switchToHttp().getRequest();
+    canActivate(this: void, context: ExecutionContext) {
+      const req = context.switchToHttp().getRequest<RequestWithUser>();
       req.user = { id: 1, email: 'admin@mail.com', roleId: 1 };
       return true;
     },
   };
 
   const mockRolesGuard = {
-    canActivate: () => true,
+    canActivate(this: void) {
+      return true;
+    },
   };
 
   beforeEach(async () => {
@@ -41,18 +47,22 @@ describe('UsersController', () => {
       .compile();
 
     controller = module.get<UsersController>(UsersController);
-    service = module.get<UsersService>(UsersService);
   });
 
   afterEach(() => jest.clearAllMocks());
 
   it('should call service.create()', async () => {
-    const dto = { name: 'Alice', email: 'a@mail.com', password: '1234', roleId: 1 };
+    const dto = {
+      name: 'Alice',
+      email: 'a@mail.com',
+      password: '1234',
+      roleId: 1,
+    };
     mockUsersService.create.mockResolvedValue({ id: 1, ...dto });
 
     const result = await controller.create(dto);
 
-    expect(service.create).toHaveBeenCalledWith(dto);
+    expect(mockUsersService.create).toHaveBeenCalledWith(dto);
     expect(result).toEqual({ id: 1, ...dto });
   });
 
@@ -62,7 +72,7 @@ describe('UsersController', () => {
 
     const result = await controller.findAll();
 
-    expect(service.findAll).toHaveBeenCalled();
+    expect(mockUsersService.findAll).toHaveBeenCalled();
     expect(result).toEqual(users);
   });
 
@@ -72,7 +82,7 @@ describe('UsersController', () => {
 
     const result = await controller.findOne(1);
 
-    expect(service.findOne).toHaveBeenCalledWith(1);
+    expect(mockUsersService.findOne).toHaveBeenCalledWith(1);
     expect(result).toEqual(user);
   });
 
@@ -82,7 +92,9 @@ describe('UsersController', () => {
 
     const result = await controller.update(1, { name: 'Updated' });
 
-    expect(service.update).toHaveBeenCalledWith(1, { name: 'Updated' });
+    expect(mockUsersService.update).toHaveBeenCalledWith(1, {
+      name: 'Updated',
+    });
     expect(result).toEqual(updated);
   });
 
@@ -92,7 +104,7 @@ describe('UsersController', () => {
 
     const result = await controller.delete(1);
 
-    expect(service.delete).toHaveBeenCalledWith(1);
+    expect(mockUsersService.delete).toHaveBeenCalledWith(1);
     expect(result).toEqual(deleted);
   });
 });

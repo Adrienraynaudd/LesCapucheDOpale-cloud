@@ -1,11 +1,11 @@
 import { Prisma } from '@prisma/client';
 
 export const adventurerInclude = Prisma.validator<Prisma.AdventurerInclude>()({
-    speciality: true,
-    equipmentTypes: true,
-    consumableTypes: true,
+  speciality: true,
+  equipmentTypes: true,
+  consumableTypes: true,
 });
 
 export type AdventurerDto = Prisma.AdventurerGetPayload<{
-    include: typeof adventurerInclude;
+  include: typeof adventurerInclude;
 }>;
