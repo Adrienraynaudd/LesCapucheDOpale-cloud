@@ -21,14 +21,14 @@ describe('AccountService', () => {
   });
 
   afterEach(() => {
-    httpMock.verify(); // Vérifie qu'aucune requête n’est restée en attente
+    httpMock.verify(); 
   });
 
   it('should be created', () => {
     expect(service).toBeTruthy();
   });
 
-  it('should send a POST quest when calling signUp', () => {
+  it('should send a POST request when calling signUp', () => {
     const mockUser = {
       name: 'John',
       email: 'john@example.com',
@@ -42,16 +42,54 @@ describe('AccountService', () => {
       expect(response).toEqual(mockResponse);
     });
 
-    // On s’attend à une requête POST vers /api/users
     const req = httpMock.expectOne('/api/users');
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual(mockUser);
 
-    // On simule une réponse du backend
     req.flush(mockResponse);
   });
 
-  it('should handle HTTP error correctly', () => {
+  it('should send a POST request when calling login', () => {
+    const mockCredentials = {
+      email: 'john@example.com',
+      password: 'Password1!',
+    };
+
+    const mockResponse = { token: 'fake-jwt-token' };
+
+    service.login(mockCredentials).subscribe((response) => {
+      expect(response).toEqual(mockResponse);
+    });
+
+    const req = httpMock.expectOne('/api/auth/login');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual(mockCredentials);
+
+    req.flush(mockResponse);
+  });
+
+  describe('isLogin', () => {
+    afterEach(() => {
+      localStorage.clear();
+    });
+
+    it('should return true when a token exists in localStorage', () => {
+      localStorage.setItem('token', 'fake-token');
+      expect(service.isLogin()).toBeTrue();
+    });
+
+    it('should return false when token is null', () => {
+      localStorage.removeItem('token');
+      expect(service.isLogin()).toBeFalse();
+    });
+
+    it('should return false when token is empty string', () => {
+      localStorage.setItem('token', '');
+      expect(service.isLogin()).toBeFalse();
+    });
+  });
+
+  it('should handle HTTP error correctly for signUp', () => {
     const mockUser = {
       name: 'Jane',
       email: 'jane@example.com',
@@ -59,13 +97,13 @@ describe('AccountService', () => {
       roleId: 2,
     };
 
-    const mockError = { status: 400, statusText: 'Bad Quest' };
+    const mockError = { status: 400, statusText: 'Bad Request' };
 
     service.signUp(mockUser).subscribe({
       next: () => fail('Expected an error, but got a success response'),
       error: (error) => {
         expect(error.status).toBe(400);
-        expect(error.statusText).toBe('Bad Quest');
+        expect(error.statusText).toBe('Bad Request');
       },
     });
 

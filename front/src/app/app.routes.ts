@@ -7,20 +7,24 @@ import { HomeComponent } from '../app/containers/home/home'
 import { NewQuest } from './containers/new-quest/new-quest';
 import { ListQuest } from './containers/list-quest/list-quest';
 import { UpdateQuest } from './containers/update-quest/update-quest';
+import { Login } from './containers/login/login';
+import { authGuard } from './guard/auth-guard';
 
 export const routes: Routes = [
     { path: '', component: HomeComponent },
     
     // Adventurer routes
-    { path: 'adventurer/new', component: NewAdventurerComponent },
-    { path: 'adventurers', component: ListAdventurer },
-    { path: 'adventurer/:id', component: UpdateAdventurer },
+    { path: 'adventurer/new', component: NewAdventurerComponent, canActivate: [authGuard] },
+    { path: 'adventurers', component: ListAdventurer, canActivate: [authGuard]},
+    { path: 'adventurer/:id', component: UpdateAdventurer, canActivate: [authGuard]},
 
     // User routes
     { path: 'user/new', component: NewUserComponent },
+    { path: 'login', component: Login },
 
     // Quest routes
-    { path: 'quest/new', component: NewQuest },
-    { path: 'quests', component: ListQuest },
-    { path: 'quest/:id', component: UpdateQuest },
+    { path: 'quest/new', component: NewQuest, canActivate: [authGuard]},
+    { path: 'quests', component: ListQuest, canActivate: [authGuard]},
+    { path: 'quest/:id', component: UpdateQuest, canActivate: [authGuard]},
+
 ];
