@@ -24,6 +24,6 @@ export class AdventurerService {
   }
 
   updateAdventurer(id: number, data: AdventurerFormData): Observable<Adventurer> {
-    return this.http.put<Adventurer>(`${this.baseUrl}/${id}`, data);
+    return this.http.patch<Adventurer>(`${this.baseUrl}/${id}`, data);
   }
 }

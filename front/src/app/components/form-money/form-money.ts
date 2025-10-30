@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 @Component({
@@ -7,7 +7,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
   templateUrl: './form-money.html',
   styleUrl: './form-money.scss'
 })
-export class FormMoney {
+export class FormMoney implements OnChanges {
   @Input() label!: string;
 
   @Input() money!: number;
@@ -18,6 +18,15 @@ export class FormMoney {
     pa: new FormControl(0, [Validators.required, Validators.min(0)]),
     pc: new FormControl(0, [Validators.required, Validators.min(0)]),
   });
+
+  ngOnChanges(change: SimpleChanges): void {
+    if (change['money'] && change['money'].currentValue !== change['money'].previousValue) {
+      this.form.get('pc')?.setValue(change['money'].currentValue % 10, { emitEvent: false });
+      this.form.get('pa')?.setValue(Math.floor((change['money'].currentValue / 10)) % 10, { emitEvent: false });
+      this.form.get('po')?.setValue(Math.floor(change['money'].currentValue / 100), { emitEvent: false });
+    }
+  }
+
 
   protected onChange(): void {
     const po = this.form.get('po')?.value ?? 0;

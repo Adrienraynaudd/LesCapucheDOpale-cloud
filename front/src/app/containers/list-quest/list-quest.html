@@ -1,0 +1,7 @@
+<div class="container">
+    @for (quest of quests; track quest.id) {
+        <app-item-quest [quest]="quest" (click)="onQuestClick(quest.id)"></app-item-quest>
+    } @empty {
+        <p>Aucun élément</p>
+    }
+</div>

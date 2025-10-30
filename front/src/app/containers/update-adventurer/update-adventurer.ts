@@ -23,8 +23,6 @@ export class UpdateAdventurer implements OnInit {
     const idStr = this.route.snapshot.paramMap.get('id');
     this.id = idStr ? Number(idStr) : -1;
 
-    console.log('Adventurer ID:', this.id);
-
     if (!idStr || !/^\d+$/.test(idStr) || this.id < 0 || isNaN(this.id)) {
       console.error('Invalid adventurer ID');
       return;

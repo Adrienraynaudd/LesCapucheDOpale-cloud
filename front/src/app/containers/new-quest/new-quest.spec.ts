@@ -39,7 +39,7 @@ describe('NewQuest', () => {
   it('should call QuestService.createQuest and navigate on success', () => {
     // Arrange
     const mockForm: QuestForm = { name: 'Test Quest', description: 'Some description', finalDate: '2023-12-31', estimatedDuration: 120, reward: 500 };
-    questServiceSpy.createQuest.and.returnValue(of({ id: 1, ...mockForm }));
+    questServiceSpy.createQuest.and.returnValue(of({} as any));
 
     // Act
     component['onFormSubmitted'](mockForm);

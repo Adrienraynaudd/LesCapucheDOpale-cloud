@@ -1,0 +1,21 @@
+<div class="quest-item">
+    <p>{{ quest.name }}</p>
+    <span><label class="bold" for="finalDate">Date d'expiration : </label>
+        <p id="finalDate">{{ getFinalDate() }}</p>
+    </span>
+    <span><label class="bold" for="reward">Prime : </label>
+        <p id="reward">{{ quest.reward }}</p>
+    </span>
+    <span>
+        <label class="bold" for="estimatedDuration">Durée estimée : </label>
+        <p id="estimatedDuration">{{ quest.estimatedDuration }} jours</p>
+    </span>
+    <span>
+        <label class="bold" for="recommendedXP">Expérience recommandée : </label>
+        <p id="recommendedXP">{{ quest.recommendedXP }}</p>
+    </span>
+    <span>
+        <label class="bold" for="status">Statut : </label>
+        <p id="status">{{ quest.status.name }}</p>
+    </span>
+</div>

@@ -24,6 +24,6 @@ export class QuestService {
   }
 
   updateQuest(id: number, quest: QuestForm): Observable<Quest> {
-    return this.http.put<Quest>(`${this.baseUrl}/${id}`, quest);
+    return this.http.patch<Quest>(`${this.baseUrl}/${id}`, quest);
   }
 }

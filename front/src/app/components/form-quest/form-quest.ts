@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output } from '@angular/core';
 import { FormGroup, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FormMoney } from '../form-money/form-money';
 import { QuestForm } from '../../models/quest';
@@ -10,8 +10,9 @@ import { QuestForm } from '../../models/quest';
   templateUrl: './form-quest.html',
   styleUrls: ['./form-quest.scss']
 })
-export class FormQuest {
+export class FormQuest implements OnChanges {
   @Output() formSubmitted = new EventEmitter<QuestForm>();
+  @Input() initialData: QuestForm | null = null;
 
   form = new FormGroup({
     name: new FormControl('', [Validators.required, Validators.minLength(3)]),
@@ -20,6 +21,18 @@ export class FormQuest {
     estimatedDuration: new FormControl(1, [Validators.required, Validators.min(1)]),
     reward: new FormControl(0, [Validators.required, Validators.min(0)])
   });
+
+  ngOnChanges(): void {
+    if (this.initialData) {
+      this.form.patchValue({
+        name: this.initialData.name,
+        description: this.initialData.description,
+        finalDate: this.initialData.finalDate.split('T')[0],
+        estimatedDuration: this.initialData.estimatedDuration,
+        reward: this.initialData.reward
+      });
+    }
+  }
 
   protected getMoney(): number {
     return this.form.get('reward')?.value ?? 0;
