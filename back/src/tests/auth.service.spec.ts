@@ -50,7 +50,7 @@ describe('AuthService', () => {
     );
 
     const result = await authService.login('admin@mail.com', 'password123');
-    expect(result).toEqual({ access_token: 'mockedToken' });
+    expect(result).toEqual({ access_token: 'mockedToken', user: mockAdmin });
     expect(jwtService.signAsync).toHaveBeenCalledWith(
       expect.objectContaining({ sub: 1, email: 'admin@mail.com', roleId: 1 }),
       expect.any(Object),
@@ -64,7 +64,7 @@ describe('AuthService', () => {
     );
 
     const result = await authService.login('user@mail.com', 'password123');
-    expect(result).toEqual({ access_token: 'mockedToken' });
+    expect(result).toEqual({ access_token: 'mockedToken', user: mockUser });
     expect(jwtService.signAsync).toHaveBeenCalledWith(
       expect.objectContaining({ sub: 2, email: 'user@mail.com', roleId: 2 }),
       expect.any(Object),
