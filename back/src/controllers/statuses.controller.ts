@@ -15,7 +15,17 @@ import { UpdateStatusDto } from '../dto/update-status.dto';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { RolesGuard } from '../guards/roles.guard';
 import { Roles } from '../guards/roles.decorator';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiParam,
+  ApiTags,
+} from '@nestjs/swagger';
 
+@ApiTags('Statuses')
+@ApiBearerAuth()
 @Controller('statuses')
 export class StatusesController {
   constructor(private readonly service: StatusesService) {}
@@ -23,6 +33,27 @@ export class StatusesController {
   @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(1, 2)
+  @ApiOkResponse({
+    description: 'List of statuses',
+    schema: {
+      type: 'array',
+      items: { type: 'object', additionalProperties: true },
+      example: [
+        {
+          id: 1,
+          name: 'Pending',
+          createdAt: '2025-10-30T12:00:00.000Z',
+          updatedAt: '2025-10-30T12:34:56.000Z',
+        },
+        {
+          id: 2,
+          name: 'In Progress',
+          createdAt: '2025-10-30T12:05:00.000Z',
+          updatedAt: '2025-10-30T12:35:00.000Z',
+        },
+      ],
+    },
+  })
   list() {
     return this.service.findAll();
   }
@@ -30,6 +61,28 @@ export class StatusesController {
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(1, 2)
+  @ApiBody({
+    description: 'New status payload',
+    required: true,
+    schema: {
+      type: 'object',
+      additionalProperties: true,
+      example: { name: 'In Progress' },
+    },
+  })
+  @ApiCreatedResponse({
+    description: 'Status created',
+    schema: {
+      type: 'object',
+      additionalProperties: true,
+      example: {
+        id: 3,
+        name: 'In Progress',
+        createdAt: '2025-10-30T12:00:00.000Z',
+        updatedAt: '2025-10-30T12:00:00.000Z',
+      },
+    },
+  })
   create(@Body() dto: CreateStatusDto) {
     return this.service.create(dto);
   }
@@ -37,6 +90,28 @@ export class StatusesController {
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(1, 2)
+  @ApiParam({ name: 'id', example: 3, description: 'Status ID' })
+  @ApiBody({
+    description: 'Fields to update (partial)',
+    schema: {
+      type: 'object',
+      additionalProperties: true,
+      example: { name: 'Completed' },
+    },
+  })
+  @ApiOkResponse({
+    description: 'Updated status',
+    schema: {
+      type: 'object',
+      additionalProperties: true,
+      example: {
+        id: 3,
+        name: 'Completed',
+        createdAt: '2025-10-30T12:00:00.000Z',
+        updatedAt: '2025-10-30T12:45:00.000Z',
+      },
+    },
+  })
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateStatusDto) {
     return this.service.update(id, dto);
   }
@@ -44,6 +119,17 @@ export class StatusesController {
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(1, 2)
+  @ApiParam({ name: 'id', example: 3, description: 'Status ID' })
+  @ApiOkResponse({
+    description: 'Delete result',
+    schema: {
+      type: 'object',
+      properties: {
+        id: { type: 'number', example: 3 },
+        deleted: { type: 'boolean', example: true },
+      },
+    },
+  })
   delete(@Param('id', ParseIntPipe) id: number) {
     return this.service.delete(id);
   }

@@ -35,7 +35,6 @@ async function bootstrap() {
     return d;
   })();
 
-  // Servez la doc sur /docs uniquement
   SwaggerModule.setup('docs', app, document);
 
   try {

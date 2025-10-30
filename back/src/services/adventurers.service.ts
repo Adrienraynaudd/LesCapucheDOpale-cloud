@@ -8,7 +8,7 @@ import { Prisma } from '@prisma/client';
 export class AdventurersService {
   constructor(private prisma: PrismaService) {}
 
-    async findAll() {
+  async findAll() {
     return this.prisma.adventurer.findMany({
       include: {
         speciality: true,

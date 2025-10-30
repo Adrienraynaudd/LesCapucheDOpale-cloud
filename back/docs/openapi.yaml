@@ -4,9 +4,35 @@ paths:
     post:
       operationId: AuthController_login
       parameters: []
+      requestBody:
+        required: true
+        description: Credentials
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                password:
+                  type: string
+                  example: P@ssw0rd!
+              required:
+                - email
+                - password
       responses:
-        '201':
-          description: ''
+        '200':
+          description: JWT access token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.xxx.yyy
       tags:
         - Auth
   /users:
@@ -15,13 +41,51 @@ paths:
       parameters: []
       requestBody:
         required: true
+        description: New user payload
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateUserDto'
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: john.doe@example.com
+                password:
+                  type: string
+                  example: Secret123!
+                displayName:
+                  type: string
+                  example: John Doe
+              required:
+                - email
+                - password
+              additionalProperties: false
       responses:
         '201':
-          description: ''
+          description: User created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: number
+                    example: 1
+                  email:
+                    type: string
+                    example: john.doe@example.com
+                  displayName:
+                    type: string
+                    example: John Doe
+                  createdAt:
+                    type: string
+                    format: date-time
+                    example: '2025-10-30T12:00:00.000Z'
+                  updatedAt:
+                    type: string
+                    format: date-time
+                    example: '2025-10-30T12:00:00.000Z'
       tags:
         - Users
     get:
@@ -29,7 +93,31 @@ paths:
       parameters: []
       responses:
         '200':
-          description: ''
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: number
+                      example: 1
+                    email:
+                      type: string
+                      example: john.doe@example.com
+                    displayName:
+                      type: string
+                      example: John Doe
+                    createdAt:
+                      type: string
+                      format: date-time
+                      example: '2025-10-30T12:00:00.000Z'
+                    updatedAt:
+                      type: string
+                      format: date-time
+                      example: '2025-10-30T12:34:56.000Z'
       tags:
         - Users
   /users/{id}:
@@ -39,11 +127,35 @@ paths:
         - name: id
           required: true
           in: path
+          description: User ID
           schema:
+            example: 1
             type: number
       responses:
         '200':
-          description: ''
+          description: User by id
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: number
+                    example: 1
+                  email:
+                    type: string
+                    example: john.doe@example.com
+                  displayName:
+                    type: string
+                    example: John Doe
+                  createdAt:
+                    type: string
+                    format: date-time
+                    example: '2025-10-30T12:00:00.000Z'
+                  updatedAt:
+                    type: string
+                    format: date-time
+                    example: '2025-10-30T12:34:56.000Z'
       tags:
         - Users
     patch:
@@ -52,17 +164,54 @@ paths:
         - name: id
           required: true
           in: path
+          description: User ID
           schema:
+            example: 1
             type: number
       requestBody:
         required: true
+        description: Fields to update (partial)
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateUserDto'
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: johnny.doe@example.com
+                password:
+                  type: string
+                  example: NewSecret123!
+                displayName:
+                  type: string
+                  example: Johnny Doe
+              additionalProperties: false
       responses:
         '200':
-          description: ''
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: number
+                    example: 1
+                  email:
+                    type: string
+                    example: johnny.doe@example.com
+                  displayName:
+                    type: string
+                    example: Johnny Doe
+                  createdAt:
+                    type: string
+                    format: date-time
+                    example: '2025-10-30T12:00:00.000Z'
+                  updatedAt:
+                    type: string
+                    format: date-time
+                    example: '2025-10-30T12:45:00.000Z'
       tags:
         - Users
     delete:
@@ -71,11 +220,24 @@ paths:
         - name: id
           required: true
           in: path
+          description: User ID
           schema:
+            example: 1
             type: number
       responses:
         '200':
-          description: ''
+          description: Delete result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: number
+                    example: 1
+                  deleted:
+                    type: boolean
+                    example: true
       tags:
         - Users
   /quests:
@@ -84,7 +246,22 @@ paths:
       parameters: []
       responses:
         '200':
-          description: ''
+          description: List of quests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+                example:
+                  - id: 1
+                    title: Rescue the Merchant
+                    statusId: 1
+                    createdAt: '2025-10-30T12:00:00.000Z'
+                    updatedAt: '2025-10-30T12:34:56.000Z'
+      security:
+        - bearer: []
       tags:
         - Quests
     post:
@@ -92,13 +269,33 @@ paths:
       parameters: []
       requestBody:
         required: true
+        description: New quest payload
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateQuestDto'
+              type: object
+              additionalProperties: true
+              example:
+                title: Rescue the Merchant
+                description: Escort the merchant safely to the city.
+                statusId: 1
       responses:
         '201':
-          description: ''
+          description: Quest created
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                example:
+                  id: 42
+                  title: Rescue the Merchant
+                  description: Escort the merchant safely to the city.
+                  statusId: 1
+                  createdAt: '2025-10-30T12:00:00.000Z'
+                  updatedAt: '2025-10-30T12:00:00.000Z'
+      security:
+        - bearer: []
       tags:
         - Quests
   /quests/{id}:
@@ -108,11 +305,27 @@ paths:
         - name: id
           required: true
           in: path
+          description: Quest ID
           schema:
+            example: 1
             type: number
       responses:
         '200':
-          description: ''
+          description: Quest by id
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                example:
+                  id: 1
+                  title: Rescue the Merchant
+                  description: Escort the merchant safely to the city.
+                  statusId: 1
+                  createdAt: '2025-10-30T12:00:00.000Z'
+                  updatedAt: '2025-10-30T12:34:56.000Z'
+      security:
+        - bearer: []
       tags:
         - Quests
     patch:
@@ -121,17 +334,39 @@ paths:
         - name: id
           required: true
           in: path
+          description: Quest ID
           schema:
+            example: 42
             type: number
       requestBody:
         required: true
+        description: Fields to update (partial)
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateQuestDto'
+              type: object
+              additionalProperties: true
+              example:
+                title: Rescue the Merchant (Hard)
+                description: Hard mode variant.
+                statusId: 2
       responses:
         '200':
-          description: ''
+          description: Updated quest
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                example:
+                  id: 42
+                  title: Rescue the Merchant (Hard)
+                  description: Hard mode variant.
+                  statusId: 2
+                  createdAt: '2025-10-30T12:00:00.000Z'
+                  updatedAt: '2025-10-30T12:45:00.000Z'
+      security:
+        - bearer: []
       tags:
         - Quests
   /quests/{id}/status:
@@ -141,17 +376,34 @@ paths:
         - name: id
           required: true
           in: path
+          description: Quest ID
           schema:
+            example: 42
             type: number
       requestBody:
         required: true
+        description: Update quest status
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateStatusDto'
+              type: object
+              additionalProperties: true
+              example:
+                statusId: 3
       responses:
         '200':
-          description: ''
+          description: Quest status updated
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                example:
+                  id: 42
+                  statusId: 3
+                  updatedAt: '2025-10-30T12:50:00.000Z'
+      security:
+        - bearer: []
       tags:
         - Quests
   /quests/{id}/adventurers/attach:
@@ -161,17 +413,39 @@ paths:
         - name: id
           required: true
           in: path
+          description: Quest ID
           schema:
+            example: 42
             type: number
       requestBody:
         required: true
+        description: Attach adventurers to quest
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/IdsDto'
+              type: object
+              additionalProperties: true
+              example:
+                ids:
+                  - 1
+                  - 2
+                  - 3
       responses:
         '200':
-          description: ''
+          description: Adventurers attached
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                example:
+                  id: 42
+                  adventurerIds:
+                    - 1
+                    - 2
+                    - 3
+      security:
+        - bearer: []
       tags:
         - Quests
   /quests/{id}/adventurers/detach:
@@ -181,17 +455,36 @@ paths:
         - name: id
           required: true
           in: path
+          description: Quest ID
           schema:
+            example: 42
             type: number
       requestBody:
         required: true
+        description: Detach adventurers from quest
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/IdsDto'
+              type: object
+              additionalProperties: true
+              example:
+                ids:
+                  - 2
       responses:
         '200':
-          description: ''
+          description: Adventurers detached
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                example:
+                  id: 42
+                  adventurerIds:
+                    - 1
+                    - 3
+      security:
+        - bearer: []
       tags:
         - Quests
   /quests/{id}/adventurers/set:
@@ -201,17 +494,37 @@ paths:
         - name: id
           required: true
           in: path
+          description: Quest ID
           schema:
+            example: 42
             type: number
       requestBody:
         required: true
+        description: Replace all adventurers for quest
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/IdsDto'
+              type: object
+              additionalProperties: true
+              example:
+                ids:
+                  - 4
+                  - 5
       responses:
         '200':
-          description: ''
+          description: Adventurers set
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                example:
+                  id: 42
+                  adventurerIds:
+                    - 4
+                    - 5
+      security:
+        - bearer: []
       tags:
         - Quests
   /quests/{id}/equipment-stocks/attach:
@@ -221,17 +534,37 @@ paths:
         - name: id
           required: true
           in: path
+          description: Quest ID
           schema:
+            example: 42
             type: number
       requestBody:
         required: true
+        description: Attach equipment stocks to quest
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/IdsDto'
+              type: object
+              additionalProperties: true
+              example:
+                ids:
+                  - 3
+                  - 8
       responses:
         '200':
-          description: ''
+          description: Equipment stocks attached
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                example:
+                  id: 42
+                  equipmentStockIds:
+                    - 3
+                    - 8
+      security:
+        - bearer: []
       tags:
         - Quests
   /quests/{id}/equipment-stocks/detach:
@@ -241,17 +574,35 @@ paths:
         - name: id
           required: true
           in: path
+          description: Quest ID
           schema:
+            example: 42
             type: number
       requestBody:
         required: true
+        description: Detach equipment stocks from quest
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/IdsDto'
+              type: object
+              additionalProperties: true
+              example:
+                ids:
+                  - 3
       responses:
         '200':
-          description: ''
+          description: Equipment stocks detached
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                example:
+                  id: 42
+                  equipmentStockIds:
+                    - 8
+      security:
+        - bearer: []
       tags:
         - Quests
   /quests/{id}/equipment-stocks/set:
@@ -261,17 +612,37 @@ paths:
         - name: id
           required: true
           in: path
+          description: Quest ID
           schema:
+            example: 42
             type: number
       requestBody:
         required: true
+        description: Replace all equipment stocks for quest
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/IdsDto'
+              type: object
+              additionalProperties: true
+              example:
+                ids:
+                  - 9
+                  - 11
       responses:
         '200':
-          description: ''
+          description: Equipment stocks set
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                example:
+                  id: 42
+                  equipmentStockIds:
+                    - 9
+                    - 11
+      security:
+        - bearer: []
       tags:
         - Quests
   /adventurers:
@@ -280,7 +651,37 @@ paths:
       parameters: []
       responses:
         '200':
-          description: ''
+          description: List of adventurers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: number
+                      example: 1
+                    name:
+                      type: string
+                      example: Aria Stormblade
+                    level:
+                      type: number
+                      example: 12
+                    specialityId:
+                      type: number
+                      example: 3
+                    statusId:
+                      type: number
+                      example: 1
+                    createdAt:
+                      type: string
+                      format: date-time
+                      example: '2025-10-30T12:00:00.000Z'
+                    updatedAt:
+                      type: string
+                      format: date-time
+                      example: '2025-10-30T12:34:56.000Z'
       tags:
         - Adventurers
     post:
@@ -288,13 +689,58 @@ paths:
       parameters: []
       requestBody:
         required: true
+        description: New adventurer payload
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateAdventurerDto'
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Aria Stormblade
+                specialityId:
+                  type: number
+                  example: 3
+                level:
+                  type: number
+                  example: 1
+                statusId:
+                  type: number
+                  example: 1
+              required:
+                - name
+                - specialityId
       responses:
         '201':
-          description: ''
+          description: Adventurer created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: number
+                    example: 42
+                  name:
+                    type: string
+                    example: Aria Stormblade
+                  level:
+                    type: number
+                    example: 1
+                  specialityId:
+                    type: number
+                    example: 3
+                  statusId:
+                    type: number
+                    example: 1
+                  createdAt:
+                    type: string
+                    format: date-time
+                    example: '2025-10-30T12:00:00.000Z'
+                  updatedAt:
+                    type: string
+                    format: date-time
+                    example: '2025-10-30T12:00:00.000Z'
       tags:
         - Adventurers
   /adventurers/{id}:
@@ -304,11 +750,41 @@ paths:
         - name: id
           required: true
           in: path
+          description: Adventurer ID
           schema:
+            example: 1
             type: number
       responses:
         '200':
-          description: ''
+          description: Adventurer by id
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: number
+                    example: 1
+                  name:
+                    type: string
+                    example: Aria Stormblade
+                  level:
+                    type: number
+                    example: 12
+                  specialityId:
+                    type: number
+                    example: 3
+                  statusId:
+                    type: number
+                    example: 1
+                  createdAt:
+                    type: string
+                    format: date-time
+                    example: '2025-10-30T12:00:00.000Z'
+                  updatedAt:
+                    type: string
+                    format: date-time
+                    example: '2025-10-30T12:34:56.000Z'
       tags:
         - Adventurers
     patch:
@@ -317,17 +793,62 @@ paths:
         - name: id
           required: true
           in: path
+          description: Adventurer ID
           schema:
+            example: 42
             type: number
       requestBody:
         required: true
+        description: Fields to update (partial)
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateAdventurerDto'
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Aria Nightwind
+                specialityId:
+                  type: number
+                  example: 2
+                level:
+                  type: number
+                  example: 13
+                statusId:
+                  type: number
+                  example: 2
+              additionalProperties: false
       responses:
         '200':
-          description: ''
+          description: Updated adventurer
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: number
+                    example: 42
+                  name:
+                    type: string
+                    example: Aria Nightwind
+                  level:
+                    type: number
+                    example: 13
+                  specialityId:
+                    type: number
+                    example: 2
+                  statusId:
+                    type: number
+                    example: 2
+                  createdAt:
+                    type: string
+                    format: date-time
+                    example: '2025-10-30T12:00:00.000Z'
+                  updatedAt:
+                    type: string
+                    format: date-time
+                    example: '2025-10-30T12:45:00.000Z'
       tags:
         - Adventurers
   /specialities:
@@ -336,13 +857,48 @@ paths:
       parameters: []
       requestBody:
         required: true
+        description: New speciality payload
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateSpecialityDto'
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Mage
+                description:
+                  type: string
+                  example: Uses arcane powers.
+              required:
+                - name
+              additionalProperties: false
       responses:
         '201':
-          description: ''
+          description: Speciality created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: number
+                    example: 5
+                  name:
+                    type: string
+                    example: Mage
+                  description:
+                    type: string
+                    example: Uses arcane powers.
+                  createdAt:
+                    type: string
+                    format: date-time
+                    example: '2025-10-30T12:00:00.000Z'
+                  updatedAt:
+                    type: string
+                    format: date-time
+                    example: '2025-10-30T12:00:00.000Z'
+      security:
+        - bearer: []
       tags:
         - Specialities
     get:
@@ -350,7 +906,33 @@ paths:
       parameters: []
       responses:
         '200':
-          description: ''
+          description: List of specialities
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: number
+                      example: 1
+                    name:
+                      type: string
+                      example: Warrior
+                    description:
+                      type: string
+                      example: Frontline melee combatant.
+                    createdAt:
+                      type: string
+                      format: date-time
+                      example: '2025-10-30T12:00:00.000Z'
+                    updatedAt:
+                      type: string
+                      format: date-time
+                      example: '2025-10-30T12:34:56.000Z'
+      security:
+        - bearer: []
       tags:
         - Specialities
   /specialities/{id}:
@@ -360,11 +942,37 @@ paths:
         - name: id
           required: true
           in: path
+          description: Speciality ID
           schema:
+            example: 5
             type: number
       responses:
         '200':
-          description: ''
+          description: Speciality by id
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: number
+                    example: 5
+                  name:
+                    type: string
+                    example: Mage
+                  description:
+                    type: string
+                    example: Uses arcane powers.
+                  createdAt:
+                    type: string
+                    format: date-time
+                    example: '2025-10-30T12:00:00.000Z'
+                  updatedAt:
+                    type: string
+                    format: date-time
+                    example: '2025-10-30T12:34:56.000Z'
+      security:
+        - bearer: []
       tags:
         - Specialities
     patch:
@@ -373,17 +981,52 @@ paths:
         - name: id
           required: true
           in: path
+          description: Speciality ID
           schema:
+            example: 5
             type: number
       requestBody:
         required: true
+        description: Fields to update (partial)
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateSpecialityDto'
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Battlemage
+                description:
+                  type: string
+                  example: Combines melee and magic.
+              additionalProperties: false
       responses:
         '200':
-          description: ''
+          description: Updated speciality
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: number
+                    example: 5
+                  name:
+                    type: string
+                    example: Battlemage
+                  description:
+                    type: string
+                    example: Combines melee and magic.
+                  createdAt:
+                    type: string
+                    format: date-time
+                    example: '2025-10-30T12:00:00.000Z'
+                  updatedAt:
+                    type: string
+                    format: date-time
+                    example: '2025-10-30T12:45:00.000Z'
+      security:
+        - bearer: []
       tags:
         - Specialities
     delete:
@@ -392,11 +1035,26 @@ paths:
         - name: id
           required: true
           in: path
+          description: Speciality ID
           schema:
+            example: 5
             type: number
       responses:
         '200':
-          description: ''
+          description: Delete result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: number
+                    example: 5
+                  deleted:
+                    type: boolean
+                    example: true
+      security:
+        - bearer: []
       tags:
         - Specialities
   /equipment-types:
@@ -405,23 +1063,84 @@ paths:
       parameters: []
       requestBody:
         required: true
+        description: New equipment type payload
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateEquipmentTypeDto'
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Weapon
+                description:
+                  type: string
+                  example: Offensive equipment like swords or bows.
+              required:
+                - name
+              additionalProperties: false
       responses:
         '201':
-          description: ''
+          description: Equipment type created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: number
+                    example: 7
+                  name:
+                    type: string
+                    example: Weapon
+                  description:
+                    type: string
+                    example: Offensive equipment like swords or bows.
+                  createdAt:
+                    type: string
+                    format: date-time
+                    example: '2025-10-30T12:00:00.000Z'
+                  updatedAt:
+                    type: string
+                    format: date-time
+                    example: '2025-10-30T12:00:00.000Z'
+      security:
+        - bearer: []
       tags:
-        - EquipmentTypes
+        - Equipment Types
     get:
       operationId: EquipmentTypesController_findAll
       parameters: []
       responses:
         '200':
-          description: ''
+          description: List of equipment types
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: number
+                      example: 1
+                    name:
+                      type: string
+                      example: Armor
+                    description:
+                      type: string
+                      example: Defensive equipment such as shields or helmets.
+                    createdAt:
+                      type: string
+                      format: date-time
+                      example: '2025-10-30T12:00:00.000Z'
+                    updatedAt:
+                      type: string
+                      format: date-time
+                      example: '2025-10-30T12:34:56.000Z'
+      security:
+        - bearer: []
       tags:
-        - EquipmentTypes
+        - Equipment Types
   /equipment-types/{id}:
     get:
       operationId: EquipmentTypesController_findOne
@@ -429,68 +1148,203 @@ paths:
         - name: id
           required: true
           in: path
+          description: Equipment type ID
           schema:
+            example: 7
             type: number
       responses:
         '200':
-          description: ''
+          description: Equipment type by id
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: number
+                    example: 7
+                  name:
+                    type: string
+                    example: Weapon
+                  description:
+                    type: string
+                    example: Offensive equipment like swords or bows.
+                  createdAt:
+                    type: string
+                    format: date-time
+                    example: '2025-10-30T12:00:00.000Z'
+                  updatedAt:
+                    type: string
+                    format: date-time
+                    example: '2025-10-30T12:34:56.000Z'
+      security:
+        - bearer: []
       tags:
-        - EquipmentTypes
+        - Equipment Types
     patch:
       operationId: EquipmentTypesController_update
       parameters:
         - name: id
           required: true
           in: path
+          description: Equipment type ID
           schema:
+            example: 7
             type: number
       requestBody:
         required: true
+        description: Fields to update (partial)
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateEquipmentTypeDto'
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Ranged Weapon
+                description:
+                  type: string
+                  example: Bows, crossbows, and similar weapons.
+              additionalProperties: false
       responses:
         '200':
-          description: ''
+          description: Updated equipment type
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: number
+                    example: 7
+                  name:
+                    type: string
+                    example: Ranged Weapon
+                  description:
+                    type: string
+                    example: Bows, crossbows, and similar weapons.
+                  createdAt:
+                    type: string
+                    format: date-time
+                    example: '2025-10-30T12:00:00.000Z'
+                  updatedAt:
+                    type: string
+                    format: date-time
+                    example: '2025-10-30T12:45:00.000Z'
+      security:
+        - bearer: []
       tags:
-        - EquipmentTypes
+        - Equipment Types
     delete:
       operationId: EquipmentTypesController_delete
       parameters:
         - name: id
           required: true
           in: path
+          description: Equipment type ID
           schema:
+            example: 7
             type: number
       responses:
         '200':
-          description: ''
+          description: Delete result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: number
+                    example: 7
+                  deleted:
+                    type: boolean
+                    example: true
+      security:
+        - bearer: []
       tags:
-        - EquipmentTypes
+        - Equipment Types
   /consumable-types:
     post:
       operationId: ConsumableTypesController_create
       parameters: []
       requestBody:
         required: true
+        description: New consumable type payload
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateConsumableTypeDto'
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Health Potion
+                description:
+                  type: string
+                  example: Restores a small amount of HP.
+              required:
+                - name
+              additionalProperties: false
       responses:
         '201':
-          description: ''
+          description: Consumable type created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: number
+                    example: 5
+                  name:
+                    type: string
+                    example: Health Potion
+                  description:
+                    type: string
+                    example: Restores a small amount of HP.
+                  createdAt:
+                    type: string
+                    format: date-time
+                    example: '2025-10-30T12:00:00.000Z'
+                  updatedAt:
+                    type: string
+                    format: date-time
+                    example: '2025-10-30T12:00:00.000Z'
+      security:
+        - bearer: []
       tags:
-        - ConsumableTypes
+        - Consumable Types
     get:
       operationId: ConsumableTypesController_findAll
       parameters: []
       responses:
         '200':
-          description: ''
+          description: List of consumable types
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: number
+                      example: 1
+                    name:
+                      type: string
+                      example: Health Potion
+                    description:
+                      type: string
+                      example: Restores a small amount of HP.
+                    createdAt:
+                      type: string
+                      format: date-time
+                      example: '2025-10-30T12:00:00.000Z'
+                    updatedAt:
+                      type: string
+                      format: date-time
+                      example: '2025-10-30T12:34:56.000Z'
       tags:
-        - ConsumableTypes
+        - Consumable Types
   /consumable-types/{id}:
     get:
       operationId: ConsumableTypesController_findOne
@@ -498,52 +1352,155 @@ paths:
         - name: id
           required: true
           in: path
+          description: Consumable type ID
           schema:
+            example: 5
             type: number
       responses:
         '200':
-          description: ''
+          description: Consumable type by id
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: number
+                    example: 5
+                  name:
+                    type: string
+                    example: Health Potion
+                  description:
+                    type: string
+                    example: Restores a small amount of HP.
+                  createdAt:
+                    type: string
+                    format: date-time
+                    example: '2025-10-30T12:00:00.000Z'
+                  updatedAt:
+                    type: string
+                    format: date-time
+                    example: '2025-10-30T12:34:56.000Z'
       tags:
-        - ConsumableTypes
+        - Consumable Types
     patch:
       operationId: ConsumableTypesController_update
       parameters:
         - name: id
           required: true
           in: path
+          description: Consumable type ID
           schema:
+            example: 5
             type: number
       requestBody:
         required: true
+        description: Fields to update (partial)
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateConsumableTypeDto'
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Greater Health Potion
+                description:
+                  type: string
+                  example: Restores a greater amount of HP.
+              additionalProperties: false
       responses:
         '200':
-          description: ''
+          description: Updated consumable type
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: number
+                    example: 5
+                  name:
+                    type: string
+                    example: Greater Health Potion
+                  description:
+                    type: string
+                    example: Restores a greater amount of HP.
+                  createdAt:
+                    type: string
+                    format: date-time
+                    example: '2025-10-30T12:00:00.000Z'
+                  updatedAt:
+                    type: string
+                    format: date-time
+                    example: '2025-10-30T12:45:00.000Z'
+      security:
+        - bearer: []
       tags:
-        - ConsumableTypes
+        - Consumable Types
     delete:
       operationId: ConsumableTypesController_delete
       parameters:
         - name: id
           required: true
           in: path
+          description: Consumable type ID
           schema:
+            example: 5
             type: number
       responses:
         '200':
-          description: ''
+          description: Delete result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: number
+                    example: 5
+                  deleted:
+                    type: boolean
+                    example: true
+      security:
+        - bearer: []
       tags:
-        - ConsumableTypes
+        - Consumable Types
   /equipment:
     get:
       operationId: EquipmentController_findAll
       parameters: []
       responses:
         '200':
-          description: ''
+          description: List of equipment
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: number
+                      example: 10
+                    name:
+                      type: string
+                      example: Longsword
+                    equipmentTypeId:
+                      type: number
+                      example: 7
+                    description:
+                      type: string
+                      example: A versatile steel longsword.
+                    createdAt:
+                      type: string
+                      format: date-time
+                      example: '2025-10-30T12:00:00.000Z'
+                    updatedAt:
+                      type: string
+                      format: date-time
+                      example: '2025-10-30T12:34:56.000Z'
+      security:
+        - bearer: []
       tags:
         - Equipment
     post:
@@ -551,13 +1508,55 @@ paths:
       parameters: []
       requestBody:
         required: true
+        description: New equipment payload
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateEquipmentDto'
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Longsword
+                equipmentTypeId:
+                  type: number
+                  example: 7
+                description:
+                  type: string
+                  example: A versatile steel longsword.
+              required:
+                - name
+                - equipmentTypeId
+              additionalProperties: false
       responses:
         '201':
-          description: ''
+          description: Equipment created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: number
+                    example: 10
+                  name:
+                    type: string
+                    example: Longsword
+                  equipmentTypeId:
+                    type: number
+                    example: 7
+                  description:
+                    type: string
+                    example: A versatile steel longsword.
+                  createdAt:
+                    type: string
+                    format: date-time
+                    example: '2025-10-30T12:00:00.000Z'
+                  updatedAt:
+                    type: string
+                    format: date-time
+                    example: '2025-10-30T12:00:00.000Z'
+      security:
+        - bearer: []
       tags:
         - Equipment
   /equipment/{id}:
@@ -567,11 +1566,40 @@ paths:
         - name: id
           required: true
           in: path
+          description: Equipment ID
           schema:
+            example: 10
             type: number
       responses:
         '200':
-          description: ''
+          description: Equipment by id
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: number
+                    example: 10
+                  name:
+                    type: string
+                    example: Longsword
+                  equipmentTypeId:
+                    type: number
+                    example: 7
+                  description:
+                    type: string
+                    example: A versatile steel longsword.
+                  createdAt:
+                    type: string
+                    format: date-time
+                    example: '2025-10-30T12:00:00.000Z'
+                  updatedAt:
+                    type: string
+                    format: date-time
+                    example: '2025-10-30T12:34:56.000Z'
+      security:
+        - bearer: []
       tags:
         - Equipment
     patch:
@@ -580,17 +1608,58 @@ paths:
         - name: id
           required: true
           in: path
+          description: Equipment ID
           schema:
+            example: 10
             type: number
       requestBody:
         required: true
+        description: Fields to update (partial)
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateEquipmentDto'
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Enchanted Longsword
+                equipmentTypeId:
+                  type: number
+                  example: 8
+                description:
+                  type: string
+                  example: Longsword imbued with minor magic.
+              additionalProperties: false
       responses:
         '200':
-          description: ''
+          description: Updated equipment
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: number
+                    example: 10
+                  name:
+                    type: string
+                    example: Enchanted Longsword
+                  equipmentTypeId:
+                    type: number
+                    example: 8
+                  description:
+                    type: string
+                    example: Longsword imbued with minor magic.
+                  createdAt:
+                    type: string
+                    format: date-time
+                    example: '2025-10-30T12:00:00.000Z'
+                  updatedAt:
+                    type: string
+                    format: date-time
+                    example: '2025-10-30T12:45:00.000Z'
+      security:
+        - bearer: []
       tags:
         - Equipment
     delete:
@@ -599,11 +1668,26 @@ paths:
         - name: id
           required: true
           in: path
+          description: Equipment ID
           schema:
+            example: 10
             type: number
       responses:
         '200':
-          description: ''
+          description: Delete result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: number
+                    example: 10
+                  deleted:
+                    type: boolean
+                    example: true
+      security:
+        - bearer: []
       tags:
         - Equipment
   /equipment-stocks:
@@ -612,23 +1696,91 @@ paths:
       parameters: []
       responses:
         '200':
-          description: ''
+          description: List of equipment stocks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: number
+                      example: 1
+                    equipmentId:
+                      type: number
+                      example: 12
+                    quantity:
+                      type: number
+                      example: 25
+                    available:
+                      type: number
+                      example: 20
+                    createdAt:
+                      type: string
+                      format: date-time
+                      example: '2025-10-30T12:00:00.000Z'
+                    updatedAt:
+                      type: string
+                      format: date-time
+                      example: '2025-10-30T12:34:56.000Z'
+      security:
+        - bearer: []
       tags:
-        - EquipmentStocks
+        - Equipment Stocks
     post:
       operationId: EquipmentStocksController_create
       parameters: []
       requestBody:
         required: true
+        description: New equipment stock payload
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateEquipmentStockDto'
+              type: object
+              properties:
+                equipmentId:
+                  type: number
+                  example: 12
+                quantity:
+                  type: number
+                  example: 25
+              required:
+                - equipmentId
+                - quantity
+              additionalProperties: false
       responses:
         '201':
-          description: ''
+          description: Equipment stock created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: number
+                    example: 3
+                  equipmentId:
+                    type: number
+                    example: 12
+                  quantity:
+                    type: number
+                    example: 25
+                  available:
+                    type: number
+                    example: 25
+                  createdAt:
+                    type: string
+                    format: date-time
+                    example: '2025-10-30T12:00:00.000Z'
+                  updatedAt:
+                    type: string
+                    format: date-time
+                    example: '2025-10-30T12:00:00.000Z'
+      security:
+        - bearer: []
       tags:
-        - EquipmentStocks
+        - Equipment Stocks
   /equipment-stocks/{id}:
     get:
       operationId: EquipmentStocksController_findOne
@@ -636,73 +1788,232 @@ paths:
         - name: id
           required: true
           in: path
+          description: Equipment stock ID
           schema:
+            example: 1
             type: number
       responses:
         '200':
-          description: ''
+          description: Equipment stock by id
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: number
+                    example: 1
+                  equipmentId:
+                    type: number
+                    example: 12
+                  quantity:
+                    type: number
+                    example: 25
+                  available:
+                    type: number
+                    example: 20
+                  createdAt:
+                    type: string
+                    format: date-time
+                    example: '2025-10-30T12:00:00.000Z'
+                  updatedAt:
+                    type: string
+                    format: date-time
+                    example: '2025-10-30T12:34:56.000Z'
+      security:
+        - bearer: []
       tags:
-        - EquipmentStocks
+        - Equipment Stocks
     patch:
       operationId: EquipmentStocksController_update
       parameters:
         - name: id
           required: true
           in: path
+          description: Equipment stock ID
           schema:
+            example: 3
             type: number
       requestBody:
         required: true
+        description: Fields to update (partial)
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateEquipmentStockDto'
+              type: object
+              properties:
+                equipmentId:
+                  type: number
+                  example: 15
+                quantity:
+                  type: number
+                  example: 30
+                available:
+                  type: number
+                  example: 28
+              additionalProperties: false
       responses:
         '200':
-          description: ''
+          description: Updated equipment stock
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: number
+                    example: 3
+                  equipmentId:
+                    type: number
+                    example: 15
+                  quantity:
+                    type: number
+                    example: 30
+                  available:
+                    type: number
+                    example: 28
+                  createdAt:
+                    type: string
+                    format: date-time
+                    example: '2025-10-30T12:00:00.000Z'
+                  updatedAt:
+                    type: string
+                    format: date-time
+                    example: '2025-10-30T12:45:00.000Z'
+      security:
+        - bearer: []
       tags:
-        - EquipmentStocks
+        - Equipment Stocks
     delete:
       operationId: EquipmentStocksController_delete
       parameters:
         - name: id
           required: true
           in: path
+          description: Equipment stock ID
           schema:
+            example: 3
             type: number
       responses:
         '200':
-          description: ''
+          description: Delete result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: number
+                    example: 3
+                  deleted:
+                    type: boolean
+                    example: true
+      security:
+        - bearer: []
       tags:
-        - EquipmentStocks
+        - Equipment Stocks
   /quest-stock-equipment:
     get:
       operationId: QuestStockEquipmentController_list
       parameters:
         - name: questId
-          required: true
+          required: false
           in: query
+          description: Filter by quest ID
           schema:
             type: number
+            example: 12
       responses:
         '200':
-          description: ''
+          description: List of quest-stock-equipment
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: number
+                      example: 101
+                    questId:
+                      type: number
+                      example: 12
+                    equipmentStockId:
+                      type: number
+                      example: 3
+                    quantity:
+                      type: number
+                      example: 2
+                    createdAt:
+                      type: string
+                      format: date-time
+                      example: '2025-10-30T12:00:00.000Z'
+                    updatedAt:
+                      type: string
+                      format: date-time
+                      example: '2025-10-30T12:34:56.000Z'
+      security:
+        - bearer: []
       tags:
-        - QuestStockEquipment
+        - Quest Stock Equipment
     post:
       operationId: QuestStockEquipmentController_attach
       parameters: []
       requestBody:
         required: true
+        description: Attach equipment stock to a quest
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateQuestStockEquipmentDto'
+              type: object
+              properties:
+                questId:
+                  type: number
+                  example: 12
+                equipmentStockId:
+                  type: number
+                  example: 3
+                quantity:
+                  type: number
+                  example: 2
+              required:
+                - questId
+                - equipmentStockId
+                - quantity
+              additionalProperties: false
       responses:
         '201':
-          description: ''
+          description: Attachment created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: number
+                    example: 101
+                  questId:
+                    type: number
+                    example: 12
+                  equipmentStockId:
+                    type: number
+                    example: 3
+                  quantity:
+                    type: number
+                    example: 2
+                  createdAt:
+                    type: string
+                    format: date-time
+                    example: '2025-10-30T12:00:00.000Z'
+                  updatedAt:
+                    type: string
+                    format: date-time
+                    example: '2025-10-30T12:00:00.000Z'
+      security:
+        - bearer: []
       tags:
-        - QuestStockEquipment
+        - Quest Stock Equipment
   /quest-stock-equipment/{id}:
     delete:
       operationId: QuestStockEquipmentController_delete
@@ -710,20 +2021,53 @@ paths:
         - name: id
           required: true
           in: path
+          description: Attachment ID
           schema:
+            example: 101
             type: number
       responses:
         '200':
-          description: ''
+          description: Delete result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: number
+                    example: 101
+                  deleted:
+                    type: boolean
+                    example: true
+      security:
+        - bearer: []
       tags:
-        - QuestStockEquipment
+        - Quest Stock Equipment
   /statuses:
     get:
       operationId: StatusesController_list
       parameters: []
       responses:
         '200':
-          description: ''
+          description: List of statuses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+                example:
+                  - id: 1
+                    name: Pending
+                    createdAt: '2025-10-30T12:00:00.000Z'
+                    updatedAt: '2025-10-30T12:34:56.000Z'
+                  - id: 2
+                    name: In Progress
+                    createdAt: '2025-10-30T12:05:00.000Z'
+                    updatedAt: '2025-10-30T12:35:00.000Z'
+      security:
+        - bearer: []
       tags:
         - Statuses
     post:
@@ -731,13 +2075,29 @@ paths:
       parameters: []
       requestBody:
         required: true
+        description: New status payload
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateStatusDto'
+              type: object
+              additionalProperties: true
+              example:
+                name: In Progress
       responses:
         '201':
-          description: ''
+          description: Status created
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                example:
+                  id: 3
+                  name: In Progress
+                  createdAt: '2025-10-30T12:00:00.000Z'
+                  updatedAt: '2025-10-30T12:00:00.000Z'
+      security:
+        - bearer: []
       tags:
         - Statuses
   /statuses/{id}:
@@ -747,17 +2107,35 @@ paths:
         - name: id
           required: true
           in: path
+          description: Status ID
           schema:
+            example: 3
             type: number
       requestBody:
         required: true
+        description: Fields to update (partial)
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateStatusDto'
+              type: object
+              additionalProperties: true
+              example:
+                name: Completed
       responses:
         '200':
-          description: ''
+          description: Updated status
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                example:
+                  id: 3
+                  name: Completed
+                  createdAt: '2025-10-30T12:00:00.000Z'
+                  updatedAt: '2025-10-30T12:45:00.000Z'
+      security:
+        - bearer: []
       tags:
         - Statuses
     delete:
@@ -766,11 +2144,26 @@ paths:
         - name: id
           required: true
           in: path
+          description: Status ID
           schema:
+            example: 3
             type: number
       responses:
         '200':
-          description: ''
+          description: Delete result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: number
+                    example: 3
+                  deleted:
+                    type: boolean
+                    example: true
+      security:
+        - bearer: []
       tags:
         - Statuses
   /:
