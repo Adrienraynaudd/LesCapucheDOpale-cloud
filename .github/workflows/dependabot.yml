@@ -30,7 +30,7 @@ jobs:
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v7
         with:
-            base: main
+            base: dev
             commit-message: Update dependencies
             title: bot/update
             body: |
