@@ -1,98 +1,233 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Guild Backend - Les Capuche d'Opale
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+API REST développée avec NestJS pour la gestion des aventuriers, quêtes et équipements de la guilde Les Capuche d'Opale.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Prérequis
 
-## Description
+- Node.js (version LTS recommandée)
+- npm (version 6 ou supérieure)
+- PostgreSQL (ou base de données compatible Prisma)
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Installation
 
-## Project setup
+Installer les dépendances du projet :
 
 ```bash
-$ npm install
+npm install
 ```
 
-## Compile and run the project
+## Configuration
+
+### Variables d'environnement
+
+Créer un fichier `.env` à la racine du projet avec les variables suivantes :
+
+```env
+DATABASE_URL="postgresql://user:password@localhost:5432/database_name"
+JWT_SECRET="votre_secret_jwt"
+PORT=3000
+```
+
+### Base de données
+
+#### Initialiser Prisma
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npx prisma generate
 ```
 
-## Run tests
+#### Appliquer les migrations
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+npx prisma migrate dev
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+#### Vérifier le statut des migrations
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+npx prisma migrate status
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+#### Réinitialiser la base de données (développement uniquement)
 
-## Resources
+```bash
+npx prisma migrate reset
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+## Développement
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+### Démarrer le serveur de développement
 
-## Support
+```bash
+npm run start:dev
+```
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+Le serveur sera accessible à l'adresse `http://localhost:3000/`.
 
-## Stay in touch
+### Autres modes de démarrage
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+```bash
+# Mode standard
+npm start
 
-## License
+# Mode debug
+npm run start:debug
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+# Mode production
+npm run start:prod
+```
+
+## Build
+
+Compiler le projet pour la production :
+
+```bash
+npm run build
+```
+
+Les fichiers compilés seront placés dans le répertoire `dist/`.
+
+## Documentation API
+
+### OpenAPI/Swagger
+
+La documentation interactive de l'API est disponible via Swagger :
+
+```
+http://localhost:3000/api
+```
+
+Le fichier de spécification OpenAPI se trouve dans `docs/openapi.yaml`.
+
+## Tests
+
+### Tests unitaires
+
+Exécuter les tests unitaires :
+
+```bash
+npm test
+```
+
+### Tests en mode watch
+
+```bash
+npm run test:watch
+```
+
+### Tests end-to-end
+
+```bash
+npm run test:e2e
+```
+
+### Tests avec debug
+
+```bash
+npm run test:debug
+```
+
+## Coverage
+
+### Générer le rapport de coverage
+
+```bash
+npm run test:cov
+```
+
+Cette commande exécute les tests et génère un rapport de couverture de code.
+
+### Consulter le rapport de coverage
+
+Le rapport de coverage est généré dans le dossier `coverage/` :
+
+- **Linux** :
+    ```bash
+    xdg-open coverage/index.html
+    ```
+- **Windows** :
+    ```bash
+    start coverage/index.html
+    ```
+- **macOS** :
+    ```bash
+    open coverage/index.html
+    ```
+
+### Configuration du coverage
+
+La configuration Jest dans `package.json` définit :
+
+- **collectCoverageFrom** : Fichiers inclus dans le coverage (exclut `main.ts`, modules, fichiers Prisma et config)
+- **coverageDirectory** : Dossier de sortie (`coverage/`)
+- **coverageReporters** : Formats de rapport (`text`, `lcov`, `html`)
+
+### Métriques du rapport
+
+- **Statements** : Pourcentage d'instructions exécutées
+- **Branches** : Pourcentage de branches conditionnelles testées
+- **Functions** : Pourcentage de fonctions appelées
+- **Lines** : Pourcentage de lignes de code couvertes
+
+Le fichier `coverage/lcov.info` peut être utilisé pour l'intégration CI/CD.
+
+## Linting et Formatage
+
+### Linter le code
+
+```bash
+npm run lint
+```
+
+### Formater le code
+
+```bash
+npm run format
+```
+
+## Base de données avec Prisma Studio
+
+Ouvrir Prisma Studio pour visualiser et gérer les données :
+
+```bash
+npx prisma studio
+```
+
+L'interface sera accessible à `http://localhost:5555/`.
+
+## Technologies utilisées
+
+- **NestJS** : 11.0.1
+- **TypeScript** : 5.7.3
+- **Prisma** : 6.17.0
+- **Passport JWT** : 4.0.1
+- **Swagger** : 11.2.1
+- **Jest** : 30.0.0
+- **bcrypt** : 6.0.0
+
+## Structure du projet
+
+```
+src/
+├── controllers/        # Contrôleurs REST
+├── dto/               # Data Transfer Objects
+├── guards/            # Guards d'authentification/autorisation
+├── modules/           # Modules NestJS
+├── prisma/            # Service Prisma
+├── services/          # Services métier
+├── tests/             # Tests unitaires
+├── utils/             # Utilitaires
+├── app.module.ts      # Module principal
+└── main.ts            # Point d'entrée
+
+prisma/
+├── schema.prisma      # Schéma de base de données
+└── migrations/        # Historique des migrations
+```
+
+## Ressources supplémentaires
+
+- [Documentation NestJS](https://docs.nestjs.com)
+- [Documentation Prisma](https://www.prisma.io/docs)
+- [Documentation Swagger](https://swagger.io/docs/)
+- [Documentation Passport JWT](http://www.passportjs.org/packages/passport-jwt/)
