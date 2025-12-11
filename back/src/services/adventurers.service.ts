@@ -3,13 +3,33 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateAdventurerDto } from '../dto/create-adventurer.dto';
 import { UpdateAdventurerDto } from '../dto/update-adventurer.dto';
 import { Prisma } from '@prisma/client';
+import { FindAdventurersOptions } from 'src/controllers/adventurers.controller';
 
 @Injectable()
 export class AdventurersService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll() {
+  async findAll(options: FindAdventurersOptions = {}) {
+    const { name, specialityId, experienceMin, experienceMax, dailyRateOrder } =
+      options;
+
+    const where: Prisma.AdventurerWhereInput = {
+      ...(name ? { name: { contains: name } } : {}),
+      ...(typeof specialityId === 'number' ? { specialityId } : {}),
+      ...(experienceMin != null || experienceMax != null
+        ? {
+            experience: {
+              ...(experienceMin != null ? { gte: experienceMin } : {}),
+              ...(experienceMax != null ? { lte: experienceMax } : {}),
+            },
+          }
+        : {}),
+    };
+    const whereClause = Object.keys(where).length ? where : undefined;
+
     return this.prisma.adventurer.findMany({
+      where: whereClause,
+      orderBy: dailyRateOrder ? { dailyRate: dailyRateOrder } : undefined,
       include: {
         speciality: true,
         equipmentTypes: true,

@@ -1,18 +1,19 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { QuestsController } from '../controllers/quests.controller';
+import { QuestsController, AuthenticatedRequest } from '../controllers/quests.controller';
 import { QuestsService } from '../services/quests.service';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { RolesGuard } from '../guards/roles.guard';
 import { CreateQuestDto } from '../dto/create-quest.dto';
 import { UpdateQuestDto } from '../dto/update-quest.dto';
-import { AuthenticatedRequest } from '../controllers/quests.controller';
 import { UpdateStatusDto } from '../dto/update-quest-status.dto';
+import { ValidateQuestDto } from '../dto/validate-quest.dto';
 import { IdsDto } from '../dto/quest_id.dto';
 
 describe('QuestsController', () => {
   let controller: QuestsController;
+  let service: QuestsService;
 
-  const mockService: Partial<Record<keyof QuestsService, jest.Mock>> = {
+  const mockService = {
     create: jest.fn(),
     update: jest.fn(),
     findAll: jest.fn(),
@@ -24,6 +25,11 @@ describe('QuestsController', () => {
     attachEquipmentStocks: jest.fn(),
     detachEquipmentStocks: jest.fn(),
     setEquipmentStocks: jest.fn(),
+    validateQuest: jest.fn(),
+    invalidateQuest: jest.fn(),
+    startQuest: jest.fn(),
+    refuseQuest: jest.fn(),
+    abandonQuest: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -39,117 +45,218 @@ describe('QuestsController', () => {
       .compile();
 
     controller = module.get<QuestsController>(QuestsController);
+    service = module.get<QuestsService>(QuestsService);
   });
 
-  it('should call service.create with userId from req and dto', () => {
-    const dto: CreateQuestDto = {
-      name: 'C1',
-      description: '',
-      finalDate: new Date(),
-      reward: 0,
-      estimatedDuration: 0,
-    };
+  describe('findAll (Filtering & Sorting)', () => {
+    it('should call service.findAll with all parameters parsed correctly', async () => {
+      const query = {
+        rewardMin: '100',
+        rewardMax: '500',
+        statusId: '2',
+        statusName: 'validee',
+        finalDateBefore: '2025-12-31',
+        finalDateAfter: '2025-01-01',
+        userId: '5',
+        avgXpMin: '10',
+        avgXpMax: '50',
+        sortBy: 'reward' as const,
+        order: 'desc' as const,
+      };
 
-    const req: Partial<AuthenticatedRequest> = {
-      user: { sub: 123 } as AuthenticatedRequest['user'],
-    };
+      mockService.findAll.mockResolvedValue([]);
 
-    mockService.create!.mockReturnValue({ id: 1, ...dto });
+      await controller.findAll(query);
 
-    expect(controller.create(req as AuthenticatedRequest, dto)).toEqual({
-      id: 1,
-      ...dto,
+      expect(service.findAll).toHaveBeenCalledWith({
+        rewardMin: 100,
+        rewardMax: 500,
+        statusId: 2,
+        statusName: 'validee',
+        finalDateBefore: '2025-12-31',
+        finalDateAfter: '2025-01-01',
+        userId: 5,
+        avgXpMin: 10,
+        avgXpMax: 50,
+        sortBy: 'reward',
+        order: 'desc',
+      });
     });
-    expect(mockService.create).toHaveBeenCalledWith(123, dto);
+
+    it('should call service.findAll with undefined when query is empty', async () => {
+      mockService.findAll.mockResolvedValue([]);
+
+      await controller.findAll({});
+
+      expect(service.findAll).toHaveBeenCalledWith({
+        rewardMin: undefined,
+        rewardMax: undefined,
+        statusId: undefined,
+        statusName: undefined,
+        finalDateBefore: undefined,
+        finalDateAfter: undefined,
+        userId: undefined,
+        avgXpMin: undefined,
+        avgXpMax: undefined,
+        sortBy: undefined,
+        order: undefined,
+      });
+    });
+
+    it('should sanitize invalid sortBy and order', async () => {
+      mockService.findAll.mockResolvedValue([]);
+      
+      // @ts-ignore
+      await controller.findAll({ sortBy: 'hacker', order: 'drop_table' });
+
+      expect(service.findAll).toHaveBeenCalledWith(expect.objectContaining({
+        sortBy: undefined,
+        order: undefined,
+      }));
+    });
   });
 
-  it('should call service.update with id and dto', () => {
-    const dto: UpdateQuestDto = { name: 'Up' };
-    mockService.update!.mockReturnValue({ id: 2, ...dto });
+  describe('CRUD & Status Updates', () => {
+    it('should create a quest', async () => {
+      const dto: CreateQuestDto = {
+        name: 'New Quest',
+        description: 'Desc',
+        finalDate: new Date(),
+        reward: 100,
+        estimatedDuration: 10,
+      };
+      const req = { user: { sub: 123 } } as AuthenticatedRequest;
+      const expected = { id: 1, ...dto };
+      mockService.create.mockResolvedValue(expected);
 
-    expect(controller.update(2, dto)).toEqual({ id: 2, ...dto });
-    expect(mockService.update).toHaveBeenCalledWith(2, dto);
+      const result = await controller.create(req, dto);
+
+      expect(service.create).toHaveBeenCalledWith(123, dto);
+      expect(result).toEqual(expected);
+    });
+
+    it('should find one quest', async () => {
+      const expected = { id: 1, name: 'Q1' };
+      mockService.findOne.mockResolvedValue(expected);
+      expect(await controller.findOne(1)).toEqual(expected);
+      expect(service.findOne).toHaveBeenCalledWith(1);
+    });
+
+    it('should update a quest', async () => {
+      const dto: UpdateQuestDto = { name: 'Updated' };
+      const expected = { id: 1, ...dto };
+      mockService.update.mockResolvedValue(expected);
+      expect(await controller.update(1, dto)).toEqual(expected);
+      expect(service.update).toHaveBeenCalledWith(1, dto);
+    });
+
+    it('should update status manually', async () => {
+      const dto: UpdateStatusDto = { statusId: 3 };
+      const expected = { id: 1, statusId: 3 };
+      mockService.updateStatus.mockResolvedValue(expected);
+      expect(await controller.updateStatus(1, dto)).toEqual(expected);
+      expect(service.updateStatus).toHaveBeenCalledWith(1, dto);
+    });
   });
 
-  it('should call service.findAll', () => {
-    const mock = [{ id: 1, name: 'Q1' }];
-    mockService.findAll!.mockReturnValue(mock);
+  describe('Adventurer Management', () => {
+    const idsDto: IdsDto = { ids: [1, 2] };
+    const expected = { id: 1, adventurerIds: [1, 2] };
 
-    expect(controller.findAll()).toBe(mock);
-    expect(mockService.findAll).toHaveBeenCalled();
+    it('should attach adventurers', async () => {
+      mockService.attachAdventurers.mockResolvedValue(expected);
+      expect(await controller.attachAdventurers(1, idsDto)).toEqual(expected);
+      expect(service.attachAdventurers).toHaveBeenCalledWith(1, idsDto.ids);
+    });
+
+    it('should detach adventurers', async () => {
+      mockService.detachAdventurers.mockResolvedValue(expected);
+      expect(await controller.detachAdventurers(1, idsDto)).toEqual(expected);
+      expect(service.detachAdventurers).toHaveBeenCalledWith(1, idsDto.ids);
+    });
+
+    it('should set adventurers', async () => {
+      mockService.setAdventurers.mockResolvedValue(expected);
+      expect(await controller.setAdventurers(1, idsDto)).toEqual(expected);
+      expect(service.setAdventurers).toHaveBeenCalledWith(1, idsDto.ids);
+    });
   });
 
-  it('should call service.findOne with id', () => {
-    const quest = { id: 5, name: 'Quest' };
-    mockService.findOne!.mockReturnValue(quest);
+  describe('Equipment Management', () => {
+    const idsDto: IdsDto = { ids: [10, 20] };
+    const expected = { id: 1, equipmentStockIds: [10, 20] };
 
-    expect(controller.findOne(5)).toBe(quest);
-    expect(mockService.findOne).toHaveBeenCalledWith(5);
+    it('should attach equipment', async () => {
+      mockService.attachEquipmentStocks.mockResolvedValue(expected);
+      expect(await controller.attachEquipment(1, idsDto)).toEqual(expected);
+      expect(service.attachEquipmentStocks).toHaveBeenCalledWith(1, idsDto.ids);
+    });
+
+    it('should detach equipment', async () => {
+      mockService.detachEquipmentStocks.mockResolvedValue(expected);
+      expect(await controller.detachEquipment(1, idsDto)).toEqual(expected);
+      expect(service.detachEquipmentStocks).toHaveBeenCalledWith(1, idsDto.ids);
+    });
+
+    it('should set equipment', async () => {
+      mockService.setEquipmentStocks.mockResolvedValue(expected);
+      expect(await controller.setEquipment(1, idsDto)).toEqual(expected);
+      expect(service.setEquipmentStocks).toHaveBeenCalledWith(1, idsDto.ids);
+    });
   });
 
-  it('should call service.updateStatus', () => {
-    const dto: UpdateStatusDto = { statusId: 2 };
-    const res = { id: 1, statusId: 2 };
-    mockService.updateStatus!.mockReturnValue(res);
+  describe('Workflow Actions', () => {
+    const questId = 42;
 
-    expect(controller.updateStatus(1, dto)).toBe(res);
-    expect(mockService.updateStatus).toHaveBeenCalledWith(1, dto);
-  });
+    it('should validate a quest', async () => {
+      const dto: ValidateQuestDto = { xp: 500 };
+      const expected = { id: questId, statusId: 2, recommendedXP: 500 };
+      mockService.validateQuest.mockResolvedValue(expected);
 
-  it('should call service.attachAdventurers', () => {
-    const body: IdsDto = { ids: [1, 2] };
-    const res = { id: 10 };
-    mockService.attachAdventurers!.mockReturnValue(res);
+      const result = await controller.validate(questId, dto);
 
-    expect(controller.attachAdventurers(10, body)).toBe(res);
-    expect(mockService.attachAdventurers).toHaveBeenCalledWith(10, body.ids);
-  });
+      expect(service.validateQuest).toHaveBeenCalledWith(questId, 500);
+      expect(result).toEqual(expected);
+    });
 
-  it('should call service.detachAdventurers', () => {
-    const body: IdsDto = { ids: [3] };
-    const res = { id: 10 };
-    mockService.detachAdventurers!.mockReturnValue(res);
+    it('should invalidate a quest', async () => {
+      const expected = { id: questId, statusId: 1 };
+      mockService.invalidateQuest.mockResolvedValue(expected);
 
-    expect(controller.detachAdventurers(10, body)).toBe(res);
-    expect(mockService.detachAdventurers).toHaveBeenCalledWith(10, body.ids);
-  });
+      const result = await controller.invalidate(questId);
 
-  it('should call service.setAdventurers', () => {
-    const body: IdsDto = { ids: [1, 2, 3] };
-    const res = { id: 12 };
-    mockService.setAdventurers!.mockReturnValue(res);
+      expect(service.invalidateQuest).toHaveBeenCalledWith(questId);
+      expect(result).toEqual(expected);
+    });
 
-    expect(controller.setAdventurers(12, body)).toBe(res);
-    expect(mockService.setAdventurers).toHaveBeenCalledWith(12, body.ids);
-  });
+    it('should start a quest', async () => {
+      const expected = { id: questId, statusId: 3 };
+      mockService.startQuest.mockResolvedValue(expected);
 
-  it('should call service.attachEquipment', () => {
-    const body: IdsDto = { ids: [9] };
-    const res = { id: 15 };
-    mockService.attachEquipmentStocks!.mockReturnValue(res);
+      const result = await controller.start(questId);
 
-    expect(controller.attachEquipment(15, body)).toBe(res);
-    expect(mockService.attachEquipmentStocks).toHaveBeenCalledWith(
-      15,
-      body.ids,
-    );
-  });
+      expect(service.startQuest).toHaveBeenCalledWith(questId);
+      expect(result).toEqual(expected);
+    });
 
-  it('should call service.detachEquipment', () => {
-    const body: IdsDto = { ids: [5] };
-    const res = { id: 7 };
-    mockService.detachEquipmentStocks!.mockReturnValue(res);
+    it('should refuse a quest', async () => {
+      const expected = { id: questId, statusId: 4 };
+      mockService.refuseQuest.mockResolvedValue(expected);
 
-    expect(controller.detachEquipment(7, body)).toBe(res);
-    expect(mockService.detachEquipmentStocks).toHaveBeenCalledWith(7, body.ids);
-  });
+      const result = await controller.refuse(questId);
 
-  it('should call service.setEquipment', () => {
-    const body: IdsDto = { ids: [11, 12] };
-    const res = { id: 20 };
-    mockService.setEquipmentStocks!.mockReturnValue(res);
+      expect(service.refuseQuest).toHaveBeenCalledWith(questId);
+      expect(result).toEqual(expected);
+    });
 
-    expect(controller.setEquipment(20, body)).toBe(res);
-    expect(mockService.setEquipmentStocks).toHaveBeenCalledWith(20, body.ids);
+    it('should abandon a quest', async () => {
+      const expected = { id: questId, statusId: 5 };
+      mockService.abandonQuest.mockResolvedValue(expected);
+
+      const result = await controller.abandon(questId);
+
+      expect(service.abandonQuest).toHaveBeenCalledWith(questId);
+      expect(result).toEqual(expected);
+    });
   });
 });

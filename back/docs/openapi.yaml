@@ -243,10 +243,93 @@ paths:
   /quests:
     get:
       operationId: QuestsController_findAll
-      parameters: []
+      parameters:
+        - name: order
+          required: false
+          in: query
+          description: Ordre de tri
+          schema:
+            enum:
+              - asc
+              - desc
+            type: string
+        - name: sortBy
+          required: false
+          in: query
+          description: Champ de tri
+          schema:
+            enum:
+              - reward
+              - finalDate
+              - avgExperience
+              - createdAt
+            type: string
+        - name: avgXpMax
+          required: false
+          in: query
+          description: Niveau d'expérience moyen maximal des aventuriers
+          schema:
+            example: 100
+            type: number
+        - name: avgXpMin
+          required: false
+          in: query
+          description: Niveau d'expérience moyen minimal des aventuriers
+          schema:
+            example: 10
+            type: number
+        - name: userId
+          required: false
+          in: query
+          description: Filtrer par commanditaire (ID utilisateur)
+          schema:
+            example: 5
+            type: number
+        - name: finalDateAfter
+          required: false
+          in: query
+          description: Date d'échéance après (ISO 8601)
+          schema:
+            example: '2025-01-01'
+            type: string
+        - name: finalDateBefore
+          required: false
+          in: query
+          description: Date d'échéance avant (ISO 8601)
+          schema:
+            example: '2025-12-31'
+            type: string
+        - name: statusName
+          required: false
+          in: query
+          description: 'Filtrer par nom de statut (ex: validée, commencée)'
+          schema:
+            example: validée
+            type: string
+        - name: statusId
+          required: false
+          in: query
+          description: Filtrer par identifiant de statut
+          schema:
+            example: 2
+            type: number
+        - name: rewardMax
+          required: false
+          in: query
+          description: Prime maximale (incluse)
+          schema:
+            example: 1000
+            type: number
+        - name: rewardMin
+          required: false
+          in: query
+          description: Prime minimale (incluse)
+          schema:
+            example: 100
+            type: number
       responses:
         '200':
-          description: List of quests
+          description: List of quests (avec filtres et tri)
           content:
             application/json:
               schema:
@@ -803,10 +886,47 @@ paths:
   /adventurers:
     get:
       operationId: AdventurersController_findAll
-      parameters: []
+      parameters:
+        - name: dailyRateOrder
+          required: false
+          in: query
+          description: Tri par taux journalier
+          schema:
+            enum:
+              - asc
+              - desc
+            type: string
+        - name: xpMax
+          required: false
+          in: query
+          description: Expérience maximale (incluse)
+          schema:
+            example: 50
+            type: number
+        - name: xpMin
+          required: false
+          in: query
+          description: Expérience minimale (incluse)
+          schema:
+            example: 10
+            type: number
+        - name: specialityId
+          required: false
+          in: query
+          description: Filtrer par identifiant de spécialité
+          schema:
+            example: 3
+            type: number
+        - name: name
+          required: false
+          in: query
+          description: Filtrer par nom (contains, insensible à la casse)
+          schema:
+            example: aria
+            type: string
       responses:
         '200':
-          description: List of adventurers
+          description: List of adventurers (avec filtres et tri)
           content:
             application/json:
               schema:
@@ -1021,9 +1141,6 @@ paths:
                 name:
                   type: string
                   example: Mage
-                description:
-                  type: string
-                  example: Uses arcane powers.
               required:
                 - name
               additionalProperties: false
@@ -1041,17 +1158,6 @@ paths:
                   name:
                     type: string
                     example: Mage
-                  description:
-                    type: string
-                    example: Uses arcane powers.
-                  createdAt:
-                    type: string
-                    format: date-time
-                    example: '2025-10-30T12:00:00.000Z'
-                  updatedAt:
-                    type: string
-                    format: date-time
-                    example: '2025-10-30T12:00:00.000Z'
       security:
         - bearer: []
       tags:
@@ -1075,17 +1181,6 @@ paths:
                     name:
                       type: string
                       example: Warrior
-                    description:
-                      type: string
-                      example: Frontline melee combatant.
-                    createdAt:
-                      type: string
-                      format: date-time
-                      example: '2025-10-30T12:00:00.000Z'
-                    updatedAt:
-                      type: string
-                      format: date-time
-                      example: '2025-10-30T12:34:56.000Z'
       security:
         - bearer: []
       tags:
@@ -1115,17 +1210,6 @@ paths:
                   name:
                     type: string
                     example: Mage
-                  description:
-                    type: string
-                    example: Uses arcane powers.
-                  createdAt:
-                    type: string
-                    format: date-time
-                    example: '2025-10-30T12:00:00.000Z'
-                  updatedAt:
-                    type: string
-                    format: date-time
-                    example: '2025-10-30T12:34:56.000Z'
       security:
         - bearer: []
       tags:
@@ -1151,9 +1235,6 @@ paths:
                 name:
                   type: string
                   example: Battlemage
-                description:
-                  type: string
-                  example: Combines melee and magic.
               additionalProperties: false
       responses:
         '200':
@@ -1169,17 +1250,6 @@ paths:
                   name:
                     type: string
                     example: Battlemage
-                  description:
-                    type: string
-                    example: Combines melee and magic.
-                  createdAt:
-                    type: string
-                    format: date-time
-                    example: '2025-10-30T12:00:00.000Z'
-                  updatedAt:
-                    type: string
-                    format: date-time
-                    example: '2025-10-30T12:45:00.000Z'
       security:
         - bearer: []
       tags:
@@ -1227,9 +1297,6 @@ paths:
                 name:
                   type: string
                   example: Weapon
-                description:
-                  type: string
-                  example: Offensive equipment like swords or bows.
               required:
                 - name
               additionalProperties: false
@@ -1247,17 +1314,6 @@ paths:
                   name:
                     type: string
                     example: Weapon
-                  description:
-                    type: string
-                    example: Offensive equipment like swords or bows.
-                  createdAt:
-                    type: string
-                    format: date-time
-                    example: '2025-10-30T12:00:00.000Z'
-                  updatedAt:
-                    type: string
-                    format: date-time
-                    example: '2025-10-30T12:00:00.000Z'
       security:
         - bearer: []
       tags:
@@ -1281,17 +1337,6 @@ paths:
                     name:
                       type: string
                       example: Armor
-                    description:
-                      type: string
-                      example: Defensive equipment such as shields or helmets.
-                    createdAt:
-                      type: string
-                      format: date-time
-                      example: '2025-10-30T12:00:00.000Z'
-                    updatedAt:
-                      type: string
-                      format: date-time
-                      example: '2025-10-30T12:34:56.000Z'
       security:
         - bearer: []
       tags:
@@ -1321,17 +1366,6 @@ paths:
                   name:
                     type: string
                     example: Weapon
-                  description:
-                    type: string
-                    example: Offensive equipment like swords or bows.
-                  createdAt:
-                    type: string
-                    format: date-time
-                    example: '2025-10-30T12:00:00.000Z'
-                  updatedAt:
-                    type: string
-                    format: date-time
-                    example: '2025-10-30T12:34:56.000Z'
       security:
         - bearer: []
       tags:
@@ -1357,9 +1391,6 @@ paths:
                 name:
                   type: string
                   example: Ranged Weapon
-                description:
-                  type: string
-                  example: Bows, crossbows, and similar weapons.
               additionalProperties: false
       responses:
         '200':
@@ -1375,17 +1406,6 @@ paths:
                   name:
                     type: string
                     example: Ranged Weapon
-                  description:
-                    type: string
-                    example: Bows, crossbows, and similar weapons.
-                  createdAt:
-                    type: string
-                    format: date-time
-                    example: '2025-10-30T12:00:00.000Z'
-                  updatedAt:
-                    type: string
-                    format: date-time
-                    example: '2025-10-30T12:45:00.000Z'
       security:
         - bearer: []
       tags:
@@ -1522,9 +1542,6 @@ paths:
                 name:
                   type: string
                   example: Health Potion
-                description:
-                  type: string
-                  example: Restores a small amount of HP.
               required:
                 - name
               additionalProperties: false
@@ -1542,17 +1559,6 @@ paths:
                   name:
                     type: string
                     example: Health Potion
-                  description:
-                    type: string
-                    example: Restores a small amount of HP.
-                  createdAt:
-                    type: string
-                    format: date-time
-                    example: '2025-10-30T12:00:00.000Z'
-                  updatedAt:
-                    type: string
-                    format: date-time
-                    example: '2025-10-30T12:00:00.000Z'
       security:
         - bearer: []
       tags:
@@ -1576,17 +1582,6 @@ paths:
                     name:
                       type: string
                       example: Health Potion
-                    description:
-                      type: string
-                      example: Restores a small amount of HP.
-                    createdAt:
-                      type: string
-                      format: date-time
-                      example: '2025-10-30T12:00:00.000Z'
-                    updatedAt:
-                      type: string
-                      format: date-time
-                      example: '2025-10-30T12:34:56.000Z'
       tags:
         - Consumable Types
   /consumable-types/{id}:
@@ -1614,17 +1609,6 @@ paths:
                   name:
                     type: string
                     example: Health Potion
-                  description:
-                    type: string
-                    example: Restores a small amount of HP.
-                  createdAt:
-                    type: string
-                    format: date-time
-                    example: '2025-10-30T12:00:00.000Z'
-                  updatedAt:
-                    type: string
-                    format: date-time
-                    example: '2025-10-30T12:34:56.000Z'
       tags:
         - Consumable Types
     patch:
@@ -1648,9 +1632,6 @@ paths:
                 name:
                   type: string
                   example: Greater Health Potion
-                description:
-                  type: string
-                  example: Restores a greater amount of HP.
               additionalProperties: false
       responses:
         '200':
@@ -1666,17 +1647,6 @@ paths:
                   name:
                     type: string
                     example: Greater Health Potion
-                  description:
-                    type: string
-                    example: Restores a greater amount of HP.
-                  createdAt:
-                    type: string
-                    format: date-time
-                    example: '2025-10-30T12:00:00.000Z'
-                  updatedAt:
-                    type: string
-                    format: date-time
-                    example: '2025-10-30T12:45:00.000Z'
       security:
         - bearer: []
       tags:
@@ -1732,17 +1702,15 @@ paths:
                     equipmentTypeId:
                       type: number
                       example: 7
-                    description:
-                      type: string
-                      example: A versatile steel longsword.
-                    createdAt:
-                      type: string
-                      format: date-time
-                      example: '2025-10-30T12:00:00.000Z'
-                    updatedAt:
-                      type: string
-                      format: date-time
-                      example: '2025-10-30T12:34:56.000Z'
+                    cost:
+                      type: number
+                      example: 100
+                    maxDurability:
+                      type: number
+                      example: 50
+                    currentDurability:
+                      type: number
+                      example: 50
       security:
         - bearer: []
       tags:
@@ -1764,12 +1732,17 @@ paths:
                 equipmentTypeId:
                   type: number
                   example: 7
-                description:
-                  type: string
-                  example: A versatile steel longsword.
+                cost:
+                  type: number
+                  example: 100
+                maxDurability:
+                  type: number
+                  example: 50
               required:
                 - name
                 - equipmentTypeId
+                - cost
+                - maxDurability
               additionalProperties: false
       responses:
         '201':
@@ -1788,17 +1761,15 @@ paths:
                   equipmentTypeId:
                     type: number
                     example: 7
-                  description:
-                    type: string
-                    example: A versatile steel longsword.
-                  createdAt:
-                    type: string
-                    format: date-time
-                    example: '2025-10-30T12:00:00.000Z'
-                  updatedAt:
-                    type: string
-                    format: date-time
-                    example: '2025-10-30T12:00:00.000Z'
+                  cost:
+                    type: number
+                    example: 100
+                  maxDurability:
+                    type: number
+                    example: 50
+                  currentDurability:
+                    type: number
+                    example: 50
       security:
         - bearer: []
       tags:
@@ -1831,17 +1802,15 @@ paths:
                   equipmentTypeId:
                     type: number
                     example: 7
-                  description:
-                    type: string
-                    example: A versatile steel longsword.
-                  createdAt:
-                    type: string
-                    format: date-time
-                    example: '2025-10-30T12:00:00.000Z'
-                  updatedAt:
-                    type: string
-                    format: date-time
-                    example: '2025-10-30T12:34:56.000Z'
+                  cost:
+                    type: number
+                    example: 100
+                  maxDurability:
+                    type: number
+                    example: 50
+                  currentDurability:
+                    type: number
+                    example: 50
       security:
         - bearer: []
       tags:
@@ -1870,9 +1839,15 @@ paths:
                 equipmentTypeId:
                   type: number
                   example: 8
-                description:
-                  type: string
-                  example: Longsword imbued with minor magic.
+                cost:
+                  type: number
+                  example: 150
+                maxDurability:
+                  type: number
+                  example: 60
+                currentDurability:
+                  type: number
+                  example: 45
               additionalProperties: false
       responses:
         '200':
@@ -1891,17 +1866,15 @@ paths:
                   equipmentTypeId:
                     type: number
                     example: 8
-                  description:
-                    type: string
-                    example: Longsword imbued with minor magic.
-                  createdAt:
-                    type: string
-                    format: date-time
-                    example: '2025-10-30T12:00:00.000Z'
-                  updatedAt:
-                    type: string
-                    format: date-time
-                    example: '2025-10-30T12:45:00.000Z'
+                  cost:
+                    type: number
+                    example: 150
+                  maxDurability:
+                    type: number
+                    example: 60
+                  currentDurability:
+                    type: number
+                    example: 45
       security:
         - bearer: []
       tags:
@@ -2300,16 +2273,13 @@ paths:
                 type: array
                 items:
                   type: object
-                  additionalProperties: true
-                example:
-                  - id: 1
-                    name: Pending
-                    createdAt: '2025-10-30T12:00:00.000Z'
-                    updatedAt: '2025-10-30T12:34:56.000Z'
-                  - id: 2
-                    name: In Progress
-                    createdAt: '2025-10-30T12:05:00.000Z'
-                    updatedAt: '2025-10-30T12:35:00.000Z'
+                  properties:
+                    id:
+                      type: number
+                      example: 1
+                    name:
+                      type: string
+                      example: Pending
       security:
         - bearer: []
       tags:
@@ -2324,9 +2294,13 @@ paths:
           application/json:
             schema:
               type: object
-              additionalProperties: true
-              example:
-                name: In Progress
+              properties:
+                name:
+                  type: string
+                  example: In Progress
+              required:
+                - name
+              additionalProperties: false
       responses:
         '201':
           description: Status created
@@ -2334,12 +2308,13 @@ paths:
             application/json:
               schema:
                 type: object
-                additionalProperties: true
-                example:
-                  id: 3
-                  name: In Progress
-                  createdAt: '2025-10-30T12:00:00.000Z'
-                  updatedAt: '2025-10-30T12:00:00.000Z'
+                properties:
+                  id:
+                    type: number
+                    example: 3
+                  name:
+                    type: string
+                    example: In Progress
       security:
         - bearer: []
       tags:
@@ -2362,9 +2337,11 @@ paths:
           application/json:
             schema:
               type: object
-              additionalProperties: true
-              example:
-                name: Completed
+              properties:
+                name:
+                  type: string
+                  example: Completed
+              additionalProperties: false
       responses:
         '200':
           description: Updated status
@@ -2372,12 +2349,13 @@ paths:
             application/json:
               schema:
                 type: object
-                additionalProperties: true
-                example:
-                  id: 3
-                  name: Completed
-                  createdAt: '2025-10-30T12:00:00.000Z'
-                  updatedAt: '2025-10-30T12:45:00.000Z'
+                properties:
+                  id:
+                    type: number
+                    example: 3
+                  name:
+                    type: string
+                    example: Completed
       security:
         - bearer: []
       tags:
@@ -2410,6 +2388,58 @@ paths:
         - bearer: []
       tags:
         - Statuses
+  /roles:
+    get:
+      operationId: RolesController_findAll
+      parameters: []
+      responses:
+        '200':
+          description: List of all roles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: number
+                      example: 1
+                    name:
+                      type: string
+                      example: Admin
+      security:
+        - bearer: []
+      tags:
+        - Roles
+  /roles/{id}:
+    get:
+      operationId: RolesController_findOne
+      parameters:
+        - name: id
+          required: true
+          in: path
+          description: Role ID
+          schema:
+            type: number
+      responses:
+        '200':
+          description: Role found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: number
+                    example: 1
+                  name:
+                    type: string
+                    example: Admin
+      security:
+        - bearer: []
+      tags:
+        - Roles
   /:
     get:
       operationId: AppController_getHello

@@ -3,19 +3,19 @@ import { NotFoundException } from '@nestjs/common';
 import { QuestStockEquipmentService } from '../services/quest-stock-equipment.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateQuestStockEquipmentDto } from '../dto/create-quest-stock-equipment.dto';
-import { EquipmentStock, Quest, QuestStockEquipment } from '@prisma/client';
+import { EquipmentStock, Quest, QuestStockEquipment, Prisma } from '@prisma/client';
 
 type PrismaMock = {
   questStockEquipment: {
-    create: jest.Mock<Promise<QuestStockEquipment>, [any]>;
-    findMany: jest.Mock<Promise<QuestStockEquipment[]>, [any?]>;
-    delete: jest.Mock<Promise<QuestStockEquipment>, [any]>;
+    create: jest.Mock;
+    findMany: jest.Mock;
+    delete: jest.Mock;
   };
   quest: {
-    findUnique: jest.Mock<Promise<Quest | null>, [any]>;
+    findUnique: jest.Mock;
   };
   equipmentStock: {
-    findUnique: jest.Mock<Promise<EquipmentStock | null>, [any]>;
+    findUnique: jest.Mock;
   };
 };
 
@@ -26,21 +26,15 @@ describe('QuestStockEquipmentService', () => {
   beforeEach(async () => {
     mockPrisma = {
       questStockEquipment: {
-        create: jest.fn() as jest.Mock<Promise<QuestStockEquipment>, [any]>,
-        findMany: jest.fn() as jest.Mock<
-          Promise<QuestStockEquipment[]>,
-          [any?]
-        >,
-        delete: jest.fn() as jest.Mock<Promise<QuestStockEquipment>, [any]>,
+        create: jest.fn(),
+        findMany: jest.fn(),
+        delete: jest.fn(),
       },
       quest: {
-        findUnique: jest.fn() as jest.Mock<Promise<Quest | null>, [any]>,
+        findUnique: jest.fn(),
       },
       equipmentStock: {
-        findUnique: jest.fn() as jest.Mock<
-          Promise<EquipmentStock | null>,
-          [any]
-        >,
+        findUnique: jest.fn(),
       },
     };
 
@@ -56,6 +50,7 @@ describe('QuestStockEquipmentService', () => {
     );
   });
 
+  // --- ATTACH ---
   it('should create a quest stock equipment', async () => {
     const dto: CreateQuestStockEquipmentDto = {
       questId: 1,
@@ -70,9 +65,6 @@ describe('QuestStockEquipmentService', () => {
       id: 10,
       questId: 1,
       equipmentStockId: 2,
-      equipmentId: null,
-      quest: { id: 1 },
-      equipmentStock: { id: 2 },
     } as QuestStockEquipment);
 
     const result = await service.attach(dto);
@@ -98,43 +90,62 @@ describe('QuestStockEquipmentService', () => {
     ).rejects.toThrow(NotFoundException);
   });
 
-  it('should find all quest stock equipment', async () => {
-    mockPrisma.questStockEquipment.findMany.mockResolvedValue([
-      {
-        id: 10,
-        questId: 1,
-        equipmentStockId: 2,
-        equipmentId: null,
-        quest: { id: 1 },
-        equipmentStock: { id: 2 },
-      },
-    ] as unknown as QuestStockEquipment[]);
+  // --- FIND ALL ---
+  describe('findAll', () => {
+    it('should find all quest stock equipment (no filter)', async () => {
+      mockPrisma.questStockEquipment.findMany.mockResolvedValue([]);
 
-    const result = await service.findAll();
-    expect(result).toHaveLength(1);
-  });
+      await service.findAll();
+      
+      // Vérifie la branche "else" du ternaire (undefined)
+      expect(mockPrisma.questStockEquipment.findMany).toHaveBeenCalledWith({
+        where: undefined,
+        include: { quest: true, equipmentStock: true },
+      });
+    });
 
-  it('should delete a quest stock equipment', async () => {
-    mockPrisma.questStockEquipment.delete.mockResolvedValue({
-      id: 10,
-      questId: 1,
-      equipmentStockId: 2,
-      equipmentId: null,
-    } as QuestStockEquipment);
+    it('should find quest stock equipment filtered by questId', async () => {
+      mockPrisma.questStockEquipment.findMany.mockResolvedValue([]);
 
-    const result = await service.delete(10);
-    expect(result.id).toBe(10);
-    expect(mockPrisma.questStockEquipment.delete).toHaveBeenCalledWith({
-      where: { id: 10 },
+      await service.findAll(5);
+
+      // Vérifie la branche "if" du ternaire ({ questId: 5 })
+      expect(mockPrisma.questStockEquipment.findMany).toHaveBeenCalledWith({
+        where: { questId: 5 },
+        include: { quest: true, equipmentStock: true },
+      });
     });
   });
 
-  it('should throw NotFoundException if delete fails with P2025', async () => {
-    mockPrisma.questStockEquipment.delete.mockRejectedValue(
-      new NotFoundException('Quest stock equipment not found'),
-    );
+  // --- DELETE ---
+  describe('delete', () => {
+    it('should delete a quest stock equipment', async () => {
+      mockPrisma.questStockEquipment.delete.mockResolvedValue({
+        id: 10,
+      } as QuestStockEquipment);
 
-    await expect(service.delete(999)).rejects.toThrow(NotFoundException);
+      const result = await service.delete(10);
+      expect(result.id).toBe(10);
+    });
+
+    // CORRECTION : Simulation correcte de P2025 pour couvrir la ligne 38
+    it('should throw NotFoundException if delete fails with P2025', async () => {
+      const prismaError = new Prisma.PrismaClientKnownRequestError(
+        'Link not found',
+        { code: 'P2025', clientVersion: '1.0' } as any,
+      );
+
+      mockPrisma.questStockEquipment.delete.mockRejectedValue(prismaError);
+
+      await expect(service.delete(999)).rejects.toThrow(NotFoundException);
+    });
+
+    // AJOUT : Pour couvrir le "throw e" final
+    it('should re-throw generic errors', async () => {
+      const error = new Error('Generic DB Error');
+      mockPrisma.questStockEquipment.delete.mockRejectedValue(error);
+
+      await expect(service.delete(10)).rejects.toThrow(error);
+    });
   });
-
 });

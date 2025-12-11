@@ -5,7 +5,7 @@ import { UsersModule } from './modules/users.module';
 import { AdventurersModule } from './modules/adventurers.module';
 import { SpecialitiesModule } from './modules/specialities.module';
 import { EquipmentTypesModule } from './modules/equipment-types.module';
-import { ConsumablesModule } from "./modules/consumables.module";
+import { ConsumablesModule } from './modules/consumables.module';
 import { ConsumableTypesModule } from './modules/consumable-types.module';
 import { PrismaModule } from './prisma/prisma.service';
 import { QuestsModule } from './modules/quests.module';
@@ -14,6 +14,7 @@ import { EquipmentStocksModule } from './modules/equipment-stocks.module';
 import { QuestStockEquipmentModule } from './modules/quest-stock-equipment.module';
 import { StatusesModule } from './modules/statuses.module';
 import { AuthModule } from './modules/auth.module';
+import { RolesModule } from './modules/roles.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { AuthModule } from './modules/auth.module';
     EquipmentStocksModule,
     QuestStockEquipmentModule,
     StatusesModule,
+    RolesModule,
     AuthModule,
   ],
   controllers: [AppController],

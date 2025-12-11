@@ -82,4 +82,70 @@ describe('AdventurersController', () => {
     expect(service.update).toHaveBeenCalledWith(1, { name: 'Updated' });
     expect(result).toEqual(updated);
   });
+
+  describe('findAll', () => {
+    it('should call service.findAll with empty options when no query params provided', async () => {
+      const query = {};
+      mockAdventurersService.findAll.mockResolvedValue([]);
+
+      await controller.findAll(query);
+
+      expect(service.findAll).toHaveBeenCalledWith({
+        name: undefined,
+        specialityId: undefined,
+        experienceMin: undefined,
+        experienceMax: undefined,
+        dailyRateOrder: undefined,
+      });
+    });
+
+    it('should call service.findAll with parsed options and ASC order', async () => {
+      const query = {
+        name: 'Aria',
+        specialityId: '3',
+        xpMin: '10',
+        xpMax: '50',
+        dailyRateOrder: 'asc' as const,
+      };
+      mockAdventurersService.findAll.mockResolvedValue([]);
+
+      await controller.findAll(query);
+
+      expect(service.findAll).toHaveBeenCalledWith({
+        name: 'Aria',
+        specialityId: 3,
+        experienceMin: 10,
+        experienceMax: 50,
+        dailyRateOrder: 'asc',
+      });
+    });
+
+    it('should call service.findAll with DESC order', async () => {
+      const query = { dailyRateOrder: 'desc' as const };
+      mockAdventurersService.findAll.mockResolvedValue([]);
+
+      await controller.findAll(query);
+
+      expect(service.findAll).toHaveBeenCalledWith({
+        name: undefined,
+        specialityId: undefined,
+        experienceMin: undefined,
+        experienceMax: undefined,
+        dailyRateOrder: 'desc',
+      });
+    });
+  });
+
+  describe('findOne', () => {
+    it('should call service.findOne with correct ID', async () => {
+      const id = 1;
+      const mockAdventurer = { id, name: 'Test' };
+      mockAdventurersService.findOne.mockResolvedValue(mockAdventurer);
+
+      const result = await controller.findOne(id);
+
+      expect(service.findOne).toHaveBeenCalledWith(id);
+      expect(result).toEqual(mockAdventurer);
+    });
+  });
 });

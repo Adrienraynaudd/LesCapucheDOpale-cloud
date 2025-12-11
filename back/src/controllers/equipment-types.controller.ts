@@ -39,10 +39,6 @@ export class EquipmentTypesController {
       type: 'object',
       properties: {
         name: { type: 'string', example: 'Weapon' },
-        description: {
-          type: 'string',
-          example: 'Offensive equipment like swords or bows.',
-        },
       },
       required: ['name'],
       additionalProperties: false,
@@ -55,20 +51,6 @@ export class EquipmentTypesController {
       properties: {
         id: { type: 'number', example: 7 },
         name: { type: 'string', example: 'Weapon' },
-        description: {
-          type: 'string',
-          example: 'Offensive equipment like swords or bows.',
-        },
-        createdAt: {
-          type: 'string',
-          format: 'date-time',
-          example: '2025-10-30T12:00:00.000Z',
-        },
-        updatedAt: {
-          type: 'string',
-          format: 'date-time',
-          example: '2025-10-30T12:00:00.000Z',
-        },
       },
     },
   })
@@ -88,20 +70,6 @@ export class EquipmentTypesController {
         properties: {
           id: { type: 'number', example: 1 },
           name: { type: 'string', example: 'Armor' },
-          description: {
-            type: 'string',
-            example: 'Defensive equipment such as shields or helmets.',
-          },
-          createdAt: {
-            type: 'string',
-            format: 'date-time',
-            example: '2025-10-30T12:00:00.000Z',
-          },
-          updatedAt: {
-            type: 'string',
-            format: 'date-time',
-            example: '2025-10-30T12:34:56.000Z',
-          },
         },
       },
     },
@@ -121,20 +89,6 @@ export class EquipmentTypesController {
       properties: {
         id: { type: 'number', example: 7 },
         name: { type: 'string', example: 'Weapon' },
-        description: {
-          type: 'string',
-          example: 'Offensive equipment like swords or bows.',
-        },
-        createdAt: {
-          type: 'string',
-          format: 'date-time',
-          example: '2025-10-30T12:00:00.000Z',
-        },
-        updatedAt: {
-          type: 'string',
-          format: 'date-time',
-          example: '2025-10-30T12:34:56.000Z',
-        },
       },
     },
   })
@@ -152,10 +106,6 @@ export class EquipmentTypesController {
       type: 'object',
       properties: {
         name: { type: 'string', example: 'Ranged Weapon' },
-        description: {
-          type: 'string',
-          example: 'Bows, crossbows, and similar weapons.',
-        },
       },
       additionalProperties: false,
     },
@@ -167,20 +117,6 @@ export class EquipmentTypesController {
       properties: {
         id: { type: 'number', example: 7 },
         name: { type: 'string', example: 'Ranged Weapon' },
-        description: {
-          type: 'string',
-          example: 'Bows, crossbows, and similar weapons.',
-        },
-        createdAt: {
-          type: 'string',
-          format: 'date-time',
-          example: '2025-10-30T12:00:00.000Z',
-        },
-        updatedAt: {
-          type: 'string',
-          format: 'date-time',
-          example: '2025-10-30T12:45:00.000Z',
-        },
       },
     },
   })

@@ -7,14 +7,25 @@ import { CreateQuestStockEquipmentDto } from '../dto/create-quest-stock-equipmen
 
 describe('QuestStockEquipmentController', () => {
   let controller: QuestStockEquipmentController;
+  let service: QuestStockEquipmentService;
+
   const mockService = {
     findAll: jest.fn(),
     attach: jest.fn(),
     delete: jest.fn(),
   };
 
+  const mockJwtAuthGuard = {
+    canActivate: jest.fn(() => true),
+  };
+
+  const mockRolesGuard = {
+    canActivate: jest.fn(() => true),
+  };
+
   beforeEach(async () => {
     jest.clearAllMocks();
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [QuestStockEquipmentController],
       providers: [
@@ -22,41 +33,78 @@ describe('QuestStockEquipmentController', () => {
       ],
     })
       .overrideGuard(JwtAuthGuard)
-      .useValue({ canActivate: jest.fn(() => true) })
+      .useValue(mockJwtAuthGuard)
       .overrideGuard(RolesGuard)
-      .useValue({ canActivate: jest.fn(() => true) })
+      .useValue(mockRolesGuard)
       .compile();
 
     controller = module.get<QuestStockEquipmentController>(
       QuestStockEquipmentController,
     );
+    service = module.get<QuestStockEquipmentService>(QuestStockEquipmentService);
   });
 
-  it('should call service.findAll without questId', () => {
-    mockService.findAll.mockReturnValue([{ id: 1 }]);
-    expect(controller.list()).toEqual([{ id: 1 }]);
-    expect(mockService.findAll).toHaveBeenCalledWith(undefined);
+  describe('list', () => {
+    it('should call service.findAll with undefined when no questId provided', async () => {
+      // Arrange
+      const expectedResult = [{ id: 1, questId: 10, equipmentStockId: 2, quantity: 1 }];
+      mockService.findAll.mockResolvedValue(expectedResult);
+
+      // Act
+      const result = await controller.list(undefined);
+
+      // Assert
+      expect(service.findAll).toHaveBeenCalledWith(undefined);
+      expect(result).toEqual(expectedResult);
+    });
+
+    it('should call service.findAll with a specific questId', async () => {
+      // Arrange
+      const questId = 12;
+      const expectedResult = [{ id: 2, questId: 12, equipmentStockId: 3, quantity: 5 }];
+      mockService.findAll.mockResolvedValue(expectedResult);
+
+      // Act
+      const result = await controller.list(questId);
+
+      // Assert
+      expect(service.findAll).toHaveBeenCalledWith(questId);
+      expect(result).toEqual(expectedResult);
+    });
   });
 
-  it('should call service.findAll with questId', () => {
-    mockService.findAll.mockReturnValue([{ id: 2 }]);
-    expect(controller.list(5)).toEqual([{ id: 2 }]);
-    expect(mockService.findAll).toHaveBeenCalledWith(5);
+  describe('attach', () => {
+    it('should call service.attach with the correct DTO', async () => {
+      // Arrange
+      const dto: CreateQuestStockEquipmentDto = {
+        questId: 12,
+        equipmentStockId: 3
+      };
+      const expectedResult = { id: 101, ...dto, createdAt: new Date(), updatedAt: new Date() };
+      mockService.attach.mockResolvedValue(expectedResult);
+
+      // Act
+      const result = await controller.attach(dto);
+
+      // Assert
+      expect(service.attach).toHaveBeenCalledWith(dto);
+      expect(result).toEqual(expectedResult);
+    });
   });
 
-  it('should call service.attach with dto', () => {
-    const dto: CreateQuestStockEquipmentDto = {
-      questId: 1,
-      equipmentStockId: 2,
-    };
-    mockService.attach.mockReturnValue({ id: 10, ...dto });
-    expect(controller.attach(dto)).toEqual({ id: 10, ...dto });
-    expect(mockService.attach).toHaveBeenCalledWith(dto);
-  });
+  describe('delete', () => {
+    it('should call service.delete with the correct ID', async () => {
+      // Arrange
+      const idToDelete = 101;
+      const expectedResult = { id: idToDelete, deleted: true };
+      mockService.delete.mockResolvedValue(expectedResult);
 
-  it('should call service.delete with id', () => {
-    mockService.delete.mockReturnValue({ id: 7 });
-    expect(controller.delete(7)).toEqual({ id: 7 });
-    expect(mockService.delete).toHaveBeenCalledWith(7);
+      // Act
+      const result = await controller.delete(idToDelete);
+
+      // Assert
+      expect(service.delete).toHaveBeenCalledWith(idToDelete);
+      expect(result).toEqual(expectedResult);
+    });
   });
 });

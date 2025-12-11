@@ -4,6 +4,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateEquipmentStockDto } from '../dto/create-equipment-stock.dto';
 import { UpdateEquipmentStockDto } from '../dto/update-equipment-stock.dto';
 import { equipmentStockInclude } from '../dto/equipment-stock.dto';
+import { Prisma } from '@prisma/client'; // Important pour simuler l'erreur
 
 describe('EquipmentStocksService', () => {
   let service: EquipmentStocksService;
@@ -137,14 +138,25 @@ describe('EquipmentStocksService', () => {
       expect(res).toEqual(updated);
     });
 
+    // TEST CORRIGÉ : On simule une erreur Prisma P2025
     it('should throw NotFoundException if prisma throws P2025', async () => {
-      mockPrisma.equipmentStock.update.mockRejectedValue(
-        new NotFoundException('Stock not found'),
+      const prismaError = new Prisma.PrismaClientKnownRequestError(
+        'Not found',
+        { code: 'P2025', clientVersion: '1.0' } as any,
       );
+      mockPrisma.equipmentStock.update.mockRejectedValue(prismaError);
 
       await expect(service.update(999, { durability: 10 })).rejects.toThrow(
         NotFoundException,
       );
+    });
+
+    // TEST AJOUTÉ : On simule une erreur inconnue (pour le throw e)
+    it('should re-throw generic errors', async () => {
+      const error = new Error('Database connection failed');
+      mockPrisma.equipmentStock.update.mockRejectedValue(error);
+
+      await expect(service.update(1, {})).rejects.toThrow(error);
     });
   });
 
@@ -162,12 +174,23 @@ describe('EquipmentStocksService', () => {
       expect(res).toEqual(deleted);
     });
 
+    // TEST CORRIGÉ : On simule une erreur Prisma P2025
     it('should throw NotFoundException if prisma throws P2025', async () => {
-      mockPrisma.equipmentStock.delete.mockRejectedValue(
-        new NotFoundException('Stock not found'),
+      const prismaError = new Prisma.PrismaClientKnownRequestError(
+        'Not found',
+        { code: 'P2025', clientVersion: '1.0' } as any,
       );
+      mockPrisma.equipmentStock.delete.mockRejectedValue(prismaError);
 
       await expect(service.delete(999)).rejects.toThrow(NotFoundException);
+    });
+
+    // TEST AJOUTÉ : On simule une erreur inconnue
+    it('should re-throw generic errors', async () => {
+      const error = new Error('Database connection failed');
+      mockPrisma.equipmentStock.delete.mockRejectedValue(error);
+
+      await expect(service.delete(1)).rejects.toThrow(error);
     });
   });
 });

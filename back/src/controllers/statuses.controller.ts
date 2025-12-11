@@ -37,21 +37,13 @@ export class StatusesController {
     description: 'List of statuses',
     schema: {
       type: 'array',
-      items: { type: 'object', additionalProperties: true },
-      example: [
-        {
-          id: 1,
-          name: 'Pending',
-          createdAt: '2025-10-30T12:00:00.000Z',
-          updatedAt: '2025-10-30T12:34:56.000Z',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'number', example: 1 },
+          name: { type: 'string', example: 'Pending' },
         },
-        {
-          id: 2,
-          name: 'In Progress',
-          createdAt: '2025-10-30T12:05:00.000Z',
-          updatedAt: '2025-10-30T12:35:00.000Z',
-        },
-      ],
+      },
     },
   })
   list() {
@@ -66,20 +58,20 @@ export class StatusesController {
     required: true,
     schema: {
       type: 'object',
-      additionalProperties: true,
-      example: { name: 'In Progress' },
+      properties: {
+        name: { type: 'string', example: 'In Progress' },
+      },
+      required: ['name'],
+      additionalProperties: false,
     },
   })
   @ApiCreatedResponse({
     description: 'Status created',
     schema: {
       type: 'object',
-      additionalProperties: true,
-      example: {
-        id: 3,
-        name: 'In Progress',
-        createdAt: '2025-10-30T12:00:00.000Z',
-        updatedAt: '2025-10-30T12:00:00.000Z',
+      properties: {
+        id: { type: 'number', example: 3 },
+        name: { type: 'string', example: 'In Progress' },
       },
     },
   })
@@ -95,20 +87,19 @@ export class StatusesController {
     description: 'Fields to update (partial)',
     schema: {
       type: 'object',
-      additionalProperties: true,
-      example: { name: 'Completed' },
+      properties: {
+        name: { type: 'string', example: 'Completed' },
+      },
+      additionalProperties: false,
     },
   })
   @ApiOkResponse({
     description: 'Updated status',
     schema: {
       type: 'object',
-      additionalProperties: true,
-      example: {
-        id: 3,
-        name: 'Completed',
-        createdAt: '2025-10-30T12:00:00.000Z',
-        updatedAt: '2025-10-30T12:45:00.000Z',
+      properties: {
+        id: { type: 'number', example: 3 },
+        name: { type: 'string', example: 'Completed' },
       },
     },
   })

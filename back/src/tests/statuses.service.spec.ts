@@ -74,10 +74,31 @@ describe('StatusesService', () => {
 
     it('should throw NotFoundException when prisma throws P2025', async () => {
       const dto: UpdateStatusDto = { name: 'x' };
-      const prismaErr = { code: 'P2025' } as const;
+      const prismaErr = { code: 'P2025' };
       mockStatusDelegate.update.mockRejectedValue(prismaErr);
 
       await expect(service.update(999, dto)).rejects.toThrow(NotFoundException);
+    });
+
+    // --- NOUVEAU : Couvre la ligne 25 (throw e) ---
+    it('should re-throw other errors', async () => {
+      const error = new Error('Database exploded');
+      mockStatusDelegate.update.mockRejectedValue(error);
+
+      await expect(service.update(1, { name: 'test' })).rejects.toThrow(error);
+    });
+    
+    // --- NOUVEAU : Couverture de branche pour isPrismaNotFoundError ---
+    // Cas où l'erreur n'est pas un objet (ex: string)
+    it('should re-throw non-object errors', async () => {
+      const error = 'Critical Failure';
+      mockStatusDelegate.update.mockRejectedValue(error);
+      
+      try {
+        await service.update(1, { name: 't' });
+      } catch (e) {
+        expect(e).toBe('Critical Failure');
+      }
     });
   });
 
@@ -92,9 +113,17 @@ describe('StatusesService', () => {
     });
 
     it('should throw NotFoundException when prisma throws P2025', async () => {
-      const prismaErr = { code: 'P2025' } as const;
+      const prismaErr = { code: 'P2025' };
       mockStatusDelegate.delete.mockRejectedValue(prismaErr);
       await expect(service.delete(999)).rejects.toThrow(NotFoundException);
+    });
+
+    // --- NOUVEAU : Couvre la ligne 36 (throw e) ---
+    it('should re-throw other errors', async () => {
+      const error = new Error('Connection failed');
+      mockStatusDelegate.delete.mockRejectedValue(error);
+
+      await expect(service.delete(3)).rejects.toThrow(error);
     });
   });
 });

@@ -41,10 +41,6 @@ export class ConsumableTypesController {
       type: 'object',
       properties: {
         name: { type: 'string', example: 'Health Potion' },
-        description: {
-          type: 'string',
-          example: 'Restores a small amount of HP.',
-        },
       },
       required: ['name'],
       additionalProperties: false,
@@ -57,20 +53,6 @@ export class ConsumableTypesController {
       properties: {
         id: { type: 'number', example: 5 },
         name: { type: 'string', example: 'Health Potion' },
-        description: {
-          type: 'string',
-          example: 'Restores a small amount of HP.',
-        },
-        createdAt: {
-          type: 'string',
-          format: 'date-time',
-          example: '2025-10-30T12:00:00.000Z',
-        },
-        updatedAt: {
-          type: 'string',
-          format: 'date-time',
-          example: '2025-10-30T12:00:00.000Z',
-        },
       },
     },
   })
@@ -88,20 +70,6 @@ export class ConsumableTypesController {
         properties: {
           id: { type: 'number', example: 1 },
           name: { type: 'string', example: 'Health Potion' },
-          description: {
-            type: 'string',
-            example: 'Restores a small amount of HP.',
-          },
-          createdAt: {
-            type: 'string',
-            format: 'date-time',
-            example: '2025-10-30T12:00:00.000Z',
-          },
-          updatedAt: {
-            type: 'string',
-            format: 'date-time',
-            example: '2025-10-30T12:34:56.000Z',
-          },
         },
       },
     },
@@ -119,20 +87,6 @@ export class ConsumableTypesController {
       properties: {
         id: { type: 'number', example: 5 },
         name: { type: 'string', example: 'Health Potion' },
-        description: {
-          type: 'string',
-          example: 'Restores a small amount of HP.',
-        },
-        createdAt: {
-          type: 'string',
-          format: 'date-time',
-          example: '2025-10-30T12:00:00.000Z',
-        },
-        updatedAt: {
-          type: 'string',
-          format: 'date-time',
-          example: '2025-10-30T12:34:56.000Z',
-        },
       },
     },
   })
@@ -151,10 +105,6 @@ export class ConsumableTypesController {
       type: 'object',
       properties: {
         name: { type: 'string', example: 'Greater Health Potion' },
-        description: {
-          type: 'string',
-          example: 'Restores a greater amount of HP.',
-        },
       },
       additionalProperties: false,
     },
@@ -166,20 +116,6 @@ export class ConsumableTypesController {
       properties: {
         id: { type: 'number', example: 5 },
         name: { type: 'string', example: 'Greater Health Potion' },
-        description: {
-          type: 'string',
-          example: 'Restores a greater amount of HP.',
-        },
-        createdAt: {
-          type: 'string',
-          format: 'date-time',
-          example: '2025-10-30T12:00:00.000Z',
-        },
-        updatedAt: {
-          type: 'string',
-          format: 'date-time',
-          example: '2025-10-30T12:45:00.000Z',
-        },
       },
     },
   })

@@ -6,6 +6,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -25,12 +26,29 @@ import {
   ApiCreatedResponse,
   ApiOkResponse,
   ApiParam,
+  ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
 
 export interface AuthenticatedRequest extends Request {
   user: UserDto & { sub: number };
 }
+
+// Interface pour typer les Query Params entrant (toujours des strings ou undefined)
+interface FindQuestsQueryDto {
+  rewardMin?: string;
+  rewardMax?: string;
+  statusId?: string;
+  statusName?: string;
+  finalDateBefore?: string;
+  finalDateAfter?: string;
+  userId?: string;
+  avgXpMin?: string;
+  avgXpMax?: string;
+  sortBy?: 'reward' | 'finalDate' | 'avgExperience' | 'createdAt';
+  order?: 'asc' | 'desc';
+}
+
 @ApiTags('Quests')
 @ApiBearerAuth()
 @Controller('quests')
@@ -40,8 +58,85 @@ export class QuestsController {
   @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(1, 2)
+  @ApiQuery({
+    name: 'rewardMin',
+    required: false,
+    description: 'Prime minimale (incluse)',
+    example: 100,
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'rewardMax',
+    required: false,
+    description: 'Prime maximale (incluse)',
+    example: 1000,
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'statusId',
+    required: false,
+    description: 'Filtrer par identifiant de statut',
+    example: 2,
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'statusName',
+    required: false,
+    description: 'Filtrer par nom de statut (ex: validée, commencée)',
+    example: 'validée',
+    type: String,
+  })
+  @ApiQuery({
+    name: 'finalDateBefore',
+    required: false,
+    description: "Date d'échéance avant (ISO 8601)",
+    example: '2025-12-31',
+    type: String,
+  })
+  @ApiQuery({
+    name: 'finalDateAfter',
+    required: false,
+    description: "Date d'échéance après (ISO 8601)",
+    example: '2025-01-01',
+    type: String,
+  })
+  @ApiQuery({
+    name: 'userId',
+    required: false,
+    description: 'Filtrer par commanditaire (ID utilisateur)',
+    example: 5,
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'avgXpMin',
+    required: false,
+    description: "Niveau d'expérience moyen minimal des aventuriers",
+    example: 10,
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'avgXpMax',
+    required: false,
+    description: "Niveau d'expérience moyen maximal des aventuriers",
+    example: 100,
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'sortBy',
+    required: false,
+    description: 'Champ de tri',
+    enum: ['reward', 'finalDate', 'avgExperience', 'createdAt'],
+    example: 'reward',
+  })
+  @ApiQuery({
+    name: 'order',
+    required: false,
+    description: 'Ordre de tri',
+    enum: ['asc', 'desc'],
+    example: 'desc',
+  })
   @ApiOkResponse({
-    description: 'List of quests',
+    description: 'List of quests (avec filtres et tri)',
     schema: {
       type: 'array',
       items: { type: 'object', additionalProperties: true },
@@ -56,8 +151,28 @@ export class QuestsController {
       ],
     },
   })
-  findAll() {
-    return this.questsService.findAll();
+  findAll(@Query() q: FindQuestsQueryDto) {
+    const validSortFields = [
+      'reward',
+      'finalDate',
+      'avgExperience',
+      'createdAt',
+    ] as const;
+
+    return this.questsService.findAll({
+      rewardMin: q.rewardMin ? Number(q.rewardMin) : undefined,
+      rewardMax: q.rewardMax ? Number(q.rewardMax) : undefined,
+      statusId: q.statusId ? Number(q.statusId) : undefined,
+      statusName: q.statusName,
+      finalDateBefore: q.finalDateBefore,
+      finalDateAfter: q.finalDateAfter,
+      userId: q.userId ? Number(q.userId) : undefined,
+      avgXpMin: q.avgXpMin ? Number(q.avgXpMin) : undefined,
+      avgXpMax: q.avgXpMax ? Number(q.avgXpMax) : undefined,
+      sortBy:
+        q.sortBy && validSortFields.includes(q.sortBy) ? q.sortBy : undefined,
+      order: q.order === 'asc' || q.order === 'desc' ? q.order : undefined,
+    });
   }
 
   @Get(':id')
@@ -397,8 +512,7 @@ export class QuestsController {
   @Roles(1, 2)
   @ApiParam({ name: 'id', example: 42, description: 'Quest ID' })
   @ApiOkResponse({
-    description:
-      'Quête démarrée (désélection impossible après démarrage)',
+    description: 'Quête démarrée (désélection impossible après démarrage)',
     schema: {
       type: 'object',
       additionalProperties: true,
@@ -438,7 +552,8 @@ export class QuestsController {
   @Roles(1, 2)
   @ApiParam({ name: 'id', example: 42, description: 'Quest ID' })
   @ApiOkResponse({
-    description: 'Quête abandonnée (peut être abandonnée uniquement si elle n\'est pas validée ou commencée, typiquement en statut \'en attente\')',
+    description:
+      "Quête abandonnée (peut être abandonnée uniquement si elle n'est pas validée ou commencée, typiquement en statut 'en attente')",
     schema: {
       type: 'object',
       additionalProperties: true,

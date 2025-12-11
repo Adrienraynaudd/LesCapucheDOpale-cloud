@@ -3,7 +3,7 @@ import { Type } from 'class-transformer';
 import { IsNumber, Min } from 'class-validator';
 
 export class ValidateQuestDto {
-  @ApiProperty({ example: 150, description: "XP recommandé pour la quête" })
+  @ApiProperty({ example: 150, description: 'XP recommandé pour la quête' })
   @Type(() => Number)
   @IsNumber()
   @Min(0)

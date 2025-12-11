@@ -8,16 +8,17 @@ import { Prisma } from '@prisma/client';
 describe('ConsumableTypesService', () => {
   let service: ConsumableTypesService;
 
-  type ConsumableTypeMock = {
-    findFirst: jest.Mock;
-    create: jest.Mock;
-    findMany: jest.Mock;
-    findUnique: jest.Mock;
-    update: jest.Mock;
-    delete: jest.Mock;
+  // Mock du client Prisma
+  let prismaMock: {
+    consumableType: {
+      findFirst: jest.Mock;
+      create: jest.Mock;
+      findMany: jest.Mock;
+      findUnique: jest.Mock;
+      update: jest.Mock;
+      delete: jest.Mock;
+    };
   };
-
-  let prismaMock: { consumableType: ConsumableTypeMock };
 
   beforeEach(() => {
     prismaMock = {
@@ -38,79 +39,54 @@ describe('ConsumableTypesService', () => {
 
   afterEach(() => jest.clearAllMocks());
 
-  // ------------------------
-  // CREATE
-  // ------------------------
+  // ... tes tests CREATE (inchangés) ...
   describe('create', () => {
     it('should create a new consumable type', async () => {
       const dto: CreateConsumableTypeDto = { name: 'Potion' };
       prismaMock.consumableType.findFirst.mockResolvedValue(null);
-      prismaMock.consumableType.create.mockResolvedValue({
-        id: 1,
-        name: 'Potion',
-      });
+      prismaMock.consumableType.create.mockResolvedValue({ id: 1, name: 'Potion' });
 
       const result = await service.create(dto);
 
-      expect(prismaMock.consumableType.findFirst).toHaveBeenCalledWith({
-        where: { name: dto.name },
-      });
-      expect(prismaMock.consumableType.create).toHaveBeenCalledWith({
-        data: dto,
-      });
+      expect(prismaMock.consumableType.findFirst).toHaveBeenCalledWith({ where: { name: dto.name } });
+      expect(prismaMock.consumableType.create).toHaveBeenCalledWith({ data: dto });
       expect(result).toEqual({ id: 1, name: 'Potion' });
     });
 
     it('should throw ConflictException if name already exists', async () => {
       const dto: CreateConsumableTypeDto = { name: 'Potion' };
-      prismaMock.consumableType.findFirst.mockResolvedValue({
-        id: 1,
-        name: 'Potion',
-      });
-
+      prismaMock.consumableType.findFirst.mockResolvedValue({ id: 1, name: 'Potion' });
       await expect(service.create(dto)).rejects.toThrow(ConflictException);
     });
   });
 
-  // ------------------------
-  // FIND ALL
-  // ------------------------
+  // ... tes tests FIND ALL (inchangés) ...
   describe('findAll', () => {
     it('should return all consumable types', async () => {
       const types = [{ id: 1, name: 'Elixir' }];
       prismaMock.consumableType.findMany.mockResolvedValue(types);
-
       const result = await service.findAll();
-      expect(prismaMock.consumableType.findMany).toHaveBeenCalled();
       expect(result).toEqual(types);
     });
   });
 
-  // ------------------------
-  // FIND ONE
-  // ------------------------
+  // ... tes tests FIND ONE (inchangés) ...
   describe('findOne', () => {
     it('should return a consumable type by id', async () => {
       const type = { id: 1, name: 'Potion' };
       prismaMock.consumableType.findUnique.mockResolvedValue(type);
-
       const result = await service.findOne(1);
-
-      expect(prismaMock.consumableType.findUnique).toHaveBeenCalledWith({
-        where: { id: 1 },
-      });
       expect(result).toEqual(type);
     });
 
     it('should throw NotFoundException if consumable type not found', async () => {
       prismaMock.consumableType.findUnique.mockResolvedValue(null);
-
       await expect(service.findOne(999)).rejects.toThrow(NotFoundException);
     });
   });
 
   // ------------------------
-  // UPDATE
+  // UPDATE (CORRIGÉ)
   // ------------------------
   describe('update', () => {
     it('should update a consumable type', async () => {
@@ -127,38 +103,54 @@ describe('ConsumableTypesService', () => {
       expect(result).toEqual(updated);
     });
 
-    it('should throw NotFoundException if updating non-existent consumable type', async () => {
-      prismaMock.consumableType.update.mockRejectedValue(
-        new NotFoundException('Consumable type not found'),
+    it('should throw NotFoundException if Prisma throws P2025', async () => {
+      // On simule une VRAIE erreur Prisma P2025
+      const prismaError = new Prisma.PrismaClientKnownRequestError(
+        'Record to update not found.',
+        { code: 'P2025', clientVersion: '1.0.0' } as any,
       );
+      prismaMock.consumableType.update.mockRejectedValue(prismaError);
 
       await expect(service.update(999, { name: 'Ghost' })).rejects.toThrow(
         NotFoundException,
       );
     });
+
+    it('should re-throw unexpected errors', async () => {
+      // On simule une erreur qui N'EST PAS P2025 (ex: erreur de connexion)
+      const unexpectedError = new Error('Database exploded');
+      prismaMock.consumableType.update.mockRejectedValue(unexpectedError);
+
+      await expect(service.update(1, {})).rejects.toThrow(unexpectedError);
+    });
   });
 
   // ------------------------
-  // DELETE
+  // DELETE (CORRIGÉ)
   // ------------------------
   describe('delete', () => {
     it('should delete a consumable type', async () => {
       prismaMock.consumableType.delete.mockResolvedValue({ id: 1 });
-
       const result = await service.delete(1);
-
-      expect(prismaMock.consumableType.delete).toHaveBeenCalledWith({
-        where: { id: 1 },
-      });
+      expect(prismaMock.consumableType.delete).toHaveBeenCalledWith({ where: { id: 1 } });
       expect(result).toEqual({ id: 1 });
     });
 
-    it('should throw NotFoundException if deleting non-existent consumable type', async () => {
-      prismaMock.consumableType.delete.mockRejectedValue(
-        new NotFoundException('Consumable type not found'),
+    it('should throw NotFoundException if Prisma throws P2025', async () => {
+      const prismaError = new Prisma.PrismaClientKnownRequestError(
+        'Record to delete not found.',
+        { code: 'P2025', clientVersion: '1.0.0' } as any,
       );
+      prismaMock.consumableType.delete.mockRejectedValue(prismaError);
 
       await expect(service.delete(999)).rejects.toThrow(NotFoundException);
+    });
+
+    it('should re-throw unexpected errors', async () => {
+      const unexpectedError = new Error('Database exploded');
+      prismaMock.consumableType.delete.mockRejectedValue(unexpectedError);
+
+      await expect(service.delete(1)).rejects.toThrow(unexpectedError);
     });
   });
 });

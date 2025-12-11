@@ -39,7 +39,6 @@ export class SpecialitiesController {
       type: 'object',
       properties: {
         name: { type: 'string', example: 'Mage' },
-        description: { type: 'string', example: 'Uses arcane powers.' },
       },
       required: ['name'],
       additionalProperties: false,
@@ -52,17 +51,6 @@ export class SpecialitiesController {
       properties: {
         id: { type: 'number', example: 5 },
         name: { type: 'string', example: 'Mage' },
-        description: { type: 'string', example: 'Uses arcane powers.' },
-        createdAt: {
-          type: 'string',
-          format: 'date-time',
-          example: '2025-10-30T12:00:00.000Z',
-        },
-        updatedAt: {
-          type: 'string',
-          format: 'date-time',
-          example: '2025-10-30T12:00:00.000Z',
-        },
       },
     },
   })
@@ -82,20 +70,6 @@ export class SpecialitiesController {
         properties: {
           id: { type: 'number', example: 1 },
           name: { type: 'string', example: 'Warrior' },
-          description: {
-            type: 'string',
-            example: 'Frontline melee combatant.',
-          },
-          createdAt: {
-            type: 'string',
-            format: 'date-time',
-            example: '2025-10-30T12:00:00.000Z',
-          },
-          updatedAt: {
-            type: 'string',
-            format: 'date-time',
-            example: '2025-10-30T12:34:56.000Z',
-          },
         },
       },
     },
@@ -115,17 +89,6 @@ export class SpecialitiesController {
       properties: {
         id: { type: 'number', example: 5 },
         name: { type: 'string', example: 'Mage' },
-        description: { type: 'string', example: 'Uses arcane powers.' },
-        createdAt: {
-          type: 'string',
-          format: 'date-time',
-          example: '2025-10-30T12:00:00.000Z',
-        },
-        updatedAt: {
-          type: 'string',
-          format: 'date-time',
-          example: '2025-10-30T12:34:56.000Z',
-        },
       },
     },
   })
@@ -143,7 +106,6 @@ export class SpecialitiesController {
       type: 'object',
       properties: {
         name: { type: 'string', example: 'Battlemage' },
-        description: { type: 'string', example: 'Combines melee and magic.' },
       },
       additionalProperties: false,
     },
@@ -155,17 +117,6 @@ export class SpecialitiesController {
       properties: {
         id: { type: 'number', example: 5 },
         name: { type: 'string', example: 'Battlemage' },
-        description: { type: 'string', example: 'Combines melee and magic.' },
-        createdAt: {
-          type: 'string',
-          format: 'date-time',
-          example: '2025-10-30T12:00:00.000Z',
-        },
-        updatedAt: {
-          type: 'string',
-          format: 'date-time',
-          example: '2025-10-30T12:45:00.000Z',
-        },
       },
     },
   })

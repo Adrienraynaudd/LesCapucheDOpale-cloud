@@ -43,20 +43,9 @@ export class EquipmentController {
           id: { type: 'number', example: 10 },
           name: { type: 'string', example: 'Longsword' },
           equipmentTypeId: { type: 'number', example: 7 },
-          description: {
-            type: 'string',
-            example: 'A versatile steel longsword.',
-          },
-          createdAt: {
-            type: 'string',
-            format: 'date-time',
-            example: '2025-10-30T12:00:00.000Z',
-          },
-          updatedAt: {
-            type: 'string',
-            format: 'date-time',
-            example: '2025-10-30T12:34:56.000Z',
-          },
+          cost: { type: 'number', example: 100 },
+          maxDurability: { type: 'number', example: 50 },
+          currentDurability: { type: 'number', example: 50 },
         },
       },
     },
@@ -77,20 +66,9 @@ export class EquipmentController {
         id: { type: 'number', example: 10 },
         name: { type: 'string', example: 'Longsword' },
         equipmentTypeId: { type: 'number', example: 7 },
-        description: {
-          type: 'string',
-          example: 'A versatile steel longsword.',
-        },
-        createdAt: {
-          type: 'string',
-          format: 'date-time',
-          example: '2025-10-30T12:00:00.000Z',
-        },
-        updatedAt: {
-          type: 'string',
-          format: 'date-time',
-          example: '2025-10-30T12:34:56.000Z',
-        },
+        cost: { type: 'number', example: 100 },
+        maxDurability: { type: 'number', example: 50 },
+        currentDurability: { type: 'number', example: 50 },
       },
     },
   })
@@ -109,12 +87,10 @@ export class EquipmentController {
       properties: {
         name: { type: 'string', example: 'Longsword' },
         equipmentTypeId: { type: 'number', example: 7 },
-        description: {
-          type: 'string',
-          example: 'A versatile steel longsword.',
-        },
+        cost: { type: 'number', example: 100 },
+        maxDurability: { type: 'number', example: 50 },
       },
-      required: ['name', 'equipmentTypeId'],
+      required: ['name', 'equipmentTypeId', 'cost', 'maxDurability'],
       additionalProperties: false,
     },
   })
@@ -126,20 +102,9 @@ export class EquipmentController {
         id: { type: 'number', example: 10 },
         name: { type: 'string', example: 'Longsword' },
         equipmentTypeId: { type: 'number', example: 7 },
-        description: {
-          type: 'string',
-          example: 'A versatile steel longsword.',
-        },
-        createdAt: {
-          type: 'string',
-          format: 'date-time',
-          example: '2025-10-30T12:00:00.000Z',
-        },
-        updatedAt: {
-          type: 'string',
-          format: 'date-time',
-          example: '2025-10-30T12:00:00.000Z',
-        },
+        cost: { type: 'number', example: 100 },
+        maxDurability: { type: 'number', example: 50 },
+        currentDurability: { type: 'number', example: 50 },
       },
     },
   })
@@ -158,10 +123,9 @@ export class EquipmentController {
       properties: {
         name: { type: 'string', example: 'Enchanted Longsword' },
         equipmentTypeId: { type: 'number', example: 8 },
-        description: {
-          type: 'string',
-          example: 'Longsword imbued with minor magic.',
-        },
+        cost: { type: 'number', example: 150 },
+        maxDurability: { type: 'number', example: 60 },
+        currentDurability: { type: 'number', example: 45 },
       },
       additionalProperties: false,
     },
@@ -174,20 +138,9 @@ export class EquipmentController {
         id: { type: 'number', example: 10 },
         name: { type: 'string', example: 'Enchanted Longsword' },
         equipmentTypeId: { type: 'number', example: 8 },
-        description: {
-          type: 'string',
-          example: 'Longsword imbued with minor magic.',
-        },
-        createdAt: {
-          type: 'string',
-          format: 'date-time',
-          example: '2025-10-30T12:00:00.000Z',
-        },
-        updatedAt: {
-          type: 'string',
-          format: 'date-time',
-          example: '2025-10-30T12:45:00.000Z',
-        },
+        cost: { type: 'number', example: 150 },
+        maxDurability: { type: 'number', example: 60 },
+        currentDurability: { type: 'number', example: 45 },
       },
     },
   })

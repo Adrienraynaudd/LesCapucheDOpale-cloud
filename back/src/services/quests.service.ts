@@ -8,6 +8,20 @@ import { Prisma } from '@prisma/client';
 import { CreateQuestDto } from '../dto/create-quest.dto';
 import { UpdateQuestDto } from '../dto/update-quest.dto';
 
+export type FindQuestsOptions = {
+  rewardMin?: number;
+  rewardMax?: number;
+  statusId?: number;
+  statusName?: string;
+  finalDateBefore?: string;
+  finalDateAfter?: string;
+  userId?: number;
+  avgXpMin?: number;
+  avgXpMax?: number;
+  sortBy?: 'reward' | 'finalDate' | 'avgExperience' | 'createdAt';
+  order?: 'asc' | 'desc';
+};
+
 @Injectable()
 export class QuestsService {
   constructor(private prisma: PrismaService) {}
@@ -38,16 +52,97 @@ export class QuestsService {
     return q.status?.name?.toLowerCase() === this.STATUS_STARTED.toLowerCase();
   }
 
-  async findAll() {
-    return this.prisma.quest.findMany({
+  async findAll(options: FindQuestsOptions = {}) {
+    const {
+      rewardMin,
+      rewardMax,
+      statusId,
+      statusName,
+      finalDateBefore,
+      finalDateAfter,
+      userId,
+      avgXpMin,
+      avgXpMax,
+      sortBy,
+      order,
+    } = options;
+
+    // Build Prisma where clause
+    const where: Prisma.QuestWhereInput = {
+      ...(rewardMin != null || rewardMax != null
+        ? {
+            reward: {
+              ...(rewardMin != null ? { gte: rewardMin } : {}),
+              ...(rewardMax != null ? { lte: rewardMax } : {}),
+            },
+          }
+        : {}),
+      ...(typeof statusId === 'number' ? { statusId } : {}),
+      ...(statusName ? { status: { name: { contains: statusName } } } : {}),
+      ...(finalDateBefore || finalDateAfter
+        ? {
+            finalDate: {
+              ...(finalDateAfter ? { gte: new Date(finalDateAfter) } : {}),
+              ...(finalDateBefore ? { lte: new Date(finalDateBefore) } : {}),
+            },
+          }
+        : {}),
+      ...(typeof userId === 'number' ? { UserId: userId } : {}),
+    };
+
+    // Determine orderBy (for DB-sortable fields)
+    let orderBy: Prisma.QuestOrderByWithRelationInput | undefined;
+    if (sortBy === 'reward') {
+      orderBy = { reward: order ?? 'desc' };
+    } else if (sortBy === 'finalDate') {
+      orderBy = { finalDate: order ?? 'asc' };
+    } else {
+      orderBy = { id: 'desc' };
+    }
+
+    const quests = await this.prisma.quest.findMany({
+      where,
       include: {
         status: true,
         adventurers: true,
         questStockEquipments: true,
         user: true,
       },
-      orderBy: { id: 'desc' },
+      orderBy,
     });
+
+    if (avgXpMin == null && avgXpMax == null && sortBy !== 'avgExperience') {
+      return quests;
+    }
+
+    let result = quests.map((quest) => {
+      const adventurers = quest.adventurers ?? [];
+      const avgExperience =
+        adventurers.length > 0
+          ? adventurers.reduce((sum, a) => sum + (a.experience ?? 0), 0) /
+            adventurers.length
+          : 0;
+      return { ...quest, avgExperience };
+    });
+
+    // Filter by avgXpMin / avgXpMax
+    if (avgXpMin != null) {
+      result = result.filter((q) => q.avgExperience >= avgXpMin);
+    }
+    if (avgXpMax != null) {
+      result = result.filter((q) => q.avgExperience <= avgXpMax);
+    }
+
+    // Sort by avgExperience if requested
+    if (sortBy === 'avgExperience') {
+      result.sort((a, b) =>
+        order === 'asc'
+          ? a.avgExperience - b.avgExperience
+          : b.avgExperience - a.avgExperience,
+      );
+    }
+
+    return result;
   }
 
   async findOne(id: number) {
@@ -155,7 +250,9 @@ export class QuestsService {
       );
     }
 
-    const pendingStatusId = isStarted ? undefined : await this.getPendingStatusId();
+    const pendingStatusId = isStarted
+      ? undefined
+      : await this.getPendingStatusId();
 
     if (dto.adventurerIds?.length) {
       await this.findAdventurersExist(dto.adventurerIds);
@@ -355,7 +452,6 @@ export class QuestsService {
   }
 
   async validateQuest(questId: number, xp: number) {
-   
     const statusId = await this.getOrCreateStatusId(this.STATUS_VALIDATED);
     try {
       return await this.prisma.quest.update({
@@ -441,20 +537,22 @@ export class QuestsService {
 
     const current = quest.status?.name?.toLowerCase();
     if (current === this.STATUS_VALIDATED || current === this.STATUS_STARTED) {
-      throw new BadRequestException('Quest cannot be refused when accepted or started');
+      throw new BadRequestException(
+        'Quest cannot be refused when accepted or started',
+      );
     }
 
     const refusedId = await this.getOrCreateStatusId(this.STATUS_REFUSED);
-      return await this.prisma.quest.update({
-        where: { id: questId },
-        data: { status: { connect: { id: refusedId } } },
-        include: {
-          status: true,
-          adventurers: true,
-          questStockEquipments: true,
-          user: true,
-        },
-      });
+    return await this.prisma.quest.update({
+      where: { id: questId },
+      data: { status: { connect: { id: refusedId } } },
+      include: {
+        status: true,
+        adventurers: true,
+        questStockEquipments: true,
+        user: true,
+      },
+    });
   }
 
   async abandonQuest(questId: number) {
@@ -466,7 +564,9 @@ export class QuestsService {
 
     const current = quest.status?.name?.toLowerCase();
     if (current === this.STATUS_VALIDATED || current === this.STATUS_STARTED) {
-      throw new BadRequestException('Quest cannot be abandoned when accepted or started');
+      throw new BadRequestException(
+        'Quest cannot be abandoned when accepted or started',
+      );
     }
 
     const abandonedId = await this.getOrCreateStatusId(this.STATUS_ABANDONED);

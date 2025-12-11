@@ -4,8 +4,8 @@ import { ConsumablesController } from '../controllers/consumables.controller';
 import { PrismaModule } from '../prisma/prisma.service';
 
 @Module({
-    imports: [PrismaModule],
-    controllers: [ConsumablesController],
-    providers: [ConsumablesService],
+  imports: [PrismaModule],
+  controllers: [ConsumablesController],
+  providers: [ConsumablesService],
 })
 export class ConsumablesModule {}
