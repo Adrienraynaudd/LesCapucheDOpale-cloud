@@ -13,8 +13,8 @@ describe('ListQuest (Angular 20)', () => {
   let router: Router;
 
   const mockQuests: Quest[] = [
-    { id: 1, name: 'Rescue the Princess', description: 'Save the princess from the tower', reward: 100, finalDate: '2024-12-31', statusId: 1, status: { id: 1, name: 'Open' }, UserId: 1, estimatedDuration: 3, recommendedXP: 356 },
-    { id: 2, name: 'Slay the Dragon', description: 'Defeat the dragon threatening the kingdom', reward: 200, finalDate: '2024-12-31', statusId: 1, status: { id: 1, name: 'Open' }, UserId: 1, estimatedDuration: 5, recommendedXP: 500 },
+    { id: 1, name: 'Rescue the Princess', description: 'Save the princess from the tower', reward: 100, finalDate: '2024-12-31', statusId: 1, status: { id: 1, name: 'Open' }, UserId: 1, estimatedDuration: 3, recommendedXP: 356, adventurers: [] },
+    { id: 2, name: 'Slay the Dragon', description: 'Defeat the dragon threatening the kingdom', reward: 200, finalDate: '2024-12-31', statusId: 1, status: { id: 1, name: 'Open' }, UserId: 1, estimatedDuration: 5, recommendedXP: 500, adventurers: [] },
   ];
 
   beforeEach(async () => {

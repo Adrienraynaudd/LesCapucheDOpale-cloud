@@ -9,8 +9,8 @@ describe('QuestService', () => {
   let httpMock: HttpTestingController;
 
   const mockQuests: Quest[] = [
-    { id: 1, name: 'Retrieve the Artifact', description: 'Find the lost relic in the ruins.', finalDate: '2023-12-31', estimatedDuration: 5, reward: 1000, statusId: 1, recommendedXP: 500, UserId: 1, status: { id: 1, name: 'Open' } },
-    { id: 2, name: 'Defend the Village', description: 'Protect the villagers from goblin attacks.', finalDate: '2023-12-31', estimatedDuration: 5, reward: 1000, statusId: 1, recommendedXP: 500, UserId: 1, status: { id: 1, name: 'Open' } },
+    { id: 1, name: 'Retrieve the Artifact', description: 'Find the lost relic in the ruins.', finalDate: '2023-12-31', estimatedDuration: 5, reward: 1000, statusId: 1, recommendedXP: 500, UserId: 1, status: { id: 1, name: 'Open' }, adventurers: [] },
+    { id: 2, name: 'Defend the Village', description: 'Protect the villagers from goblin attacks.', finalDate: '2023-12-31', estimatedDuration: 5, reward: 1000, statusId: 1, recommendedXP: 500, UserId: 1, status: { id: 1, name: 'Open' }, adventurers: [] },
   ];
 
   const mockQuest: Quest = mockQuests[0];
@@ -92,13 +92,13 @@ describe('QuestService', () => {
 
   it('should validate a quest', () => {
     const id = 1;
-    const recommendedXP = 500;
+    const xp = 500;
 
-    service.validateQuest(id, recommendedXP).subscribe();
+    service.validateQuest(id, xp).subscribe();
 
     const req = httpMock.expectOne(`/api/quests/${id}/validate`);
-    expect(req.request.method).toBe('POST');
-    expect(req.request.body).toEqual({ recommendedXP });
+    expect(req.request.method).toBe('PATCH');
+    expect(req.request.body).toEqual({ xp });
     req.flush({});
   });
 
@@ -108,7 +108,7 @@ describe('QuestService', () => {
     service.refuseQuest(id).subscribe();
 
     const req = httpMock.expectOne(`/api/quests/${id}/refuse`);
-    expect(req.request.method).toBe('POST');
+    expect(req.request.method).toBe('PATCH');
     expect(req.request.body).toEqual({});
     req.flush({});
   });
@@ -119,8 +119,35 @@ describe('QuestService', () => {
     service.abandonQuest(id).subscribe();
 
     const req = httpMock.expectOne(`/api/quests/${id}/abandon`);
-    expect(req.request.method).toBe('POST');
+    expect(req.request.method).toBe('PATCH');
     expect(req.request.body).toEqual({});
     req.flush({});
   });
+
+    it('should assign an adventurer to a quest', () => {
+    const questId = 1;
+    const adventurerId = 10;
+
+    service.assignAdventurer(questId, adventurerId).subscribe();
+
+    const req = httpMock.expectOne(`/api/quests/${questId}/adventurers/attach`);
+    expect(req.request.method).toBe('PATCH');
+    expect(req.request.body).toEqual({ ids: [adventurerId] });
+
+    req.flush({});
+  });
+
+  it('should unassign an adventurer from a quest', () => {
+    const questId = 1;
+    const adventurerId = 10;
+
+    service.unassignAdventurer(questId, adventurerId).subscribe();
+
+    const req = httpMock.expectOne(`/api/quests/${questId}/adventurers/detach`);
+    expect(req.request.method).toBe('PATCH');
+    expect(req.request.body).toEqual({ ids: [adventurerId] });
+
+    req.flush({});
+  });
+
 });

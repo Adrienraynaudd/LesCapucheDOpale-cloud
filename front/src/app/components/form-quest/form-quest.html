@@ -14,5 +14,11 @@
 
     <app-form-money label="Prime : " [money]="getMoney()" (moneyChange)="setMoney($event)"></app-form-money>
 
-    <button type="submit">Soumettre la Requête</button>
+    <button type="submit">
+        @if (initialData) {
+            Mettre à jour la Requête
+        }@else {
+            Soumettre la Requête
+        }
+    </button>
 </form>

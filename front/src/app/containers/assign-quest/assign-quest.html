@@ -1,0 +1,71 @@
+<h2>{{quest.name}}</h2>
+<div class="status">{{quest.status.name}}</div>
+<div class="quest-details">
+    <div class="left-side-content">
+        <p>{{quest.description}}</p>
+    </div>
+    <div class="right-side-content">
+        <div>
+            <label for="finalDate">Date limite :</label>
+            <span id="finalDate">{{quest.finalDate | date:'longDate'}}</span>
+        </div>
+        <div>
+            <label for="estimatedDuration">Durée estimée :</label>
+            <span id="estimatedDuration">{{quest.estimatedDuration}} jours</span>
+        </div>
+        <div>
+            <label for="recommendedXP">Expérience recommandée :</label>
+            <span id="recommendedXP">{{quest.recommendedXP}}</span>
+        </div>
+        <div>
+            <label for="reward">Récompense :</label>
+            <span id="reward">
+                @if (rewardBreakdown.po + rewardBreakdown.pa + rewardBreakdown.pc === 0) {
+                    0Pc
+                }@else {
+                    @if (rewardBreakdown.po > 0){
+                    {{ rewardBreakdown.po }}Po
+                    }
+                    @if (rewardBreakdown.pa > 0){
+                    {{ rewardBreakdown.pa }}Pa
+                    }
+                    @if (rewardBreakdown.pc > 0){
+                    {{ rewardBreakdown.pc }}Pc
+                    }
+                }
+            </span>
+        </div>
+    </div>
+</div>
+<div class="assign-section">
+    <h3>Assigner un aventurier</h3>
+    <div>
+        <label for="cost">Coût de la mission :</label>
+        <span id="cost">
+            @if (costBreakdown.po + costBreakdown.pa + costBreakdown.pc === 0) {
+                0Pc
+            }@else {
+                @if (costBreakdown.po > 0){
+                {{ costBreakdown.po }}Po
+                }
+                @if (costBreakdown.pa > 0){
+                {{ costBreakdown.pa }}Pa
+                }
+                @if (costBreakdown.pc > 0){
+                {{ costBreakdown.pc }}Pc
+                }
+            }
+        </span>
+    </div>
+    <div>
+        <label for="succes">Chances de réussite de la mission :</label>
+        <span id="succes">{{ successRate }}%</span>
+    </div>
+    @for (adventurer of adventurers; track adventurer.id) {
+    <app-item-adventurer (click)="onToggleAdventurer(adventurer)" [adventurer]="adventurer"
+        [isSelected]="this.selectedAdventurerIds.has(adventurer.id)">
+    </app-item-adventurer>
+    } @empty {
+    <p>Aucun aventurier trouvé</p>
+    }
+</div>

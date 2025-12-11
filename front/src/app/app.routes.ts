@@ -9,6 +9,7 @@ import { ListQuest } from './containers/list-quest/list-quest';
 import { UpdateQuest } from './containers/update-quest/update-quest';
 import { Login } from './containers/login/login';
 import { authGuard } from './guard/auth-guard';
+import { AssignQuest } from './containers/assign-quest/assign-quest';
 
 export const routes: Routes = [
     { path: '', component: HomeComponent },
@@ -26,4 +27,5 @@ export const routes: Routes = [
     { path: 'quest/new', component: NewQuest, canActivate: [authGuard] },
     { path: 'quests', component: ListQuest, canActivate: [authGuard] },
     { path: 'quest/:id', component: UpdateQuest, canActivate: [authGuard] },
+    { path: 'quest/:id/assign', component: AssignQuest, canActivate: [authGuard] },
 ];

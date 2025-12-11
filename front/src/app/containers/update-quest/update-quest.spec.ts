@@ -74,7 +74,7 @@ describe('UpdateQuest', () => {
     component = new UpdateQuest(questServiceSpy, activatedRouteStub as ActivatedRoute, routerSpy);
     component.ngOnInit();
 
-    expect(console.error).toHaveBeenCalledWith('Invalid adventurer ID');
+    expect(console.error).toHaveBeenCalledWith('Invalid quest ID');
     expect(questServiceSpy.getQuestById).not.toHaveBeenCalled();
   });
 

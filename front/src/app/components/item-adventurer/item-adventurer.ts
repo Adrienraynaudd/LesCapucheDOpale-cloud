@@ -9,6 +9,7 @@ import { Adventurer } from '../../models/adventurer';
 })
 export class ItemAdventurer {
   @Input() adventurer!: Adventurer;
+  @Input() isSelected: boolean = false;
 
   getEquipmentNames(adventurer: Adventurer): string {
     return adventurer.equipmentTypes?.map(e => e.name).join(', ') || 'Aucun';

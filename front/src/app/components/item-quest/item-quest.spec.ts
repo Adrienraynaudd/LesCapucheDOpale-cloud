@@ -17,7 +17,8 @@ describe('ItemQuest', () => {
       statusId: 1,
       UserId: 1,
       status: { id: 1, name: 'Open' },
-      estimatedDuration: 4
+      estimatedDuration: 4,
+      adventurers: []
     };
 
     await TestBed.configureTestingModule({

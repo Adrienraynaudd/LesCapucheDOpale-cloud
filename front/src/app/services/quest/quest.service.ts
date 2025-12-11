@@ -27,15 +27,23 @@ export class QuestService {
     return this.http.patch<Quest>(`${this.baseUrl}/${id}`, quest);
   }
 
-  validateQuest(id: number, recommendedXP: number): Observable<void> {
-    return this.http.post<void>(`${this.baseUrl}/${id}/validate`, { recommendedXP });
+  validateQuest(id: number, xp: number): Observable<void> {
+    return this.http.patch<void>(`${this.baseUrl}/${id}/validate`, { xp });
   }
 
   refuseQuest(id: number): Observable<void> {
-    return this.http.post<void>(`${this.baseUrl}/${id}/refuse`, {});
+    return this.http.patch<void>(`${this.baseUrl}/${id}/refuse`, {});
   }
 
   abandonQuest(id: number): Observable<void> {
-    return this.http.post<void>(`${this.baseUrl}/${id}/abandon`, {});
+    return this.http.patch<void>(`${this.baseUrl}/${id}/abandon`, {});
+  }
+
+  assignAdventurer(questId: number, adventurerId: number): Observable<void> {
+    return this.http.patch<void>(`${this.baseUrl}/${questId}/adventurers/attach`, { "ids": [adventurerId] });
+  }
+
+  unassignAdventurer(questId: number, adventurerId: number): Observable<void> {
+    return this.http.patch<void>(`${this.baseUrl}/${questId}/adventurers/detach`, { "ids": [adventurerId] });
   }
 }

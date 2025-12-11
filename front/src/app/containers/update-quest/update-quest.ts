@@ -30,12 +30,16 @@ export class UpdateQuest implements OnInit {
     this.id = idStr ? Number(idStr) : -1;
 
     if (!idStr || !/^\d+$/.test(idStr) || this.id < 0 || isNaN(this.id)) {
-      console.error('Invalid adventurer ID');
+      console.error('Invalid quest ID');
+      this.router.navigate(['/quests']);
       return;
     }
 
     this.questService.getQuestById(this.id).subscribe((quest) => {
       this.quest = quest;
+      if (this.quest.statusId === 3) {
+        this.router.navigate(['/quest', this.id, 'assign']);
+      }
     });
   }
 

@@ -1,3 +1,4 @@
+import { Adventurer } from './adventurer';
 import { Status } from './status';
 
 export interface Quest {
@@ -11,6 +12,7 @@ export interface Quest {
     recommendedXP: number;
     UserId: number;
     status: Status;
+    adventurers: Adventurer[];
 }
 
 export interface QuestForm {
@@ -20,4 +22,5 @@ export interface QuestForm {
     estimatedDuration: number;
     reward: number;
     recommendedXP?: number;
+    statusId?: number;
 }

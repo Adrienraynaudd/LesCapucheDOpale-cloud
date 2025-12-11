@@ -1,5 +1,8 @@
 <div class="adventurer-item">
     <p>{{ adventurer.name }}</p>
+    @if (isSelected) {
+        <span class="selected-badge">Sélectionné</span>
+    }
     <span><label class="bold" for="speciality">Spécialité : </label>
         <p id="speciality">{{ adventurer.speciality.name }}</p>
     </span>
