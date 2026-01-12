@@ -1,0 +1,128 @@
+@import "../../../styles.scss";
+
+.form-SignUp-section {
+  height: calc(100vh + 13rem);
+  width: 100%;
+  position: fixed;
+  background-image: linear-gradient(
+      rgba(171, 171, 171, 0.536),
+      rgba(0, 0, 0, 0.525)
+    ),
+    url("../../../assets/background-capuches-opale.webp");
+  background-size: cover;
+  background-repeat: no-repeat;
+  top: -13rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+}
+
+.form-SignUp {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 13rem;
+  gap: 15px;
+  border-radius: 5px;
+  padding: 45px;
+  border-radius: 50px;
+  background: $color3;
+  width: auto;
+  height: auto;
+  box-shadow: inset 8px 8px 16px #093457, inset -8px -8px 16px #1370bd;
+
+  span {
+    width: 90%;
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    justify-content: center;
+
+    label {
+      font-size: 20px;
+      font-family: Arial, Helvetica, sans-serif;
+      color: $color4;
+    }
+  }
+}
+
+.commun-input {
+  width: 100% !important;
+}
+
+.custom-form-field {
+  width: 100%;
+}
+
+::ng-deep .custom-form-field {
+
+  .mat-mdc-form-field-flex {
+    height: 48px;
+    align-items: center;
+  }
+
+  .mat-mdc-select-placeholder {
+    color: $color4;
+    font-size: 15px;
+  }
+
+  .mat-mdc-select-value {
+    color: $color4;
+    font-size: 15px;
+  }
+
+  .mat-mdc-select-arrow {
+    color: $color4;
+  }
+
+  .mat-mdc-form-field-underline,
+  .mdc-line-ripple {
+    display: none;
+  }
+}
+
+::ng-deep .select-panel {
+  background-color: $color3 !important;
+  border-radius: 10px !important;
+  box-shadow: 0px 3px 6px rgb(0, 0, 0) !important;
+  max-height: 300px;
+  margin-top: 8px;
+
+  .mat-mdc-option {
+    font-size: 15px;
+    padding: 12px 16px;
+    min-height: 48px;
+    transition: background-color 0.2s ease;
+    color: $color4;
+    background-color: $color3 !important;
+    
+    &:hover {
+      background-color: darken($color3, 8%) !important;
+    }
+
+    &.mat-mdc-option-active,
+    &.mdc-list-item--selected {
+    background-color: $color4 !important;
+      box-shadow: inset 2px 2px 4px rgb(0 0 0 / 0.2),
+        inset -2px -2px 4px rgb(255 255 255 / 0.7) !important;
+      border-color: $color3 !important;
+      border: 2px solid;
+    }
+  }
+}
+
+
+.register-link {
+  margin-top: 15px;
+  color: $color4;
+  text-decoration: underline;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.register-link:hover {
+  color: lighten($color4, 10%);
+  transition: color 0.3s ease;
+}

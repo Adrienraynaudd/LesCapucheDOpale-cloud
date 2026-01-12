@@ -1,0 +1,44 @@
+@import "../../../styles.scss";
+
+.new-adventurer-container {
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+    padding-top: 5rem;
+    justify-content: flex-start;
+    align-items: center;
+    height: 100vh;
+    position: fixed;
+    width: 100%;
+    background-color: $color4 ;
+}
+
+.title {
+    font-size: 2rem;
+    color: $color3;
+    text-align: center;
+}
+
+.contain-title {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+}
+
+.contain-title::after {
+    content: "";
+    flex-grow: 1;
+    height: 4px;
+    background-color: $color3;
+    border-radius: 2px;
+}
+
+.contain-title::before {
+    content: "";
+    flex-grow: 1;
+    height: 4px;
+    background-color: $color3;
+    border-radius: 2px;
+}

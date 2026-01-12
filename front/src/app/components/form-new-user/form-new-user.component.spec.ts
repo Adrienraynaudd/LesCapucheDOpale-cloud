@@ -1,9 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, provideRouter, Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { FormNewUserComponent } from './form-new-user.component';
 import { AccountService } from '../../services/account/account.service';
+import { RouterTestingModule } from '@angular/router/testing';
 
 describe('FormNewUserComponent', () => {
   let component: FormNewUserComponent;
@@ -15,12 +16,19 @@ describe('FormNewUserComponent', () => {
     accountServiceSpy = jasmine.createSpyObj('AccountService', ['signUp']);
     routerSpy = jasmine.createSpyObj('Router', ['navigate']);
     accountServiceSpy.signUp.and.returnValue(of({}));
+    const activatedRouteMock = {
+      snapshot: {
+        params: {},
+        queryParams: {},
+        data: {},
+      },
+    };
 
     await TestBed.configureTestingModule({
-      imports: [ReactiveFormsModule, FormNewUserComponent],
+      imports: [ReactiveFormsModule, FormNewUserComponent, RouterTestingModule],
       providers: [
         { provide: AccountService, useValue: accountServiceSpy },
-        { provide: Router, useValue: routerSpy },
+        provideRouter([])
       ],
     }).compileComponents();
 

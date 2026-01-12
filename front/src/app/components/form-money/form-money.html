@@ -1,15 +1,38 @@
-<form [formGroup]="form" class="form-group">
-    <span>{{ label }}</span>
-    <span>
+<form [formGroup]="form" class="form-group form-money">
+  <span class="title">{{ label }}</span>
+  <div class="container-all-bloc-money">
+    <span class="container-value">
       <label for="po">PO</label>
-      <input id="po" type="number" (change)="onChange()" formControlName="po" min="0" />
+      <input
+        class="commun-input input-money"
+        id="po"
+        type="number"
+        (change)="onChange()"
+        formControlName="po"
+        min="0"
+      />
     </span>
-    <span>
+    <span class="container-value ">
       <label for="pa">PA</label>
-      <input id="pa" type="number" (change)="onChange()" formControlName="pa" min="0" />
+      <input
+        class="commun-input input-money"
+        id="pa"
+        type="number"
+        (change)="onChange()"
+        formControlName="pa"
+        min="0"
+      />
     </span>
-    <span>
+    <span class="container-value">
       <label for="pc">PC</label>
-      <input id="pc" type="number" (change)="onChange()" formControlName="pc" min="0" />
+      <input
+        class="commun-input input-money"
+        id="pc"
+        type="number"
+        (change)="onChange()"
+        formControlName="pc"
+        min="0"
+      />
     </span>
+  </div>
 </form>

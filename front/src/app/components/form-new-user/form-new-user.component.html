@@ -1,19 +1,66 @@
-<section>
-  <form class="formSignUp" [formGroup]="formSignUp" (ngSubmit)="onSubmit()">
-    <input type="text" placeholder="Nom d'utilisateur" name="username" required formControlName="username" />
-    <input type="text" placeholder="Email" name="mail" required formControlName="email" />
-    <input type="password" placeholder="Mot de passe" name="password" required formControlName="password" />
-    <input type="password" placeholder="Confirmation Mot de passe" name="verifPassword" required formControlName="confirmPassword">
-    <select id="roles" formControlName="role">
-      <option *ngFor="let role of roles" [value]="role">
-        {{ role }}
-      </option>
-    </select>
-    <p>
-      {{ errorMessage }}
-    </p>
-    <button type="submit" >
-      SignUp
-    </button>
+<section class="form-SignUp-section">
+  <form class="form-SignUp" [formGroup]="formSignUp" (ngSubmit)="onSubmit()">
+    <span>
+      <label for="">Nom d'utilisateur</label>
+      <input
+        type="text"
+        placeholder="JohnDoe"
+        name="username"
+        required
+        class="commun-input"
+        formControlName="username"
+      />
+    </span>
+    <span>
+      <label for="">Email</label>
+      <input
+        type="text"
+        placeholder="john.doe@example.com"
+        name="mail"
+        required
+        class="commun-input"
+        formControlName="email"
+      />
+    </span>
+    <span>
+      <label for="">Mot de passe</label>
+      <input
+        type="password"
+        name="password"
+        required
+        class="commun-input"
+        formControlName="password"
+      />
+    </span>
+    <span>
+      <label for="">Confirmation Mot de passe</label>
+      <input
+        type="password"
+        name="verifPassword"
+        required
+        class="commun-input"
+        formControlName="confirmPassword"
+      />
+    </span>
+    <span>
+      <label for="roles">Rôle</label>
+      <mat-form-field class="custom-form-field">
+        <mat-select
+          placeholder="Sélectionner un rôle"
+          id="roles"
+          formControlName="role"
+          panelClass="select-panel"
+        >
+          @for (role of roles; track role) {
+          <mat-option [value]="role">{{ role }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      <p>
+        {{ errorMessage }}
+      </p>
+    </span>
+    <button class="commun-btn" type="submit">SignUp</button>
+    <a routerLink="/login" class="register-link">Déjà un compte ? Connectez-vous</a>
   </form>
 </section>

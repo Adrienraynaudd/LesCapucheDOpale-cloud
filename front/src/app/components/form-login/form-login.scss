@@ -1,0 +1,68 @@
+@import "../../../styles.scss";
+
+.form-login-section {
+  height: calc(100vh + 13rem);
+  width: 100%;
+  position: fixed;
+  background-image: linear-gradient(rgba(171, 171, 171, 0.536), rgba(0, 0, 0, 0.525)),url("../../../assets/background-capuches-opale.webp");
+  background-size: cover;
+  background-repeat: no-repeat;
+  top: -13rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+}
+
+.form-login {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 13rem;
+  gap: 20px;
+  border-radius: 5px;
+  padding: 60px;
+  border-radius: 50px;
+  background: #0e528a;
+  box-shadow: inset 8px 8px 16px #093457, inset -8px -8px 16px #1370bd;
+
+  span {
+    width: 90%;
+
+    label {
+      font-size: 20px;
+      font-family: Arial, Helvetica, sans-serif;
+      color: $color4;
+    }
+}
+
+}
+
+
+
+.commun-btn {
+  margin-top: 20px;
+}
+
+.commun-input {
+  width: 100% !important;
+}
+
+.error {
+  color: red;
+}
+
+
+.register-link {
+  margin-top: 15px;
+  color: $color4;
+  text-decoration: underline;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.register-link:hover {
+  color: lighten($color4, 10%);
+  transition: color 0.3s ease;
+}

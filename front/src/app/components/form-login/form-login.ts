@@ -1,22 +1,30 @@
-import { Component } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterModule , Router } from '@angular/router';
-import { NgIf } from '@angular/common';
+import { Component, ViewEncapsulation } from '@angular/core';
+import {
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
+import { RouterModule, Router } from '@angular/router';
 
 import { AccountService } from '../../services/account/account.service';
 
 @Component({
   selector: 'app-form-login',
-  imports: [RouterModule, ReactiveFormsModule, NgIf],
+  imports: [RouterModule, ReactiveFormsModule],
   templateUrl: './form-login.html',
-  styleUrl: './form-login.scss'
+  styleUrl: './form-login.scss',
+  encapsulation: ViewEncapsulation.None
 })
 export class FormLogin {
-
   protected formulaire: FormGroup;
   protected errorMessage: string = '';
 
-  constructor(private readonly router: Router, private readonly AuthService: AccountService, private readonly formBuilder: FormBuilder) {
+  constructor(
+    private readonly router: Router,
+    private readonly AuthService: AccountService,
+    private readonly formBuilder: FormBuilder
+  ) {
     this.formulaire = this.formBuilder.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', Validators.required],
@@ -24,8 +32,8 @@ export class FormLogin {
   }
 
   submitForm() {
+  
     if (this.formulaire.invalid) return;
-
     const user = {
       email: this.formulaire.value.email,
       password: this.formulaire.value.password,
@@ -42,7 +50,8 @@ export class FormLogin {
         if ([401, 400].includes(error.status)) {
           this.errorMessage = 'Adresse e-mail ou mot de passe incorrect.';
         } else {
-          this.errorMessage = 'Une erreur s\'est produite lors de la connexion. Veuillez réessayer.';
+          this.errorMessage =
+            "Une erreur s'est produite lors de la connexion. Veuillez réessayer.";
         }
       },
     });

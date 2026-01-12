@@ -1,13 +1,14 @@
-import { NgFor } from '@angular/common';
 import { Component } from '@angular/core';
 import { ReactiveFormsModule, FormGroup, FormControl, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import {AccountService} from '../../services/account/account.service'
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
 
 @Component({
   selector: 'app-form-new-user',
   standalone: true,
-  imports: [ReactiveFormsModule, NgFor],
+  imports: [ReactiveFormsModule, MatFormFieldModule, MatSelectModule, RouterModule],
   templateUrl: './form-new-user.component.html',
   styleUrl: './form-new-user.component.scss',
 })
@@ -23,8 +24,8 @@ export class FormNewUserComponent {
     confirmPassword: new FormControl('', [Validators.required, Validators.minLength(8)]),
   });
 
-  constructor(private accountService: AccountService) {
-
+  constructor(private accountService: AccountService, private readonly router: Router,) {
+    
   }
 
 
@@ -46,7 +47,7 @@ export class FormNewUserComponent {
     }
     else {
       const user = {
-        roleId : this.formSignUp.value.role,
+        roleId : +this.formSignUp.value.role!,
         name : this.formSignUp.value.username,
         email : this.formSignUp.value.email,
         password : this.formSignUp.value.password
@@ -54,6 +55,7 @@ export class FormNewUserComponent {
       this.accountService.signUp(user).subscribe({
         next: (response) => {
           this.errorMessage = 'L\'utilisateur a été créé avec succès.';
+          this.router.navigate(['/login']);
         },
         error: (error) => {
           this.errorMessage = 'Une erreur est survenue lors de la création de l\'utilisateur.';

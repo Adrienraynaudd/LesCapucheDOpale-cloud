@@ -1,0 +1,36 @@
+@import "../../../styles.scss";
+
+.form-money {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.title {
+    font-size: 20px;
+    color: $color4;
+    margin-bottom: 1rem;
+}
+
+.container-all-bloc-money {
+    display: flex;
+    gap: 1rem;
+}
+
+.container-value {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    input {
+        border: $color4 solid 2px;
+        color: $color4 !important;
+    }   
+
+    label {
+        font-size: 15px;
+        color: $color4;
+    }
+}

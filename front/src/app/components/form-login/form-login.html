@@ -1,8 +1,17 @@
-<section>
+<section class="form-login-section">
   <form class="form-login" (ngSubmit)="submitForm()" [formGroup]="formulaire"  #formDirective="ngForm">
-    <input type="text" placeholder="email" name="email" id="input-email" required class="log-input" formControlName="email" #emailInput />
-    <input type="password" placeholder="Password" name="password" id="input-password" required class="log-input" formControlName="password" #passwordInput />
-    <span *ngIf="errorMessage" class="error">{{errorMessage}}</span>
-    <button type="submit" class="btnLogin">Login</button>
+    <span>
+    <label for="">Email</label>
+    <input type="text" placeholder="exemple@email.com" name="email" id="input-email" required class="commun-input" formControlName="email" #emailInput />
+    </span>
+    <span>
+    <label for="">Password</label>
+    <input type="password" placeholder="" name="password" id="input-password" required class="commun-input" formControlName="password" #passwordInput />
+    </span>
+    @if (errorMessage){
+      <span class="error">{{errorMessage}}</span>
+    }
+    <button type="submit" class="commun-btn">Login</button>
+    <a routerLink="/user/new" class="register-link">Pas encore de compte ? Inscrivez-vous</a>
   </form>
 </section>

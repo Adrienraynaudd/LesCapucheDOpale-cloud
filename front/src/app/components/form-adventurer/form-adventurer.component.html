@@ -1,58 +1,84 @@
 <form [formGroup]="adventurerForm" (ngSubmit)="onSubmit()">
-  <div class="form-group">
-    <label for="name">Nom:</label>
-    <input id="name" formControlName="name" />
-    @if ((adventurerForm.get('name')?.touched || hasSubmitted) && adventurerForm.get('name')?.invalid) {
-    <p class="error">
-      Le nom doit contenir au moins 3 caractères.
-    </p>
-    }
-  </div>
-
-  <div class="form-group">
-    <label for="speciality">Spécialité:</label>
-    <select id="speciality" formControlName="specialityId">
-      @for (spe of specialities; track spe) {
-      <option [value]="spe.id">{{ spe.name }}</option>
+  <span class="left">
+    <div class="form-group">
+      <label for="name">Nom:</label>
+      <input
+        class="commun-input"
+        id="name"
+        formControlName="name"
+        placeholder="John"
+      />
+      @if ((adventurerForm.get('name')?.touched || hasSubmitted) &&
+      adventurerForm.get('name')?.invalid) {
+      <p class="error">Le nom doit contenir au moins 3 caractères.</p>
       }
-    </select>
-    @if ((adventurerForm.get('specialityId')?.touched || hasSubmitted) && adventurerForm.get('specialityId')?.invalid) {
-    <p class="error">
-      La spécialité est requise.
-    </p>
-    }
-  </div>
-
-  <div class="form-group">
-    <label for="equipmentTypes">Type d'équipement:</label>
-    <select id="equipmentTypes" formControlName="equipmentTypeIds" multiple>
-      @for (type of equipmentTypes; track type) {
-      <option [value]="type.id">{{ type.name }}</option>
+    </div>
+    <app-form-money
+      label="Taux journalier : "
+      [money]="getMoney()"
+      (moneyChange)="setMoney($event)"
+    ></app-form-money>
+    <button class="submit-btn commun-btn" type="submit">
+      {{ initialData ? "Modifier l'" : "Créer un " }}aventurier
+    </button>
+  </span>
+  <span class="right">
+    <div class="form-group">
+      <label for="speciality">Spécialité:</label>
+      <mat-form-field class="custom-form-field speciality-field">
+        <mat-select
+          placeholder="Sélectionner une spécialité"
+          id="speciality"
+          formControlName="specialityId"
+          panelClass="speciality-panel"
+        >
+          @for (spe of specialities; track spe) {
+          <mat-option [value]="spe.id">{{ spe.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      @if ((adventurerForm.get('specialityId')?.touched || hasSubmitted) &&
+      adventurerForm.get('specialityId')?.invalid) {
+      <p class="error">La spécialité est requise.</p>
       }
-    </select>
-    @if ((adventurerForm.get('equipmentTypeIds')?.touched || hasSubmitted) && adventurerForm.get('equipmentTypeIds')?.invalid)
-    {
-    <p class="error">
-      Le type d'équipement est requis.
-    </p>
-    }
-  </div>
+    </div>
 
-  <div class="form-group">
-    <label for="consumableTypes">Type de consommable:</label>
-    <select id="consumableTypes" formControlName="consumableTypeIds" multiple>
-      @for (type of consumableTypes; track type) {
-      <option [value]="type.id">{{ type.name }}</option>
+    <div class="form-group">
+      <label for="equipmentTypes">Type d'équipement:</label>
+      <mat-form-field class="custom-form-field">
+        <mat-select
+          placeholder="Sélectionner les types d'équipement"
+          formControlName="equipmentTypeIds"
+          multiple
+          class="test2"
+          panelClass="select-panel"
+        >
+          @for (type of equipmentTypes; track type) {
+          <mat-option [value]="type.id">{{ type.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="form-group">
+      <label for="consumableTypes">Type de consommable:</label>
+      <mat-form-field class="custom-form-field">
+        <mat-select
+          placeholder="Sélectionner les types de consommable"
+          id="consumableTypes"
+          formControlName="consumableTypeIds"
+          multiple
+          panelClass="select-panel"
+        >
+          @for (type of consumableTypes; track type) {
+          <mat-option [value]="type.id">{{ type.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      @if ((adventurerForm.get('consumableTypeIds')?.touched || hasSubmitted) &&
+      adventurerForm.get('consumableTypeIds')?.invalid) {
+      <p class="error">Le type de consommable est requis.</p>
       }
-    </select>
-    @if ((adventurerForm.get('consumableTypeIds')?.touched || hasSubmitted) &&
-    adventurerForm.get('consumableTypeIds')?.invalid) {
-    <p class="error">
-      Le type de consommable est requis.
-    </p>
-    }
-  </div>
-  <app-form-money label="Taux journalier : " [money]="getMoney()" (moneyChange)="setMoney($event)"></app-form-money>
-
-  <button type="submit">Créer un aventurier</button>
+    </div>
+  </span>
 </form>

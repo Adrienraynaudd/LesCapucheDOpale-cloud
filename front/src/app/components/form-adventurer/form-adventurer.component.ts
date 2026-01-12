@@ -1,6 +1,8 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { ReactiveFormsModule, FormControl, FormGroup, Validators } from '@angular/forms';
 import { AdventurerFormData, ConsumableType, EquipmentType, Speciality } from '../../models/models';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
 
 import { forkJoin } from 'rxjs';
 import { SpecialityService } from '../../services/speciality/speciality.service';
@@ -10,7 +12,7 @@ import { FormMoney } from '../form-money/form-money';
 
 @Component({
     selector: 'app-form-adventurer',
-    imports: [ReactiveFormsModule, FormMoney],
+    imports: [ReactiveFormsModule, FormMoney, MatFormFieldModule, MatSelectModule],
     templateUrl: './form-adventurer.component.html',
     styleUrl: './form-adventurer.component.scss'
 })
