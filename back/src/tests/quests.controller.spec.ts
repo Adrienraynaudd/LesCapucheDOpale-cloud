@@ -8,6 +8,7 @@ import { UpdateQuestDto } from '../dto/update-quest.dto';
 import { UpdateStatusDto } from '../dto/update-quest-status.dto';
 import { ValidateQuestDto } from '../dto/validate-quest.dto';
 import { IdsDto } from '../dto/ids.dto';
+import { FinishQuestDto } from '../dto/finish-quest.dto';
 
 describe('QuestsController', () => {
   let controller: QuestsController;
@@ -28,6 +29,7 @@ describe('QuestsController', () => {
     validateQuest: jest.fn(),
     invalidateQuest: jest.fn(),
     startQuest: jest.fn(),
+    finishQuest: jest.fn(),
     refuseQuest: jest.fn(),
     abandonQuest: jest.fn(),
   };
@@ -193,12 +195,34 @@ describe('QuestsController', () => {
     });
 
     it('should start a quest', async () => {
-      const expected = { id: questId, statusId: 3 };
+      const expected = { id: questId, statusId: 3, startDate: new Date() };
       mockService.startQuest.mockResolvedValue(expected);
 
       const result = await controller.start(questId);
 
       expect(service.startQuest).toHaveBeenCalledWith(questId);
+      expect(result).toEqual(expected);
+    });
+
+    it('should finish a quest with success', async () => {
+      const dto: FinishQuestDto = { isSuccess: true, duration: 5 };
+      const expected = { id: questId, statusId: 6, totalCost: 500 };
+      mockService.finishQuest.mockResolvedValue(expected);
+
+      const result = await controller.finish(questId, dto);
+
+      expect(service.finishQuest).toHaveBeenCalledWith(questId, true, 5);
+      expect(result).toEqual(expected);
+    });
+
+    it('should finish a quest with failure', async () => {
+      const dto: FinishQuestDto = { isSuccess: false, duration: 3 };
+      const expected = { id: questId, statusId: 7, totalCost: 300 };
+      mockService.finishQuest.mockResolvedValue(expected);
+
+      const result = await controller.finish(questId, dto);
+
+      expect(service.finishQuest).toHaveBeenCalledWith(questId, false, 3);
       expect(result).toEqual(expected);
     });
 

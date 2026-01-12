@@ -38,6 +38,25 @@ export class AuthService {
       });
     }
 
-    return { access_token: token, user: user };
+    return { access_token: token, username: user.name };
+  }
+
+  async verifyToken(token: string) {
+    try {
+      let payload: { roleId: number };
+      try {
+        payload = await this.jwtService.verifyAsync(token, {
+          secret: process.env.JWT_SECRET,
+        });
+      } catch {
+        payload = await this.jwtService.verifyAsync(token, {
+          secret: process.env.JWT_SECRET_ADMIN,
+        });
+      }
+
+      return { roleId: payload.roleId };
+    } catch {
+      throw new UnauthorizedException('Invalid token');
+    }
   }
 }

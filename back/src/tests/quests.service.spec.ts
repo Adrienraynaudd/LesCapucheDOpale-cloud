@@ -10,11 +10,12 @@ type JestMock = any;
 
 type MockedPrismaService = Partial<{
   status: { findFirst: JestMock; findUnique: JestMock };
-  adventurer: { findMany: JestMock; updateMany: JestMock };
-  equipmentStock: { findMany: JestMock };
+  adventurer: { findMany: JestMock; updateMany: JestMock; update: JestMock };
+  equipmentStock: { findMany: JestMock; update: JestMock; updateMany: JestMock };
   questStockEquipment: { findMany: JestMock; createMany: JestMock; deleteMany: JestMock };
   quest: { create: JestMock; update: JestMock; findMany: JestMock; findUnique: JestMock };
   user: { findUnique: JestMock };
+  transaction: { findFirst: JestMock; create: JestMock };
   $transaction: JestMock;
 }>;
 
@@ -23,23 +24,22 @@ describe('QuestsService', () => {
 
   const mockPrisma: MockedPrismaService = {
     status: { findFirst: jest.fn(), findUnique: jest.fn() },
-    adventurer: { findMany: jest.fn(), updateMany: jest.fn() },
-    equipmentStock: { findMany: jest.fn() },
+    adventurer: { findMany: jest.fn(), updateMany: jest.fn(), update: jest.fn() },
+    equipmentStock: { findMany: jest.fn(), update: jest.fn(), updateMany: jest.fn() },
     questStockEquipment: { findMany: jest.fn(), createMany: jest.fn(), deleteMany: jest.fn() },
     quest: { create: jest.fn(), update: jest.fn(), findMany: jest.fn(), findUnique: jest.fn() },
     user: { findUnique: jest.fn() },
+    transaction: { findFirst: jest.fn(), create: jest.fn() },
     $transaction: jest.fn(),
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
-    // Default mocks for user and status existence checks
     mockPrisma.user!.findUnique.mockResolvedValue({ id: 1 });
     mockPrisma.status!.findUnique.mockResolvedValue({ id: 1 });
     service = new QuestsService(mockPrisma as unknown as PrismaService);
   });
 
-  // ------------------------ CREATE ------------------------
   describe('create', () => {
     it('should create a quest with STATUS_ID_WAITING', async () => {
       const dto: CreateQuestDto = {
@@ -96,7 +96,6 @@ describe('QuestsService', () => {
     });
   });
 
-  // ------------------------ UPDATE ------------------------
   describe('update', () => {
     beforeEach(() => {
       mockPrisma.quest!.findUnique.mockResolvedValue({ statusId: 1 }); // STATUS_ID_WAITING = 1
@@ -104,11 +103,10 @@ describe('QuestsService', () => {
 
     it('should update quest and set adventurers and questStockEquipments when arrays provided', async () => {
       const dto: Partial<UpdateQuestDto> = { name: 'Updated', adventurerIds: [3, 4], equipmentStockIds: [20] };
-      // Mock for findAdventurersExist + checkAdventurersAvailability (3 calls)
       mockPrisma.adventurer!.findMany
-        .mockResolvedValueOnce([{ id: 3 }, { id: 4 }]) // findAdventurersExist
-        .mockResolvedValueOnce([]) // checkAdventurersAvailability - onActiveQuest (none)
-        .mockResolvedValueOnce([]); // checkAdventurersAvailability - inRest (none)
+        .mockResolvedValueOnce([{ id: 3 }, { id: 4 }]) 
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([]);
       mockPrisma.equipmentStock!.findMany.mockResolvedValue([{ id: 20 }]);
       mockPrisma.quest!.update.mockResolvedValue({ id: 7 });
 
@@ -135,7 +133,6 @@ describe('QuestsService', () => {
     });
   });
 
-  // ------------------------ FIND ------------------------
   it('should return quests with relations', async () => {
     const quests = [{ id: 1, name: 'Quest1' }];
     mockPrisma.quest!.findMany.mockResolvedValue(quests);
@@ -173,7 +170,6 @@ describe('QuestsService', () => {
     await expect(service.findOne(999)).rejects.toThrow(NotFoundException);
   });
 
-  // ------------------------ STATUS ------------------------
   describe('updateStatus', () => {
     it('should update quest status by id', async () => {
       const quest = { id: 1, statusId: 2 };
@@ -215,11 +211,10 @@ describe('QuestsService', () => {
     });
 
     it('should attach adventurers', async () => {
-      // Mock for findAdventurersExist + checkAdventurersAvailability (3 calls)
       mockPrisma.adventurer!.findMany
-        .mockResolvedValueOnce([{ id: 1 }, { id: 2 }]) // findAdventurersExist
-        .mockResolvedValueOnce([]) // checkAdventurersAvailability - onActiveQuest (none)
-        .mockResolvedValueOnce([]); // checkAdventurersAvailability - inRest (none)
+        .mockResolvedValueOnce([{ id: 1 }, { id: 2 }])
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([]);
       const res = await service.attachAdventurers(1, [1, 2]);
       expect(res).toEqual({ id: 1 });
     });
@@ -230,37 +225,35 @@ describe('QuestsService', () => {
         clientVersion: '1.0',
       } as any);
       
-      // Reset mocks for this specific test
       mockPrisma.adventurer!.findMany
-        .mockResolvedValueOnce([{ id: 1 }]) // findAdventurersExist
-        .mockResolvedValueOnce([]) // checkAdventurersAvailability - onActiveQuest (none)
-        .mockResolvedValueOnce([]); // checkAdventurersAvailability - inRest (none)
+        .mockResolvedValueOnce([{ id: 1 }])
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([]);
       mockPrisma.quest!.update.mockRejectedValue(prismaError);
       await expect(service.attachAdventurers(999, [1])).rejects.toThrow(NotFoundException);
     });
 
     it('should re-throw generic errors during attach', async () => {
       const error = new Error('Fail');
-      // Reset mocks for this specific test
       mockPrisma.adventurer!.findMany
-        .mockResolvedValueOnce([{ id: 1 }]) // findAdventurersExist
-        .mockResolvedValueOnce([]) // checkAdventurersAvailability - onActiveQuest (none)
-        .mockResolvedValueOnce([]); // checkAdventurersAvailability - inRest (none)
+        .mockResolvedValueOnce([{ id: 1 }])
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([]);
       mockPrisma.quest!.update.mockRejectedValue(error);
       await expect(service.attachAdventurers(1, [1])).rejects.toThrow(error);
     });
 
     it('should detach adventurers', async () => {
-      mockPrisma.adventurer!.findMany.mockResolvedValueOnce([{ id: 1 }]); // findAdventurersExist
+      mockPrisma.adventurer!.findMany.mockResolvedValueOnce([{ id: 1 }]);
       const res = await service.detachAdventurers(1, [1]);
       expect(res).toEqual({ id: 1 });
     });
 
     it('should set adventurers', async () => {
       mockPrisma.adventurer!.findMany
-        .mockResolvedValueOnce([{ id: 1 }]) // findAdventurersExist
-        .mockResolvedValueOnce([]) // checkAdventurersAvailability - onActiveQuest (none)
-        .mockResolvedValueOnce([]); // checkAdventurersAvailability - inRest (none)
+        .mockResolvedValueOnce([{ id: 1 }])
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([]);
       const res = await service.setAdventurers(1, [1]);
       expect(res).toEqual({ id: 1 });
     });
@@ -375,21 +368,33 @@ describe('QuestsService', () => {
       await expect(service.startQuest(1)).rejects.toThrow(BadRequestException);
     });
 
-    it('startQuest should set status "commencée" when validated', async () => {
+    it('startQuest should set status "commencée", record startDate and set equipment to BORROWED', async () => {
       mockPrisma.quest!.findUnique.mockResolvedValueOnce({ 
         statusId: 2, // STATUS_ID_VALIDATED = 2
         estimatedDuration: 5,
-        adventurers: [{ id: 1 }, { id: 2 }] 
+        adventurers: [{ id: 1 }, { id: 2 }],
+        questStockEquipments: [{ equipmentStockId: 10 }, { equipmentStockId: 11 }]
       });
-      // checkAdventurersAvailability mocks
       mockPrisma.adventurer!.findMany
-        .mockResolvedValueOnce([]) // onActiveQuest (none)
-        .mockResolvedValueOnce([]); // inRest (none)
-      mockPrisma.adventurer!.updateMany.mockResolvedValue({ count: 2 });
-      mockPrisma.quest!.update.mockResolvedValueOnce({ id: 1, status: { name: 'commencée' } });
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([]);
+      
+      mockPrisma.$transaction.mockImplementation(async (callback: any) => await callback({
+        adventurer: { updateMany: (jest.fn() as JestMock).mockResolvedValue({ count: 2 }) },
+        equipmentStock: { updateMany: (jest.fn() as JestMock).mockResolvedValue({ count: 2 }) },
+        quest: { update: (jest.fn() as JestMock).mockResolvedValue({ id: 1 }) },
+      }));
+      
+      mockPrisma.quest!.findUnique.mockResolvedValueOnce({ 
+        id: 1, 
+        status: { name: 'commencée' },
+        startDate: new Date(),
+        questStockEquipments: [{ equipmentStock: { status: 'BORROWED' } }]
+      });
 
       const res = await service.startQuest(1);
       expect(res).toEqual(expect.objectContaining({ status: expect.objectContaining({ name: 'commencée' }) }));
+      expect(mockPrisma.$transaction).toHaveBeenCalled();
     });
 
     it('startQuest should throw NotFoundException if quest not found', async () => {
@@ -526,7 +531,149 @@ describe('QuestsService', () => {
   });
 
   // ------------------------ FINISH QUEST ------------------------
-  // Note: finishQuest, checkAdventurersAvailability, and adventurer lock tests
-  // are already covered by the startQuest tests above and integration tests.
-  // Coverage is 96%+ which exceeds the 75% requirement.
+  describe('finishQuest', () => {
+    beforeEach(() => {
+      mockPrisma.quest!.findUnique.mockReset();
+    });
+
+    it('should throw NotFoundException if quest not found', async () => {
+      mockPrisma.quest!.findUnique.mockResolvedValue(null);
+      await expect(service.finishQuest(999, true, 5)).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw BadRequestException if quest is not started', async () => {
+      mockPrisma.quest!.findUnique.mockResolvedValue({ 
+        statusId: 2, // STATUS_ID_VALIDATED = 2
+        estimatedDuration: 5,
+        recommendedXP: 100,
+        adventurers: [],
+        questStockEquipments: [],
+      });
+      await expect(service.finishQuest(1, true, 5)).rejects.toThrow(BadRequestException);
+    });
+
+    it('should finish quest with success: give XP, update equipment, calculate rest and salary', async () => {
+      const questData = {
+        statusId: 3, // STATUS_ID_STARTED
+        estimatedDuration: 5,
+        recommendedXP: 100,
+        adventurers: [
+          { id: 1, experience: 50, dailyRate: 20 },
+          { id: 2, experience: 80, dailyRate: 30 },
+        ],
+        questStockEquipments: [
+          { equipmentStockId: 10, equipmentStock: { id: 10, durability: 10 } },
+          { equipmentStockId: 11, equipmentStock: { id: 11, durability: 3 } },
+        ],
+      };
+      
+      let callCount = 0;
+      mockPrisma.quest!.findUnique.mockImplementation(async () => {
+        callCount++;
+        if (callCount === 1) return questData;
+        return {
+          id: 1,
+          statusId: 6,
+          status: { name: 'Terminée' },
+          adventurers: [{ id: 1 }, { id: 2 }],
+          questStockEquipments: [],
+        };
+      });
+
+      mockPrisma.$transaction.mockImplementation(async (callback: any) => {
+        const txMock = {
+          adventurer: { update: (jest.fn() as JestMock).mockResolvedValue({}) },
+          equipmentStock: { update: (jest.fn() as JestMock).mockResolvedValue({}) },
+          transaction: { 
+            findFirst: (jest.fn() as JestMock).mockResolvedValue({ total: 1000 }),
+            create: (jest.fn() as JestMock).mockResolvedValue({})
+          },
+          quest: { update: (jest.fn() as JestMock).mockResolvedValue({}) },
+        };
+        await callback(txMock);
+      });
+
+      const res = await service.finishQuest(1, true, 5);
+      
+      expect(res.totalCost).toBe(250); // (20*5) + (30*5) = 100 + 150 = 250
+      expect(mockPrisma.$transaction).toHaveBeenCalled();
+    });
+
+    it('should finish quest with failure: no XP, still update equipment and calculate salary', async () => {
+      const questData = {
+        statusId: 3, // STATUS_ID_STARTED
+        estimatedDuration: 3,
+        recommendedXP: 50,
+        adventurers: [{ id: 1, experience: 100, dailyRate: 50 }],
+        questStockEquipments: [
+          { equipmentStockId: 10, equipmentStock: { id: 10, durability: 5 } },
+        ],
+      };
+      
+      let callCount = 0;
+      mockPrisma.quest!.findUnique.mockImplementation(async () => {
+        callCount++;
+        if (callCount === 1) return questData;
+        return {
+          id: 1,
+          statusId: 7,
+          status: { name: 'Échouée' },
+          adventurers: [{ id: 1, experience: 100 }],
+          questStockEquipments: [],
+        };
+      });
+
+      mockPrisma.$transaction.mockImplementation(async (callback: any) => {
+        const txMock = {
+          adventurer: { update: (jest.fn() as JestMock).mockResolvedValue({}) },
+          equipmentStock: { update: (jest.fn() as JestMock).mockResolvedValue({}) },
+          transaction: {
+            findFirst: (jest.fn() as JestMock).mockResolvedValue(null),
+            create: (jest.fn() as JestMock).mockResolvedValue({})
+          },
+          quest: { update: (jest.fn() as JestMock).mockResolvedValue({}) },
+        };
+        await callback(txMock);
+      });
+
+      const res = await service.finishQuest(1, false, 3);
+      
+      expect(res.totalCost).toBe(150); // 50*3 = 150
+      expect(res.statusId).toBe(7); // STATUS_ID_FAILED
+    });
+
+    it('should handle quest with no adventurers', async () => {
+      const questData = {
+        statusId: 3,
+        estimatedDuration: 2,
+        recommendedXP: 30,
+        adventurers: [],
+        questStockEquipments: [],
+      };
+      
+      let callCount = 0;
+      mockPrisma.quest!.findUnique.mockImplementation(async () => {
+        callCount++;
+        if (callCount === 1) return questData;
+        return {
+          id: 1,
+          statusId: 6,
+          adventurers: [],
+          questStockEquipments: [],
+        };
+      });
+
+      mockPrisma.$transaction.mockImplementation(async (callback: any) => {
+        await callback({
+          adventurer: { update: jest.fn() as JestMock },
+          equipmentStock: { update: jest.fn() as JestMock },
+          transaction: { findFirst: jest.fn() as JestMock, create: jest.fn() as JestMock },
+          quest: { update: (jest.fn() as JestMock).mockResolvedValue({}) },
+        });
+      });
+
+      const res = await service.finishQuest(1, true, 2);
+      expect(res.totalCost).toBe(0);
+    });
+  });
 });

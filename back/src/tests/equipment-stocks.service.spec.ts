@@ -4,12 +4,11 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateEquipmentStockDto } from '../dto/create-equipment-stock.dto';
 import { UpdateEquipmentStockDto } from '../dto/update-equipment-stock.dto';
 import { equipmentStockInclude } from '../dbo/equipment-stock.dbo';
-import { Prisma } from '@prisma/client'; // Important pour simuler l'erreur
+import { Prisma } from '@prisma/client';
 
 describe('EquipmentStocksService', () => {
   let service: EquipmentStocksService;
 
-  // --- Mocks ---
   const mockPrisma = {
     equipmentStock: {
       create: jest.fn(),
@@ -30,7 +29,6 @@ describe('EquipmentStocksService', () => {
     );
   });
 
-  // --- CREATE ---
   describe('create', () => {
     it('should create an equipment stock with auto durability from maxDurability', async () => {
       const dto: CreateEquipmentStockDto = { equipmentId: 1, quantity: 5 };
@@ -83,7 +81,6 @@ describe('EquipmentStocksService', () => {
     });
   });
 
-  // --- FIND ALL ---
   describe('findAll', () => {
     it('should return all equipment stocks', async () => {
       const rows = [
@@ -100,8 +97,6 @@ describe('EquipmentStocksService', () => {
       expect(res).toEqual(rows);
     });
   });
-
-  // --- FIND ONE ---
   describe('findOne', () => {
     it('should return a single equipment stock if found', async () => {
       const row = { id: 1, equipmentId: 1, durability: 100 };
@@ -122,8 +117,6 @@ describe('EquipmentStocksService', () => {
       await expect(service.findOne(999)).rejects.toThrow(NotFoundException);
     });
   });
-
-  // --- UPDATE ---
   describe('update', () => {
     it('should update and return the updated row', async () => {
       const dto: UpdateEquipmentStockDto = { quantity: 10 };
@@ -159,7 +152,6 @@ describe('EquipmentStocksService', () => {
       expect(res).toEqual(updated);
     });
 
-    // TEST CORRIGÉ : On simule une erreur Prisma P2025
     it('should throw NotFoundException if prisma throws P2025', async () => {
       const prismaError = new Prisma.PrismaClientKnownRequestError(
         'Not found',
@@ -172,7 +164,6 @@ describe('EquipmentStocksService', () => {
       );
     });
 
-    // TEST AJOUTÉ : On simule une erreur inconnue (pour le throw e)
     it('should re-throw generic errors', async () => {
       const error = new Error('Database connection failed');
       mockPrisma.equipmentStock.update.mockRejectedValue(error);
@@ -181,7 +172,6 @@ describe('EquipmentStocksService', () => {
     });
   });
 
-  // --- DELETE ---
   describe('delete', () => {
     it('should delete a stock and return it', async () => {
       const deleted = { id: 1, equipmentId: 1, durability: 100 };
@@ -195,7 +185,6 @@ describe('EquipmentStocksService', () => {
       expect(res).toEqual(deleted);
     });
 
-    // TEST CORRIGÉ : On simule une erreur Prisma P2025
     it('should throw NotFoundException if prisma throws P2025', async () => {
       const prismaError = new Prisma.PrismaClientKnownRequestError(
         'Not found',
@@ -206,7 +195,6 @@ describe('EquipmentStocksService', () => {
       await expect(service.delete(999)).rejects.toThrow(NotFoundException);
     });
 
-    // TEST AJOUTÉ : On simule une erreur inconnue
     it('should re-throw generic errors', async () => {
       const error = new Error('Database connection failed');
       mockPrisma.equipmentStock.delete.mockRejectedValue(error);

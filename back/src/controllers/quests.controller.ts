@@ -20,6 +20,7 @@ import { UpdateStatusDto } from '../dto/update-quest-status.dto';
 import { IdsDto } from '../dto/ids.dto';
 import { UserDto } from 'src/dto/user.dto';
 import { ValidateQuestDto } from '../dto/validate-quest.dto';
+import { FinishQuestDto } from '../dto/finish-quest.dto';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -443,23 +444,28 @@ export class QuestsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(1, 2)
   @ApiParam({ name: 'id', example: 42, description: 'Quest ID' })
+  @ApiBody({
+    description: 'Informations de fin de quête',
+    type: FinishQuestDto,
+  })
   @ApiOkResponse({
     description:
-      'Quête terminée, durée de repos calculée automatiquement par aventurier (formule SAM)',
+      'Quête terminée, XP distribué (si succès), équipements libérés, coût financier calculé',
     schema: {
       type: 'object',
       additionalProperties: true,
       example: {
         id: 42,
-        statusId: 3,
+        statusId: 6,
         adventurers: [
-          { id: 1, name: 'Aria', experience: 50, availableUntil: '2025-12-15' },
+          { id: 1, name: 'Aria', experience: 60, availableUntil: '2025-12-15' },
         ],
+        totalCost: 500,
       },
     },
   })
-  finish(@Param('id', ParseIntPipe) id: number) {
-    return this.questsService.finishQuest(id);
+  finish(@Param('id', ParseIntPipe) id: number, @Body() dto: FinishQuestDto) {
+    return this.questsService.finishQuest(id, dto.isSuccess, dto.duration);
   }
 
   @Patch(':id/refuse')

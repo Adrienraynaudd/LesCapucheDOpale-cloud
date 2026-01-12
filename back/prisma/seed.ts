@@ -2,13 +2,11 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-// Constantes pour les rôles
 const ROLES = {
   ASSISTANT: 'assistant',
   CLIENT: 'client',
 };
 
-// Constantes pour les statuts
 const STATUSES = {
     STATUS_WAITING: 'En attente de validation',
     STATUS_VALIDATED: 'Validée',
@@ -19,27 +17,25 @@ const STATUSES = {
     STATUS_FAILED: 'Échouée',
 };
 
-async function main() {
-  console.log('🌱 Début du seeding de la base de données...');
+const EQUIPMENT_STATUSES = {
+  AVAILABLE: 'Disponible',
+  BORROWED: 'Emprunté',
+  BROKEN: 'Cassé',
+};
 
-  // Nettoyer la base de données
-  console.log('🧹 Nettoyage de la base de données...');
+async function main() {
+
+  await prisma.equipmentStatus.deleteMany({});
   await prisma.status.deleteMany({});
   await prisma.role.deleteMany({});
 
-  console.log('✅ Base de données nettoyée');
 
-  // Créer les rôles
-  console.log('👥 Création des rôles...');
   await Promise.all([
     prisma.role.create({ data: { name: ROLES.ASSISTANT } }),
     prisma.role.create({ data: { name: ROLES.CLIENT } }),
   ]);
 
-  console.log('✅ Rôles créés');
 
-  // Créer les statuts de quêtes
-  console.log('📋 Création des statuts...');
   await Promise.all([
     prisma.status.create({ data: { name: STATUSES.STATUS_WAITING } }),
     prisma.status.create({ data: { name: STATUSES.STATUS_VALIDATED } }),
@@ -50,12 +46,14 @@ async function main() {
     prisma.status.create({ data: { name: STATUSES.STATUS_FAILED } }),
   ]);
 
-  console.log('✅ Statuts créés');
 
-  console.log('\n✨ Seeding terminé avec succès !');
-  console.log('\n📊 Résumé:');
-  console.log(`- ${await prisma.role.count()} rôles`);
-  console.log(`- ${await prisma.status.count()} statuts`);
+  await Promise.all([
+    prisma.equipmentStatus.create({ data: { name: EQUIPMENT_STATUSES.AVAILABLE } }),
+    prisma.equipmentStatus.create({ data: { name: EQUIPMENT_STATUSES.BORROWED } }),
+    prisma.equipmentStatus.create({ data: { name: EQUIPMENT_STATUSES.BROKEN } }),
+  ]);
+
+
 }
 
 main()

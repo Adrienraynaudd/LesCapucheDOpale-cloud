@@ -195,4 +195,40 @@ export class EquipmentStocksController {
   delete(@Param('id', ParseIntPipe) id: number) {
     return this.service.delete(id);
   }
+
+  @Patch(':id/repair')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(1, 2)
+  @ApiParam({ name: 'id', example: 1, description: 'Equipment stock ID' })
+  @ApiOkResponse({
+    description: 'Equipment stock repaired (durability reset to max)',
+    schema: {
+      type: 'object',
+      properties: {
+        id: { type: 'number', example: 1 },
+        equipmentId: { type: 'number', example: 12 },
+        durability: { type: 'number', example: 100 },
+        quantity: { type: 'number', example: 1 },
+        statusId: { type: 'number', example: 1 },
+        status: {
+          type: 'object',
+          properties: {
+            id: { type: 'number', example: 1 },
+            name: { type: 'string', example: 'AVAILABLE' },
+          },
+        },
+        equipment: {
+          type: 'object',
+          properties: {
+            id: { type: 'number', example: 12 },
+            name: { type: 'string', example: 'Épée longue' },
+            maxDurability: { type: 'number', example: 100 },
+          },
+        },
+      },
+    },
+  })
+  repair(@Param('id', ParseIntPipe) id: number) {
+    return this.service.repair(id);
+  }
 }

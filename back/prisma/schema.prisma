@@ -61,11 +61,19 @@ model EquipmentType {
   adventurers Adventurer[]
 }
 
+model EquipmentStatus {
+  id              Int              @id @default(autoincrement())
+  name            String
+  equipmentStocks EquipmentStock[]
+}
+
 model EquipmentStock {
   id                   Int                   @id @default(autoincrement())
   equipmentId          Int
   durability           Int
   quantity             Int                   @default(1)
+  statusId             Int                   @default(1)
+  status               EquipmentStatus       @relation(fields: [statusId], references: [id])
   equipment            Equipment             @relation(fields: [equipmentId], references: [id])
   questStockEquipments QuestStockEquipment[]
 }
@@ -91,6 +99,7 @@ model Quest {
   name                 String
   description          String
   finalDate            DateTime
+  startDate            DateTime?
   reward               Int
   statusId             Int
   status               Status                @relation(fields: [statusId], references: [id])

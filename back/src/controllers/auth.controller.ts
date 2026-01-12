@@ -1,6 +1,20 @@
-import { Controller, Post, Body, HttpCode } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  HttpCode,
+  Get,
+  Headers,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { AuthService } from '../services/auth.service';
-import { ApiTags, ApiBody, ApiOkResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiBody,
+  ApiOkResponse,
+  ApiBearerAuth,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -22,7 +36,7 @@ export class AuthController {
     },
   })
   @ApiOkResponse({
-    description: 'JWT access token',
+    description: 'JWT access token and username',
     schema: {
       type: 'object',
       properties: {
@@ -30,10 +44,43 @@ export class AuthController {
           type: 'string',
           example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.xxx.yyy',
         },
+        username: {
+          type: 'string',
+          example: 'John Doe',
+        },
       },
     },
   })
   async login(@Body() body: { email: string; password: string }) {
     return this.authService.login(body.email, body.password);
+  }
+
+  @Get('verify')
+  @HttpCode(200)
+  @ApiBearerAuth()
+  @ApiOkResponse({
+    description: 'Token is valid, returns roleId',
+    schema: {
+      type: 'object',
+      properties: {
+        roleId: {
+          type: 'number',
+          example: 1,
+        },
+      },
+    },
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Token is invalid or missing',
+  })
+  async verifyToken(@Headers('authorization') authHeader: string) {
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      throw new UnauthorizedException(
+        'Missing or invalid authorization header',
+      );
+    }
+
+    const token = authHeader.substring(7);
+    return this.authService.verifyToken(token);
   }
 }

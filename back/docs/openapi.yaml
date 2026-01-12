@@ -24,7 +24,7 @@ paths:
                 - password
       responses:
         '200':
-          description: JWT access token
+          description: JWT access token and username
           content:
             application/json:
               schema:
@@ -33,6 +33,35 @@ paths:
                   access_token:
                     type: string
                     example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.xxx.yyy
+                  username:
+                    type: string
+                    example: John Doe
+      tags:
+        - Auth
+  /auth/verify:
+    get:
+      operationId: AuthController_verifyToken
+      parameters:
+        - name: authorization
+          required: true
+          in: header
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Token is valid, returns roleId
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  roleId:
+                    type: number
+                    example: 1
+        '401':
+          description: Token is invalid or missing
+      security:
+        - bearer: []
       tags:
         - Auth
   /users:
@@ -897,11 +926,18 @@ paths:
           schema:
             example: 42
             type: number
+      requestBody:
+        required: true
+        description: Informations de fin de quête
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FinishQuestDto'
       responses:
         '200':
           description: >-
-            Quête terminée, durée de repos calculée automatiquement par
-            aventurier (formule SAM)
+            Quête terminée, XP distribué (si succès), équipements libérés, coût
+            financier calculé
           content:
             application/json:
               schema:
@@ -909,12 +945,13 @@ paths:
                 additionalProperties: true
                 example:
                   id: 42
-                  statusId: 3
+                  statusId: 6
                   adventurers:
                     - id: 1
                       name: Aria
-                      experience: 50
+                      experience: 60
                       availableUntil: '2025-12-15'
+                  totalCost: 500
       security:
         - bearer: []
       tags:
@@ -2454,6 +2491,65 @@ paths:
                   deleted:
                     type: boolean
                     example: true
+      security:
+        - bearer: []
+      tags:
+        - Equipment Stocks
+  /equipment-stocks/{id}/repair:
+    patch:
+      operationId: EquipmentStocksController_repair
+      parameters:
+        - name: id
+          required: true
+          in: path
+          description: Equipment stock ID
+          schema:
+            example: 1
+            type: number
+      responses:
+        '200':
+          description: Equipment stock repaired (durability reset to max)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: number
+                    example: 1
+                  equipmentId:
+                    type: number
+                    example: 12
+                  durability:
+                    type: number
+                    example: 100
+                  quantity:
+                    type: number
+                    example: 1
+                  statusId:
+                    type: number
+                    example: 1
+                  status:
+                    type: object
+                    properties:
+                      id:
+                        type: number
+                        example: 1
+                      name:
+                        type: string
+                        example: AVAILABLE
+                  equipment:
+                    type: object
+                    properties:
+                      id:
+                        type: number
+                        example: 12
+                      name:
+                        type: string
+                        example: Épée longue
+                      maxDurability:
+                        type: number
+                        example: 100
       security:
         - bearer: []
       tags:

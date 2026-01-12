@@ -19,6 +19,13 @@ export class QuestsService {
   private readonly STATUS_ID_STARTED = 3;
   private readonly STATUS_ID_REFUSED = 4;
   private readonly STATUS_ID_ABANDONED = 5;
+  private readonly STATUS_ID_SUCCEEDED = 6;
+  private readonly STATUS_ID_FAILED = 7;
+
+  // Equipment Status IDs
+  private readonly EQUIPMENT_STATUS_ID_AVAILABLE = 1;
+  private readonly EQUIPMENT_STATUS_ID_BORROWED = 2;
+  private readonly EQUIPMENT_STATUS_ID_BROKEN = 3;
 
   private async isStarted(questId: number): Promise<boolean> {
     const q = await this.prisma.quest.findUnique({
@@ -534,6 +541,7 @@ export class QuestsService {
         statusId: true,
         estimatedDuration: true,
         adventurers: { select: { id: true } },
+        questStockEquipments: { select: { equipmentStockId: true } },
       },
     });
     if (!quest) throw new NotFoundException('Quest not found');
@@ -551,20 +559,44 @@ export class QuestsService {
     const availableUntil = new Date();
     availableUntil.setDate(availableUntil.getDate() + quest.estimatedDuration);
 
-    if (adventurerIds.length) {
-      await this.prisma.adventurer.updateMany({
-        where: { id: { in: adventurerIds } },
-        data: { availableUntil },
-      });
-    }
+    const equipmentStockIds = quest.questStockEquipments.map(
+      (qse) => qse.equipmentStockId,
+    );
 
-    return this.prisma.quest.update({
+    await this.prisma.$transaction(async (tx) => {
+      if (adventurerIds.length) {
+        await tx.adventurer.updateMany({
+          where: { id: { in: adventurerIds } },
+          data: { availableUntil },
+        });
+      }
+
+      // Mettre à jour le statut des équipements en "BORROWED"
+      if (equipmentStockIds.length) {
+        await tx.equipmentStock.updateMany({
+          where: { id: { in: equipmentStockIds } },
+          data: { statusId: this.EQUIPMENT_STATUS_ID_BORROWED },
+        });
+      }
+
+      // Mettre à jour la quête avec le statut "started" et la date de début
+      await tx.quest.update({
+        where: { id: questId },
+        data: {
+          status: { connect: { id: this.STATUS_ID_STARTED } },
+          startDate: new Date(),
+        },
+      });
+    });
+
+    return this.prisma.quest.findUnique({
       where: { id: questId },
-      data: { status: { connect: { id: this.STATUS_ID_STARTED } } },
       include: {
         status: true,
         adventurers: true,
-        questStockEquipments: true,
+        questStockEquipments: {
+          include: { equipmentStock: true },
+        },
         user: true,
       },
     });
@@ -649,14 +681,24 @@ export class QuestsService {
     return Math.ceil(restDays); // Arrondi au jour supérieur
   }
 
-  async finishQuest(questId: number) {
+  async finishQuest(questId: number, isSuccess: boolean, duration: number) {
     const quest = await this.prisma.quest.findUnique({
       where: { id: questId },
       select: {
         statusId: true,
         estimatedDuration: true,
         recommendedXP: true,
-        adventurers: { select: { id: true, experience: true } },
+        adventurers: {
+          select: { id: true, experience: true, dailyRate: true },
+        },
+        questStockEquipments: {
+          select: {
+            equipmentStockId: true,
+            equipmentStock: {
+              select: { id: true, durability: true },
+            },
+          },
+        },
       },
     });
     if (!quest) throw new NotFoundException('Quest not found');
@@ -667,31 +709,106 @@ export class QuestsService {
       );
     }
 
-    // Calculer et appliquer la durée de repos pour chaque aventurier individuellement
     const now = new Date();
-    for (const adventurer of quest.adventurers) {
-      const restDays = this.calculateRestDuration(
-        quest.recommendedXP,
-        adventurer.experience,
-        quest.estimatedDuration,
-      );
-      const availableUntil = new Date(now);
-      availableUntil.setDate(availableUntil.getDate() + restDays);
+    let totalSalaryCost = 0;
 
-      await this.prisma.adventurer.update({
-        where: { id: adventurer.id },
-        data: { availableUntil },
-      });
+    // Calculer le coût des salaires
+    for (const adventurer of quest.adventurers) {
+      totalSalaryCost += adventurer.dailyRate * duration;
     }
 
-    return this.prisma.quest.findUnique({
+    await this.prisma.$transaction(async (tx) => {
+      if (isSuccess) {
+        for (const adventurer of quest.adventurers) {
+          await tx.adventurer.update({
+            where: { id: adventurer.id },
+            data: {
+              experience: adventurer.experience + quest.recommendedXP,
+            },
+          });
+        }
+      }
+
+      for (const qse of quest.questStockEquipments) {
+        const stock = qse.equipmentStock;
+        // Réduire la durabilité de 1 par jour de quête
+        const newDurability = Math.max(0, stock.durability - duration);
+        const newStatusId =
+          newDurability <= 0
+            ? this.EQUIPMENT_STATUS_ID_BROKEN
+            : this.EQUIPMENT_STATUS_ID_AVAILABLE;
+
+        await tx.equipmentStock.update({
+          where: { id: stock.id },
+          data: {
+            durability: newDurability,
+            statusId: newStatusId,
+          },
+        });
+      }
+
+      for (const adventurer of quest.adventurers) {
+        const currentXP = isSuccess
+          ? adventurer.experience + quest.recommendedXP
+          : adventurer.experience;
+
+        const restDays = this.calculateRestDuration(
+          quest.recommendedXP,
+          currentXP,
+          duration,
+        );
+        const availableUntil = new Date(now);
+        availableUntil.setDate(availableUntil.getDate() + restDays);
+
+        await tx.adventurer.update({
+          where: { id: adventurer.id },
+          data: { availableUntil },
+        });
+      }
+
+      // Enregistrer le salaire
+      if (totalSalaryCost > 0) {
+        const lastTransaction = await tx.transaction.findFirst({
+          orderBy: { id: 'desc' },
+          select: { total: true },
+        });
+        const previousTotal = lastTransaction?.total ?? 0;
+
+        await tx.transaction.create({
+          data: {
+            amount: -totalSalaryCost,
+            description: `Salaires quête #${questId} (${duration} jours, ${quest.adventurers.length} aventuriers)`,
+            date: now,
+            total: previousTotal - totalSalaryCost,
+          },
+        });
+      }
+
+      const finalStatusId = isSuccess
+        ? this.STATUS_ID_SUCCEEDED
+        : this.STATUS_ID_FAILED;
+
+      await tx.quest.update({
+        where: { id: questId },
+        data: { status: { connect: { id: finalStatusId } } },
+      });
+    });
+
+    const updatedQuest = await this.prisma.quest.findUnique({
       where: { id: questId },
       include: {
         status: true,
         adventurers: true,
-        questStockEquipments: true,
+        questStockEquipments: {
+          include: { equipmentStock: true },
+        },
         user: true,
       },
     });
+
+    return {
+      ...updatedQuest,
+      totalCost: totalSalaryCost,
+    };
   }
 }

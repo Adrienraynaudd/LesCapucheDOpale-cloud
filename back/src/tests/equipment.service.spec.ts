@@ -9,7 +9,6 @@ import { equipmentInclude } from '../dbo/equipment.dbo';
 describe('EquipmentService', () => {
   let service: EquipmentService;
 
-  // --- Types pour les mocks ---
   type EquipmentDelegateMock = {
     create: jest.Mock;
     findMany: jest.Mock;
@@ -22,7 +21,6 @@ describe('EquipmentService', () => {
     findUnique: jest.Mock;
   };
 
-  // --- Mock Prisma minimal ---
   const mockPrisma = {
     equipment: {
       create: jest.fn(),
@@ -41,7 +39,6 @@ describe('EquipmentService', () => {
     service = new EquipmentService(mockPrisma as unknown as PrismaService);
   });
 
-  // --- Tests create ---
   describe('create', () => {
     it('should create equipment when equipmentType exists', async () => {
       const dto: CreateEquipmentDto = {
@@ -96,7 +93,6 @@ describe('EquipmentService', () => {
     });
   });
 
-  // --- Tests findAll ---
   describe('findAll', () => {
     it('should return all equipments', async () => {
       const rows: Equipment[] = [
@@ -120,7 +116,6 @@ describe('EquipmentService', () => {
     });
   });
 
-  // --- Tests findOne ---
   describe('findOne', () => {
     it('should return the equipment if found', async () => {
       const equipment: Equipment = {
@@ -149,7 +144,6 @@ describe('EquipmentService', () => {
     });
   });
 
-  // --- Tests update ---
   describe('update', () => {
     it('should update and return updated row when valid', async () => {
       const dto: UpdateEquipmentDto = { name: 'Updated', cost: 120 };
@@ -199,7 +193,6 @@ describe('EquipmentService', () => {
       expect(res).toEqual(expect.objectContaining({ id: 1 }));
     });
 
-    // CORRIGÉ: Simulation de l'erreur Prisma P2025
     it('should throw NotFoundException if Prisma throws P2025', async () => {
       const dto: UpdateEquipmentDto = { name: 'x' };
       const prismaError = new Prisma.PrismaClientKnownRequestError('Not found', {
@@ -212,7 +205,6 @@ describe('EquipmentService', () => {
       await expect(service.update(999, dto)).rejects.toThrow(NotFoundException);
     });
 
-    // AJOUT: Couverture du "throw e" (else)
     it('should re-throw generic errors', async () => {
       const error = new Error('DB Error');
       mockPrisma.equipment.update.mockRejectedValue(error);
@@ -220,7 +212,6 @@ describe('EquipmentService', () => {
     });
   });
 
-  // --- Tests delete ---
   describe('delete', () => {
     it('should delete and return result', async () => {
       const deleted: Equipment = {
@@ -241,7 +232,6 @@ describe('EquipmentService', () => {
       expect(res).toEqual(deleted);
     });
 
-    // CORRIGÉ: Simulation de l'erreur Prisma P2025
     it('should throw NotFoundException if Prisma throws P2025', async () => {
       const prismaError = new Prisma.PrismaClientKnownRequestError('Not found', {
         code: 'P2025',
@@ -253,7 +243,6 @@ describe('EquipmentService', () => {
       await expect(service.delete(999)).rejects.toThrow(NotFoundException);
     });
 
-    // AJOUT: Couverture du "throw e" (else)
     it('should re-throw generic errors', async () => {
       const error = new Error('DB Error');
       mockPrisma.equipment.delete.mockRejectedValue(error);

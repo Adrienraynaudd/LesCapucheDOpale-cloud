@@ -34,7 +34,6 @@ describe('ConsumablesService', () => {
     expect(res).toEqual({ id: 1, ...dto });
   });
 
-  // FIND ALL
   it('should return all consumables', async () => {
     (prisma.consumable.findMany as jest.Mock).mockResolvedValue([{ id: 1 }]);
 
@@ -45,7 +44,6 @@ describe('ConsumablesService', () => {
     expect(res).toEqual([{ id: 1 }]);
   });
 
-  // FIND ONE
   it('should return a consumable by id', async () => {
     (prisma.consumable.findUnique as jest.Mock).mockResolvedValue({ id: 1 });
     const res = await service.findOne(1);
@@ -61,7 +59,6 @@ describe('ConsumablesService', () => {
     await expect(service.findOne(42)).rejects.toThrow(NotFoundException);
   });
 
-  // UPDATE
   describe('update', () => {
     it('should update a consumable', async () => {
       (prisma.consumable.update as jest.Mock).mockResolvedValue({ id: 1, name: 'Up' });
@@ -76,20 +73,16 @@ describe('ConsumablesService', () => {
     });
 
     it('should map P2025 to NotFound on update', async () => {
-      // Simule l'erreur Prisma P2025
       (prisma.consumable.update as jest.Mock).mockRejectedValue({ code: 'P2025' });
       await expect(service.update(999, { name: 'X' })).rejects.toThrow(NotFoundException);
     });
 
-    // TEST AJOUTÉ : Couvre la ligne 47 (Erreur générique)
     it('should re-throw other errors on update', async () => {
       const error = new Error('Database exploded');
       (prisma.consumable.update as jest.Mock).mockRejectedValue(error);
       await expect(service.update(1, { name: 'X' })).rejects.toThrow(error);
     });
   });
-
-  // REMOVE
   describe('remove', () => {
     it('should delete a consumable', async () => {
       (prisma.consumable.delete as jest.Mock).mockResolvedValue({ id: 1 });
@@ -104,21 +97,17 @@ describe('ConsumablesService', () => {
       await expect(service.remove(123)).rejects.toThrow(NotFoundException);
     });
 
-    // TEST AJOUTÉ : Couvre la ligne 61 (P2003 -> BadRequest)
     it('should map P2003 to BadRequestException on delete (FK violation)', async () => {
       (prisma.consumable.delete as jest.Mock).mockRejectedValue({ code: 'P2003' });
       await expect(service.remove(1)).rejects.toThrow(BadRequestException);
     });
 
-    // TEST AJOUTÉ : Couvre la ligne 68 (Erreur générique)
     it('should re-throw other errors on delete', async () => {
       const error = new Error('Database exploded');
       (prisma.consumable.delete as jest.Mock).mockRejectedValue(error);
       await expect(service.remove(1)).rejects.toThrow(error);
     });
   });
-
-  // PURCHASE
   describe('purchase', () => {
     it('should purchase and decrement stock', async () => {
       (prisma.consumable.findUnique as jest.Mock).mockResolvedValue({ id: 10, quantity: 10 });

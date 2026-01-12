@@ -39,7 +39,6 @@ describe('ConsumableTypesService', () => {
 
   afterEach(() => jest.clearAllMocks());
 
-  // ... tes tests CREATE (inchangés) ...
   describe('create', () => {
     it('should create a new consumable type', async () => {
       const dto: CreateConsumableTypeDto = { name: 'Potion' };
@@ -60,7 +59,6 @@ describe('ConsumableTypesService', () => {
     });
   });
 
-  // ... tes tests FIND ALL (inchangés) ...
   describe('findAll', () => {
     it('should return all consumable types', async () => {
       const types = [{ id: 1, name: 'Elixir' }];
@@ -70,7 +68,6 @@ describe('ConsumableTypesService', () => {
     });
   });
 
-  // ... tes tests FIND ONE (inchangés) ...
   describe('findOne', () => {
     it('should return a consumable type by id', async () => {
       const type = { id: 1, name: 'Potion' };
@@ -85,9 +82,6 @@ describe('ConsumableTypesService', () => {
     });
   });
 
-  // ------------------------
-  // UPDATE (CORRIGÉ)
-  // ------------------------
   describe('update', () => {
     it('should update a consumable type', async () => {
       const dto: UpdateConsumableTypeDto = { name: 'Updated' };
@@ -104,7 +98,6 @@ describe('ConsumableTypesService', () => {
     });
 
     it('should throw NotFoundException if Prisma throws P2025', async () => {
-      // On simule une VRAIE erreur Prisma P2025
       const prismaError = new Prisma.PrismaClientKnownRequestError(
         'Record to update not found.',
         { code: 'P2025', clientVersion: '1.0.0' } as any,
@@ -117,7 +110,6 @@ describe('ConsumableTypesService', () => {
     });
 
     it('should re-throw unexpected errors', async () => {
-      // On simule une erreur qui N'EST PAS P2025 (ex: erreur de connexion)
       const unexpectedError = new Error('Database exploded');
       prismaMock.consumableType.update.mockRejectedValue(unexpectedError);
 
@@ -125,9 +117,6 @@ describe('ConsumableTypesService', () => {
     });
   });
 
-  // ------------------------
-  // DELETE (CORRIGÉ)
-  // ------------------------
   describe('delete', () => {
     it('should delete a consumable type', async () => {
       prismaMock.consumableType.delete.mockResolvedValue({ id: 1 });

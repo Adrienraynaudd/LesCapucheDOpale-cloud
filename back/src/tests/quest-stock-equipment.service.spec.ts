@@ -50,7 +50,6 @@ describe('QuestStockEquipmentService', () => {
     );
   });
 
-  // --- ATTACH ---
   it('should create a quest stock equipment', async () => {
     const dto: CreateQuestStockEquipmentDto = {
       questId: 1,
@@ -90,14 +89,12 @@ describe('QuestStockEquipmentService', () => {
     ).rejects.toThrow(NotFoundException);
   });
 
-  // --- FIND ALL ---
   describe('findAll', () => {
     it('should find all quest stock equipment (no filter)', async () => {
       mockPrisma.questStockEquipment.findMany.mockResolvedValue([]);
 
       await service.findAll();
       
-      // Vérifie la branche "else" du ternaire (undefined)
       expect(mockPrisma.questStockEquipment.findMany).toHaveBeenCalledWith({
         where: undefined,
         include: { quest: true, equipmentStock: true },
@@ -109,7 +106,6 @@ describe('QuestStockEquipmentService', () => {
 
       await service.findAll(5);
 
-      // Vérifie la branche "if" du ternaire ({ questId: 5 })
       expect(mockPrisma.questStockEquipment.findMany).toHaveBeenCalledWith({
         where: { questId: 5 },
         include: { quest: true, equipmentStock: true },
@@ -117,7 +113,6 @@ describe('QuestStockEquipmentService', () => {
     });
   });
 
-  // --- DELETE ---
   describe('delete', () => {
     it('should delete a quest stock equipment', async () => {
       mockPrisma.questStockEquipment.delete.mockResolvedValue({
@@ -128,7 +123,6 @@ describe('QuestStockEquipmentService', () => {
       expect(result.id).toBe(10);
     });
 
-    // CORRECTION : Simulation correcte de P2025 pour couvrir la ligne 38
     it('should throw NotFoundException if delete fails with P2025', async () => {
       const prismaError = new Prisma.PrismaClientKnownRequestError(
         'Link not found',
@@ -140,7 +134,6 @@ describe('QuestStockEquipmentService', () => {
       await expect(service.delete(999)).rejects.toThrow(NotFoundException);
     });
 
-    // AJOUT : Pour couvrir le "throw e" final
     it('should re-throw generic errors', async () => {
       const error = new Error('Generic DB Error');
       mockPrisma.questStockEquipment.delete.mockRejectedValue(error);

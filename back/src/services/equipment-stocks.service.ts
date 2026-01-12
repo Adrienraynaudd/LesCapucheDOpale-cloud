@@ -69,6 +69,41 @@ export class EquipmentStocksService {
     }
   }
 
+  async repair(id: number) {
+    const stock = await this.prisma.equipmentStock.findUnique({
+      where: { id },
+      include: { equipment: true },
+    });
+    if (!stock) throw new NotFoundException('EquipmentStock not found');
+
+    return this.prisma.equipmentStock.update({
+      where: { id },
+      data: {
+        durability: stock.equipment.maxDurability,
+        statusId: 1, // AVAILABLE
+      },
+      include: equipmentStockInclude,
+    });
+  }
+
+  async updateStatus(id: number, statusId: number) {
+    try {
+      return await this.prisma.equipmentStock.update({
+        where: { id },
+        data: { statusId },
+        include: equipmentStockInclude,
+      });
+    } catch (e) {
+      if (
+        e instanceof Prisma.PrismaClientKnownRequestError &&
+        e.code === 'P2025'
+      ) {
+        throw new NotFoundException('EquipmentStock not found');
+      }
+      throw e;
+    }
+  }
+
   private async findEquipment(equipmentId: number) {
     const e = await this.prisma.equipment.findUnique({
       where: { id: equipmentId },
