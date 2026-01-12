@@ -1,1 +1,88 @@
-/* You can add global styles to this file, and also import other style files */
+@use '@angular/material' as mat;
+
+html, body { height: 100%; }
+html {
+  @include mat.theme((
+    color: (
+      primary: mat.$azure-palette,
+      tertiary: mat.$blue-palette,
+    ),
+    typography: Roboto,
+    density: 0,
+  ));
+}
+
+body {
+  color-scheme: light;
+  background-color: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-medium);
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+$color1: #65e3e0;
+$color2: #007c91;
+$color3: #0e528a;
+$color4: #e4dfda;
+$color5: #6a45ba;
+
+.commun-btn {
+  color: $color4;
+  font-size: 25px;
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+  border-radius: 50px;
+  background: #0e528a;
+  box-shadow: inset -13px -13px 26px #082d4c,
+  inset 13px 13px 26px #1477c8, 0px 6px 6px 0px #00000040;
+  transition: all 0.2s ease-in-out;
+}
+
+.commun-btn:hover {
+  transition: all 0.2s ease-in-out;
+  background: #0e528a;
+  box-shadow: inset 13px 13px 26px #082d4c, inset -13px -13px 26px #1477c8;
+}
+
+.commun-input {
+  padding: 10px;
+  border: none;
+  border-radius: 10px;
+  width: auto;
+  font-size: 25px;
+  background: #0e528a;
+  box-shadow: inset -9px 9px 18px #093356, inset 9px -9px 18px #1371be;
+}
+
+.commun-input:focus {
+  outline: none;
+  background-color: $color3 !important;
+}
+
+
+
+
+::ng-deep .custom-form-field {
+  .mat-mdc-text-field-wrapper {
+    background: $color3 !important;
+    border-radius: 8px;
+    padding: 4px 12px;
+    transition: all 0.3s ease;
+    box-shadow: inset 8px 8px 16px #093457, inset -8px -8px 16px #1370bd !important;
+    width: auto;
+    &:hover {
+      transition: all 0.3s ease;
+      background: $color3 !important;
+      box-shadow: inset -13px -13px 26px #082d4c,
+      inset 13px 13px 26px #1477c8, 0px 6px 6px 0px #00000040 !important;
+    }
+  }
+}
