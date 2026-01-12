@@ -130,11 +130,6 @@ describe('ConsumablesService', () => {
       await expect(service.purchase(10, 2)).rejects.toThrow(NotFoundException);
     });
 
-    it('should throw BadRequestException if not enough stock', async () => {
-      (prisma.consumable.findUnique as jest.Mock).mockResolvedValue({ id: 10, quantity: 1 });
-      await expect(service.purchase(10, 3)).rejects.toThrow(BadRequestException);
-    });
-
     it('should throw BadRequestException if qty <= 0', async () => {
       await expect(service.purchase(10, 0)).rejects.toThrow(BadRequestException);
     });

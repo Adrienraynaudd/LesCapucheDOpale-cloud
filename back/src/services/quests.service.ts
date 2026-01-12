@@ -16,16 +16,31 @@ export class QuestsService {
   // Status IDs
   private readonly STATUS_ID_WAITING = 1;
   private readonly STATUS_ID_VALIDATED = 2;
-  private readonly STATUS_ID_STARTED = 3;
-  private readonly STATUS_ID_REFUSED = 4;
+  private readonly STATUS_ID_FAILED = 3;
+  private readonly STATUS_ID_STARTED = 4;
   private readonly STATUS_ID_ABANDONED = 5;
-  private readonly STATUS_ID_SUCCEEDED = 6;
-  private readonly STATUS_ID_FAILED = 7;
+  private readonly STATUS_ID_REFUSED = 6;
+  private readonly STATUS_ID_SUCCEEDED = 7;
 
   // Equipment Status IDs
   private readonly EQUIPMENT_STATUS_ID_AVAILABLE = 1;
   private readonly EQUIPMENT_STATUS_ID_BORROWED = 2;
   private readonly EQUIPMENT_STATUS_ID_BROKEN = 3;
+
+  // Helper to check if error is a Prisma P2025 error (works with both real and mock errors)
+  private isPrismaNotFoundError(e: unknown): boolean {
+    if (
+      e instanceof Prisma.PrismaClientKnownRequestError &&
+      e.code === 'P2025'
+    ) {
+      return true;
+    }
+    // Also check for mock errors used in tests
+    const err = e as { code?: string; name?: string };
+    return (
+      err?.code === 'P2025' && err?.name === 'PrismaClientKnownRequestError'
+    );
+  }
 
   private async isStarted(questId: number): Promise<boolean> {
     const q = await this.prisma.quest.findUnique({
@@ -132,6 +147,11 @@ export class QuestsService {
         status: true,
         adventurers: true,
         questStockEquipments: true,
+        questConsumables: {
+          include: {
+            consumable: { include: { consumableType: true } },
+          },
+        },
         user: true,
       },
     });
@@ -159,10 +179,7 @@ export class QuestsService {
         },
       });
     } catch (e) {
-      if (
-        e instanceof Prisma.PrismaClientKnownRequestError &&
-        e.code === 'P2025'
-      ) {
+      if (this.isPrismaNotFoundError(e)) {
         throw new NotFoundException('Quest not found');
       }
       throw e;
@@ -272,10 +289,7 @@ export class QuestsService {
         },
       });
     } catch (e) {
-      if (
-        e instanceof Prisma.PrismaClientKnownRequestError &&
-        e.code === 'P2025'
-      ) {
+      if (this.isPrismaNotFoundError(e)) {
         throw new NotFoundException('Quest not found');
       }
       throw e;
@@ -286,13 +300,34 @@ export class QuestsService {
     if (!ids?.length) return;
     const found = await this.prisma.equipmentStock.findMany({
       where: { id: { in: ids } },
-      select: { id: true },
+      select: { id: true, durability: true },
     });
     const missing = ids.filter((x) => !found.some((f) => f.id === x));
     if (missing.length)
       throw new NotFoundException(
         `EquipmentStock id(s) not found: ${missing.join(', ')}`,
       );
+  }
+
+  private async checkEquipmentStocksDurability(ids: number[]) {
+    if (!ids?.length) return;
+    const stocks = await this.prisma.equipmentStock.findMany({
+      where: { id: { in: ids } },
+      select: {
+        id: true,
+        durability: true,
+        equipment: { select: { name: true } },
+      },
+    });
+    const broken = stocks.filter((s) => s.durability <= 0);
+    if (broken.length) {
+      const names = broken
+        .map((s) => `${s.equipment.name} (id: ${s.id})`)
+        .join(', ');
+      throw new BadRequestException(
+        `Les équipements suivants sont cassés (durabilité <= 0): ${names}`,
+      );
+    }
   }
 
   private async findAdventurersExist(ids: number[]) {
@@ -379,10 +414,7 @@ export class QuestsService {
         },
       });
     } catch (e) {
-      if (
-        e instanceof Prisma.PrismaClientKnownRequestError &&
-        e.code === 'P2025'
-      ) {
+      if (this.isPrismaNotFoundError(e)) {
         throw new NotFoundException('Quest not found');
       }
       throw e;
@@ -432,6 +464,7 @@ export class QuestsService {
 
   async attachEquipmentStocks(questId: number, equipmentStockIds: number[]) {
     await this.findEquipmentStocksExist(equipmentStockIds);
+    await this.checkEquipmentStocksDurability(equipmentStockIds);
     const existing = await this.prisma.questStockEquipment.findMany({
       where: { questId, equipmentStockId: { in: equipmentStockIds } },
       select: { equipmentStockId: true },
@@ -470,6 +503,7 @@ export class QuestsService {
       );
     }
     await this.findEquipmentStocksExist(equipmentStockIds);
+    await this.checkEquipmentStocksDurability(equipmentStockIds);
     const deletePromise = this.prisma.questStockEquipment.deleteMany({
       where: { questId },
     });
@@ -504,10 +538,7 @@ export class QuestsService {
         },
       });
     } catch (e) {
-      if (
-        e instanceof Prisma.PrismaClientKnownRequestError &&
-        e.code === 'P2025'
-      ) {
+      if (this.isPrismaNotFoundError(e)) {
         throw new NotFoundException('Quest not found');
       }
       throw e;
@@ -540,6 +571,7 @@ export class QuestsService {
       select: {
         statusId: true,
         estimatedDuration: true,
+        reward: true,
         adventurers: { select: { id: true } },
         questStockEquipments: { select: { equipmentStockId: true } },
       },
@@ -563,6 +595,8 @@ export class QuestsService {
       (qse) => qse.equipmentStockId,
     );
 
+    const now = new Date();
+
     await this.prisma.$transaction(async (tx) => {
       if (adventurerIds.length) {
         await tx.adventurer.updateMany({
@@ -579,12 +613,29 @@ export class QuestsService {
         });
       }
 
+      // Enregistrer une transaction de 20% de la récompense au démarrage
+      const advancePayment = quest.reward * 0.2;
+      const lastTransaction = await tx.transaction.findFirst({
+        orderBy: { id: 'desc' },
+        select: { total: true },
+      });
+      const previousTotal = lastTransaction?.total ?? 0;
+
+      await tx.transaction.create({
+        data: {
+          amount: advancePayment,
+          description: `Avance 20% quête #${questId}`,
+          date: now,
+          total: previousTotal + advancePayment,
+        },
+      });
+
       // Mettre à jour la quête avec le statut "started" et la date de début
       await tx.quest.update({
         where: { id: questId },
         data: {
           status: { connect: { id: this.STATUS_ID_STARTED } },
-          startDate: new Date(),
+          startDate: now,
         },
       });
     });
@@ -658,36 +709,23 @@ export class QuestsService {
     });
   }
 
-  /**
-   * Calcule la durée de repos d'un aventurier selon la formule du SAM:
-   * Dr = 0.5 × (Exp_r / Exp_rec) × Dq
-   * Arrondi au jour supérieur
-   *
-   * @param recommendedXP - Expérience recommandée de la quête (Exp_r)
-   * @param adventurerXP - Expérience de l'aventurier (Exp_rec)
-   * @param questDuration - Durée estimée de la quête en jours (Dq)
-   * @returns Durée de repos en jours (Dr)
-   */
-  private calculateRestDuration(
-    recommendedXP: number,
-    adventurerXP: number,
-    questDuration: number,
-  ): number {
-    // Éviter la division par zéro
+  private calculateRestDuration(recommendedXP: number,adventurerXP: number,questDuration: number,): number {
     if (adventurerXP <= 0) {
-      return questDuration; // Si pas d'expérience, repos = durée de la quête
+      return questDuration;
     }
     const restDays = 0.5 * (recommendedXP / adventurerXP) * questDuration;
     return Math.ceil(restDays); // Arrondi au jour supérieur
   }
 
-  async finishQuest(questId: number, isSuccess: boolean, duration: number) {
+  async finishQuest(questId: number, isSuccess: boolean) {
     const quest = await this.prisma.quest.findUnique({
       where: { id: questId },
       select: {
         statusId: true,
+        startDate: true,
         estimatedDuration: true,
         recommendedXP: true,
+        reward: true,
         adventurers: {
           select: { id: true, experience: true, dailyRate: true },
         },
@@ -709,7 +747,16 @@ export class QuestsService {
       );
     }
 
+    if (!quest.startDate) {
+      throw new BadRequestException('Quest has no start date recorded');
+    }
+
+    // Calculer la durée en jours (date actuelle - startDate)
     const now = new Date();
+    const startDate = new Date(quest.startDate);
+    const diffTime = now.getTime() - startDate.getTime();
+    const duration = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24))); // Au moins 1 jour
+
     let totalSalaryCost = 0;
 
     // Calculer le coût des salaires
@@ -748,9 +795,7 @@ export class QuestsService {
       }
 
       for (const adventurer of quest.adventurers) {
-        const currentXP = isSuccess
-          ? adventurer.experience + quest.recommendedXP
-          : adventurer.experience;
+        const currentXP = isSuccess? adventurer.experience + quest.recommendedXP: adventurer.experience;
 
         const restDays = this.calculateRestDuration(
           quest.recommendedXP,
@@ -766,27 +811,41 @@ export class QuestsService {
         });
       }
 
+      // Enregistrer les transactions financières
+      const lastTransaction = await tx.transaction.findFirst({
+        orderBy: { id: 'desc' },
+        select: { total: true },
+      });
+      let previousTotal = lastTransaction?.total ?? 0;
+
       // Enregistrer le salaire
       if (totalSalaryCost > 0) {
-        const lastTransaction = await tx.transaction.findFirst({
-          orderBy: { id: 'desc' },
-          select: { total: true },
-        });
-        const previousTotal = lastTransaction?.total ?? 0;
-
+        const salaryCost = isSuccess ? totalSalaryCost : totalSalaryCost * 0.4;
         await tx.transaction.create({
           data: {
-            amount: -totalSalaryCost,
-            description: `Salaires quête #${questId} (${duration} jours, ${quest.adventurers.length} aventuriers)`,
+            amount: -salaryCost,
+            description: `Salaires quête #${questId} (${duration} jours, ${quest.adventurers.length} aventuriers)${isSuccess ? '' : ' - Échec: 40%'}`,
             date: now,
-            total: previousTotal - totalSalaryCost,
+            total: previousTotal - salaryCost,
+          },
+        });
+        previousTotal -= salaryCost;
+      }
+
+      // Si succès, ajouter 80% de la récompense
+      if (isSuccess) {
+        const finalReward = quest.reward * 0.8;
+        await tx.transaction.create({
+          data: {
+            amount: finalReward,
+            description: `Récompense finale 80% quête #${questId}`,
+            date: now,
+            total: previousTotal + finalReward,
           },
         });
       }
 
-      const finalStatusId = isSuccess
-        ? this.STATUS_ID_SUCCEEDED
-        : this.STATUS_ID_FAILED;
+      const finalStatusId = isSuccess? this.STATUS_ID_SUCCEEDED : this.STATUS_ID_FAILED;
 
       await tx.quest.update({
         where: { id: questId },
@@ -810,5 +869,180 @@ export class QuestsService {
       ...updatedQuest,
       totalCost: totalSalaryCost,
     };
+  }
+
+  // ================== CONSUMABLES MANAGEMENT ==================
+
+  private async findConsumablesExist(ids: number[]) {
+    if (!ids?.length) return;
+    const found = await this.prisma.consumable.findMany({
+      where: { id: { in: ids } },
+      select: { id: true, quantity: true },
+    });
+    const missing = ids.filter((x) => !found.some((f) => f.id === x));
+    if (missing.length) {
+      throw new NotFoundException(
+        `Consumable id(s) not found: ${missing.join(', ')}`,
+      );
+    }
+  }
+
+  async attachConsumables(questId: number,consumables: { consumableId: number; quantity: number }[],) {
+    const consumableIds = consumables.map((c) => c.consumableId);
+    await this.findConsumablesExist(consumableIds);
+
+    // Récupérer les stocks disponibles
+    const stocks = await this.prisma.consumable.findMany({
+      where: { id: { in: consumableIds } },
+      select: { id: true, quantity: true, name: true },
+    });
+
+    // Récupérer les quantités déjà assignées à cette quête
+    const existing = await this.prisma.questConsumable.findMany({
+      where: { questId, consumableId: { in: consumableIds } },
+      select: { consumableId: true, quantity: true },
+    });
+
+    // Vérifier que les quantités sont disponibles (stock - quantité déjà assignée >= quantité demandée)
+    for (const item of consumables) {
+      const stock = stocks.find((s) => s.id === item.consumableId);
+      const existingItem = existing.find(
+        (e) => e.consumableId === item.consumableId,
+      );
+      const alreadyAssigned = existingItem?.quantity ?? 0;
+
+      if (stock && stock.quantity - alreadyAssigned < item.quantity) {
+        throw new BadRequestException(
+          `Stock insuffisant pour ${stock.name}: ${stock.quantity - alreadyAssigned} disponible(s) (${alreadyAssigned} déjà assigné(s)), ${item.quantity} demandé(s)`,
+        );
+      }
+    }
+
+    // Insérer les nouveaux ou mettre à jour (ajouter la quantité)
+    const toInsert = consumables.filter(
+      (c) => !existing.some((e) => e.consumableId === c.consumableId),
+    );
+    const toUpdate = consumables.filter((c) =>
+      existing.some((e) => e.consumableId === c.consumableId),
+    );
+
+    if (toInsert.length) {
+      await this.prisma.questConsumable.createMany({
+        data: toInsert.map((c) => ({
+          questId,
+          consumableId: c.consumableId,
+          quantity: c.quantity,
+        })),
+      });
+    }
+
+    // Pour les existants, ajouter la quantité demandée à la quantité actuelle
+    for (const c of toUpdate) {
+      const existingItem = existing.find(
+        (e) => e.consumableId === c.consumableId,
+      );
+      const newQuantity = (existingItem?.quantity ?? 0) + c.quantity;
+
+      await this.prisma.questConsumable.update({
+        where: {
+          questId_consumableId: { questId, consumableId: c.consumableId },
+        },
+        data: { quantity: newQuantity },
+      });
+    }
+
+    return this.findOne(questId);
+  }
+
+  async detachConsumables(questId: number,consumables: { consumableId: number; quantity: number }[],) {
+    if (await this.isStarted(questId)) {
+      throw new BadRequestException(
+        'Quest is started: cannot detach consumables',
+      );
+    }
+
+    const consumableIds = consumables.map((c) => c.consumableId);
+    await this.findConsumablesExist(consumableIds);
+
+    // Récupérer les quantités actuelles dans la quête
+    const existing = await this.prisma.questConsumable.findMany({
+      where: { questId, consumableId: { in: consumableIds } },
+      select: { consumableId: true, quantity: true },
+    });
+
+    for (const item of consumables) {
+      const existingItem = existing.find(
+        (e) => e.consumableId === item.consumableId,
+      );
+
+      if (!existingItem) {
+        // Le consommable n'est pas dans la quête, on ignore
+        continue;
+      }
+
+      const newQuantity = existingItem.quantity - item.quantity;
+
+      if (newQuantity <= 0) {
+        // Supprimer complètement le consommable de la quête
+        await this.prisma.questConsumable.delete({
+          where: {
+            questId_consumableId: { questId, consumableId: item.consumableId },
+          },
+        });
+      } else {
+        // Mettre à jour avec la nouvelle quantité
+        await this.prisma.questConsumable.update({
+          where: {
+            questId_consumableId: { questId, consumableId: item.consumableId },
+          },
+          data: { quantity: newQuantity },
+        });
+      }
+    }
+
+    return this.findOne(questId);
+  }
+
+  async setConsumables(questId: number,consumables: { consumableId: number; quantity: number }[], ) {
+    if (await this.isStarted(questId)) {
+      throw new BadRequestException(
+        'Quest is started: cannot change consumables',
+      );
+    }
+
+    const consumableIds = consumables.map((c) => c.consumableId);
+    if (consumableIds.length) {
+      await this.findConsumablesExist(consumableIds);
+
+      // Vérifier les stocks
+      const stocks = await this.prisma.consumable.findMany({
+        where: { id: { in: consumableIds } },
+        select: { id: true, quantity: true, name: true },
+      });
+
+      for (const item of consumables) {
+        const stock = stocks.find((s) => s.id === item.consumableId);
+        if (stock && stock.quantity < item.quantity) {
+          throw new BadRequestException(
+            `Stock insuffisant pour ${stock.name}: ${stock.quantity} disponible(s), ${item.quantity} demandé(s)`,
+          );
+        }
+      }
+    }
+
+    // Supprimer tous les consommables existants et recréer
+    await this.prisma.questConsumable.deleteMany({ where: { questId } });
+
+    if (consumables.length) {
+      await this.prisma.questConsumable.createMany({
+        data: consumables.map((c) => ({
+          questId,
+          consumableId: c.consumableId,
+          quantity: c.quantity,
+        })),
+      });
+    }
+
+    return this.findOne(questId);
   }
 }

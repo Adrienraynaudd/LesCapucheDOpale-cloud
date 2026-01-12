@@ -35,7 +35,6 @@ async function main() {
     prisma.role.create({ data: { name: ROLES.CLIENT } }),
   ]);
 
-
   await Promise.all([
     prisma.status.create({ data: { name: STATUSES.STATUS_WAITING } }),
     prisma.status.create({ data: { name: STATUSES.STATUS_VALIDATED } }),

@@ -21,6 +21,7 @@ import { IdsDto } from '../dto/ids.dto';
 import { UserDto } from 'src/dto/user.dto';
 import { ValidateQuestDto } from '../dto/validate-quest.dto';
 import { FinishQuestDto } from '../dto/finish-quest.dto';
+import { QuestConsumablesDto } from '../dto/quest-consumable.dto';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -445,27 +446,51 @@ export class QuestsController {
   @Roles(1, 2)
   @ApiParam({ name: 'id', example: 42, description: 'Quest ID' })
   @ApiBody({
-    description: 'Informations de fin de quête',
-    type: FinishQuestDto,
+    schema: {
+      type: 'object',
+      properties: {
+        isSuccess: {
+          type: 'boolean',
+          example: true,
+          description: 'true = succès (XP + 80% récompense), false = échec (40% salaires uniquement)',
+        },
+      },
+      example: { isSuccess: true },
+    },
   })
   @ApiOkResponse({
-    description:
-      'Quête terminée, XP distribué (si succès), équipements libérés, coût financier calculé',
-    schema: {
+   schema: {
       type: 'object',
       additionalProperties: true,
       example: {
         id: 42,
-        statusId: 6,
+        name: 'Quête du Dragon',
+        statusId: 7,
+        startDate: '2026-01-01T10:00:00.000Z',
         adventurers: [
-          { id: 1, name: 'Aria', experience: 60, availableUntil: '2025-12-15' },
+          {
+            id: 1,
+            name: 'Aria',
+            experience: 80,
+            dailyRate: 50,
+            availableUntil: '2026-01-15T10:00:00.000Z',
+          },
         ],
-        totalCost: 500,
+        questStockEquipments: [
+          {
+            equipmentStock: {
+              id: 10,
+              durability: 8,
+              statusId: 1,
+            },
+          },
+        ],
+        totalCost: 600,
       },
     },
   })
   finish(@Param('id', ParseIntPipe) id: number, @Body() dto: FinishQuestDto) {
-    return this.questsService.finishQuest(id, dto.isSuccess, dto.duration);
+    return this.questsService.finishQuest(id, dto.isSuccess);
   }
 
   @Patch(':id/refuse')
@@ -523,5 +548,151 @@ export class QuestsController {
   })
   abandon(@Param('id', ParseIntPipe) id: number) {
     return this.questsService.abandonQuest(id);
+  }
+
+  // ================== CONSUMABLES MANAGEMENT ==================
+
+  @Patch(':id/consumables/attach')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(1, 2)
+  @ApiParam({ name: 'id', example: 42, description: 'Quest ID' })
+  @ApiBody({
+    description:
+      'Liste des consommables à attacher avec leurs quantités. Si le consommable est déjà dans la quête, la quantité est ajoutée.',
+    schema: {
+      type: 'object',
+      properties: {
+        consumables: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              consumableId: { type: 'number', example: 1 },
+              quantity: { type: 'number', example: 5 },
+            },
+          },
+        },
+      },
+      example: {
+        consumables: [
+          { consumableId: 1, quantity: 5 },
+          { consumableId: 2, quantity: 3 },
+        ],
+      },
+    },
+  })
+  @ApiOkResponse({
+    description: 'Consommables attachés à la quête',
+    schema: {
+      type: 'object',
+      additionalProperties: true,
+      example: {
+        id: 42,
+        name: 'Quête du Dragon',
+        questConsumables: [
+          { consumableId: 1, quantity: 5 },
+          { consumableId: 2, quantity: 3 },
+        ],
+      },
+    },
+  })
+  attachConsumables(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: QuestConsumablesDto,
+  ) {
+    return this.questsService.attachConsumables(id, dto.consumables);
+  }
+
+  @Patch(':id/consumables/detach')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(1, 2)
+  @ApiParam({ name: 'id', example: 42, description: 'Quest ID' })
+  @ApiBody({
+    description:
+      'Liste des consommables à détacher avec leurs quantités. Si la quantité résultante <= 0, le consommable est complètement retiré.',
+    schema: {
+      type: 'object',
+      properties: {
+        consumables: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              consumableId: { type: 'number', example: 1 },
+              quantity: { type: 'number', example: 2 },
+            },
+          },
+        },
+      },
+      example: {
+        consumables: [
+          { consumableId: 1, quantity: 2 },
+          { consumableId: 2, quantity: 3 },
+        ],
+      },
+    },
+  })
+  @ApiOkResponse({
+    description: 'Consommables détachés de la quête',
+    schema: {
+      type: 'object',
+      additionalProperties: true,
+      example: {
+        id: 42,
+        name: 'Quête du Dragon',
+        questConsumables: [{ consumableId: 1, quantity: 3 }],
+      },
+    },
+  })
+  detachConsumables(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: QuestConsumablesDto,
+  ) {
+    return this.questsService.detachConsumables(id, dto.consumables);
+  }
+
+  @Patch(':id/consumables/set')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(1, 2)
+  @ApiParam({ name: 'id', example: 42, description: 'Quest ID' })
+  @ApiBody({
+    description:
+      'Remplace tous les consommables de la quête par cette nouvelle liste',
+    schema: {
+      type: 'object',
+      properties: {
+        consumables: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              consumableId: { type: 'number', example: 3 },
+              quantity: { type: 'number', example: 10 },
+            },
+          },
+        },
+      },
+      example: {
+        consumables: [{ consumableId: 3, quantity: 10 }],
+      },
+    },
+  })
+  @ApiOkResponse({
+    description: 'Consommables de la quête mis à jour',
+    schema: {
+      type: 'object',
+      additionalProperties: true,
+      example: {
+        id: 42,
+        name: 'Quête du Dragon',
+        questConsumables: [{ consumableId: 3, quantity: 10 }],
+      },
+    },
+  })
+  setConsumables(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: QuestConsumablesDto,
+  ) {
+    return this.questsService.setConsumables(id, dto.consumables);
   }
 }

@@ -15,7 +15,6 @@ export class EquipmentStocksService {
       data: {
         equipmentId: dto.equipmentId,
         durability: equipment.maxDurability,
-        quantity: dto.quantity ?? 1,
       },
       include: equipmentStockInclude,
     });

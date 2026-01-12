@@ -10,6 +10,7 @@ describe('AuthController', () => {
   beforeEach(async () => {
     authService = {
       login: jest.fn(),
+      verifyToken: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -51,5 +52,28 @@ describe('AuthController', () => {
       mockDto.email,
       mockDto.password,
     );
+  });
+
+  describe('verifyToken', () => {
+    it('should verify token and return roleId', async () => {
+      (authService.verifyToken as jest.Mock).mockResolvedValue({ roleId: 1 });
+
+      const result = await authController.verifyToken('Bearer validToken');
+      
+      expect(result).toEqual({ roleId: 1 });
+      expect(authService.verifyToken).toHaveBeenCalledWith('validToken');
+    });
+
+    it('should throw UnauthorizedException if no auth header', async () => {
+      await expect(authController.verifyToken('')).rejects.toThrow(
+        UnauthorizedException,
+      );
+    });
+
+    it('should throw UnauthorizedException if header does not start with Bearer', async () => {
+      await expect(authController.verifyToken('Basic token')).rejects.toThrow(
+        UnauthorizedException,
+      );
+    });
   });
 });

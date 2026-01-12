@@ -78,7 +78,6 @@ export class ConsumablesService {
           'code' in e &&
           (e as { code?: string }).code === 'P2003')
       ) {
-        // FK violée : le consommable est référencé (à supprimer ou cascade)
         throw new BadRequestException(
           'Consumable is referenced and cannot be deleted',
         );
@@ -99,13 +98,9 @@ export class ConsumablesService {
       });
       if (!item) throw new NotFoundException('Consumable not found');
 
-      if (item.quantity < qty) {
-        throw new BadRequestException('Insufficient stock');
-      }
-
       return tx.consumable.update({
         where: { id },
-        data: { quantity: { decrement: qty } },
+        data: { quantity: { increment: qty } },
         include: { consumableType: true },
       });
     });

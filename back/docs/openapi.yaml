@@ -928,16 +928,29 @@ paths:
             type: number
       requestBody:
         required: true
-        description: Informations de fin de quête
+        description: >-
+          Informations de fin de quête. Si succès: +80% récompense, XP
+          distribué, salaires 100%. Si échec: pas de récompense, pas XP,
+          salaires 40%.
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/FinishQuestDto'
+              type: object
+              properties:
+                isSuccess:
+                  type: boolean
+                  example: true
+                  description: >-
+                    true = succès (XP + 80% récompense), false = échec (40%
+                    salaires uniquement)
+              example:
+                isSuccess: true
       responses:
         '200':
           description: >-
-            Quête terminée, XP distribué (si succès), équipements libérés, coût
-            financier calculé
+            Quête terminée. Transactions créées: salaires (100% ou 40%) et
+            récompense finale (80% si succès). XP distribué si succès.
+            Équipements libérés avec durabilité réduite. Aventuriers en repos.
           content:
             application/json:
               schema:
@@ -945,13 +958,21 @@ paths:
                 additionalProperties: true
                 example:
                   id: 42
-                  statusId: 6
+                  name: Quête du Dragon
+                  statusId: 7
+                  startDate: '2026-01-01T10:00:00.000Z'
                   adventurers:
                     - id: 1
                       name: Aria
-                      experience: 60
-                      availableUntil: '2025-12-15'
-                  totalCost: 500
+                      experience: 80
+                      dailyRate: 50
+                      availableUntil: '2026-01-15T10:00:00.000Z'
+                  questStockEquipments:
+                    - equipmentStock:
+                        id: 10
+                        durability: 8
+                        statusId: 1
+                  totalCost: 600
       security:
         - bearer: []
       tags:
@@ -1024,6 +1045,172 @@ paths:
                   id: 42
                   statusId: 5
                   updatedAt: '2025-10-30T13:35:00.000Z'
+      security:
+        - bearer: []
+      tags:
+        - Quests
+  /quests/{id}/consumables/attach:
+    patch:
+      operationId: QuestsController_attachConsumables
+      parameters:
+        - name: id
+          required: true
+          in: path
+          description: Quest ID
+          schema:
+            example: 42
+            type: number
+      requestBody:
+        required: true
+        description: >-
+          Liste des consommables à attacher avec leurs quantités. Si le
+          consommable est déjà dans la quête, la quantité est ajoutée.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                consumables:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      consumableId:
+                        type: number
+                        example: 1
+                      quantity:
+                        type: number
+                        example: 5
+              example:
+                consumables:
+                  - consumableId: 1
+                    quantity: 5
+                  - consumableId: 2
+                    quantity: 3
+      responses:
+        '200':
+          description: Consommables attachés à la quête
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                example:
+                  id: 42
+                  name: Quête du Dragon
+                  questConsumables:
+                    - consumableId: 1
+                      quantity: 5
+                    - consumableId: 2
+                      quantity: 3
+      security:
+        - bearer: []
+      tags:
+        - Quests
+  /quests/{id}/consumables/detach:
+    patch:
+      operationId: QuestsController_detachConsumables
+      parameters:
+        - name: id
+          required: true
+          in: path
+          description: Quest ID
+          schema:
+            example: 42
+            type: number
+      requestBody:
+        required: true
+        description: >-
+          Liste des consommables à détacher avec leurs quantités. Si la quantité
+          résultante <= 0, le consommable est complètement retiré.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                consumables:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      consumableId:
+                        type: number
+                        example: 1
+                      quantity:
+                        type: number
+                        example: 2
+              example:
+                consumables:
+                  - consumableId: 1
+                    quantity: 2
+                  - consumableId: 2
+                    quantity: 3
+      responses:
+        '200':
+          description: Consommables détachés de la quête
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                example:
+                  id: 42
+                  name: Quête du Dragon
+                  questConsumables:
+                    - consumableId: 1
+                      quantity: 3
+      security:
+        - bearer: []
+      tags:
+        - Quests
+  /quests/{id}/consumables/set:
+    patch:
+      operationId: QuestsController_setConsumables
+      parameters:
+        - name: id
+          required: true
+          in: path
+          description: Quest ID
+          schema:
+            example: 42
+            type: number
+      requestBody:
+        required: true
+        description: Remplace tous les consommables de la quête par cette nouvelle liste
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                consumables:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      consumableId:
+                        type: number
+                        example: 3
+                      quantity:
+                        type: number
+                        example: 10
+              example:
+                consumables:
+                  - consumableId: 3
+                    quantity: 10
+      responses:
+        '200':
+          description: Consommables de la quête mis à jour
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                example:
+                  id: 42
+                  name: Quête du Dragon
+                  questConsumables:
+                    - consumableId: 3
+                      quantity: 10
       security:
         - bearer: []
       tags:

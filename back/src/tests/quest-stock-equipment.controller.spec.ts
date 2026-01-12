@@ -47,7 +47,7 @@ describe('QuestStockEquipmentController', () => {
   describe('list', () => {
     it('should call service.findAll with undefined when no questId provided', async () => {
 
-      const expectedResult = [{ id: 1, questId: 10, equipmentStockId: 2, quantity: 1 }];
+      const expectedResult = [{ id: 1, questId: 10, equipmentStockId: 2 }];
       mockService.findAll.mockResolvedValue(expectedResult);
 
       const result = await controller.list(undefined);
@@ -58,7 +58,7 @@ describe('QuestStockEquipmentController', () => {
 
     it('should call service.findAll with a specific questId', async () => {
       const questId = 12;
-      const expectedResult = [{ id: 2, questId: 12, equipmentStockId: 3, quantity: 5 }];
+      const expectedResult = [{ id: 2, questId: 12, equipmentStockId: 3 }];
       mockService.findAll.mockResolvedValue(expectedResult);
 
       const result = await controller.list(questId);

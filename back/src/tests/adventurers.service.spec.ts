@@ -2,6 +2,7 @@ import { NotFoundException } from '@nestjs/common';
 import { AdventurersService } from '../services/adventurers.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
+import { adventurerInclude } from '../dbo/adventurer.dbo';
 
 describe('AdventurersService', () => {
   let service: AdventurersService;
@@ -37,6 +38,16 @@ describe('AdventurersService', () => {
   });
 
   afterEach(() => jest.clearAllMocks());
+
+  // ------------------------
+  // DBO
+  // ------------------------
+  it('should have adventurerInclude constant defined', () => {
+    expect(adventurerInclude).toBeDefined();
+    expect(adventurerInclude.speciality).toBe(true);
+    expect(adventurerInclude.equipmentTypes).toBe(true);
+    expect(adventurerInclude.consumableTypes).toBe(true);
+  });
 
   // ------------------------
   // FIND ALL
