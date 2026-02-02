@@ -1,3 +1,4 @@
+@if (quest) {
 <h2>{{quest.name}}</h2>
 <div class="status">{{quest.status.name}}</div>
 <div class="quest-details">
@@ -79,5 +80,20 @@
         <p>Aucun equipment trouvé</p>
         }
     </div>
+    <div assign-container>
+        @for (consumable of consumables; track consumable.id) {
+            <div class="consumable-item">
+                <h3>{{ consumable.name }}</h3>
+                <p>Type: {{ consumable.consumableType.name }}</p>
+                <p>Coût: {{ consumable.cost }} Pc</p>
+                <p>Quantité en stock: {{ consumable.quantity }}</p>
+                <label for="quantity">Quantité assignée à la quête:</label>
+                <input id="quantity" type="number" (change)="onConsumableQuantityChange(consumable.id, $event)" min="0" [value]="getQuantityConsumable(consumable.id)"/>
+            </div>
+        } @empty {
+        <p>Aucun Consomable trouvé</p>
+        }
+    </div>
     <button (click)="startQuest()" [disabled]="selectedAdventurerIds.size === 0">Démarrer la quête</button>
 </div>
+}

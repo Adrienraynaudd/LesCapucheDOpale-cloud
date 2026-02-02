@@ -15,6 +15,7 @@ export interface Quest {
     status: Status;
     adventurers: Adventurer[];
     questStockEquipments: QuestStockEquipment[];
+    questConsumables?: any[];
 }
 
 interface QuestStockEquipment {

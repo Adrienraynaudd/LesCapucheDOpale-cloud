@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { QuestService } from '../../services/quest/quest.service';
 import { AdventurerService } from '../../services/adventurer/adventurer.service';
 import { EquipmentService } from '../../services/equipment/equipment.service';
+import { ConsumableService } from '../../services/consumable/consumable.service';
 import { of } from 'rxjs';
 import { Quest, Adventurer } from '../../models/models';
 
@@ -14,6 +15,7 @@ describe('AssignQuest', () => {
   let mockQuestService: jasmine.SpyObj<QuestService>;
   let mockAdventurerService: jasmine.SpyObj<AdventurerService>;
   let mockEquipmentService: jasmine.SpyObj<EquipmentService>;
+  let mockConsumableService: jasmine.SpyObj<ConsumableService>;
   let mockRouter: jasmine.SpyObj<Router>;
 
   const mockQuest: Quest = {
@@ -40,7 +42,7 @@ describe('AssignQuest', () => {
 
   beforeEach(async () => {
     mockQuestService = jasmine.createSpyObj('QuestService', [
-      'getQuestById', 'assignAdventurer', 'unassignAdventurer'
+      'getQuestById', 'assignAdventurer', 'unassignAdventurer', 'startQuest'
     ]);
     mockAdventurerService = jasmine.createSpyObj('AdventurerService', [
       'getAll'
@@ -48,11 +50,15 @@ describe('AssignQuest', () => {
     mockEquipmentService = jasmine.createSpyObj('EquipmentService', [
       'getStockEquipments', 'assignEquipment', 'unassignEquipment'
     ]);
+    mockConsumableService = jasmine.createSpyObj('ConsumableService', [
+      'getAllConsumables', 'setConsumableToQuest'
+    ]);
     mockRouter = jasmine.createSpyObj('Router', ['navigate']);
 
     mockQuestService.getQuestById.and.returnValue(of(mockQuest));
     mockAdventurerService.getAll.and.returnValue(of(mockAdventurers));
     mockEquipmentService.getStockEquipments.and.returnValue(of([]));
+    mockConsumableService.getAllConsumables.and.returnValue(of([]));
 
     await TestBed.configureTestingModule({
       imports: [AssignQuest],
@@ -60,6 +66,7 @@ describe('AssignQuest', () => {
         { provide: QuestService, useValue: mockQuestService },
         { provide: AdventurerService, useValue: mockAdventurerService },
         { provide: EquipmentService, useValue: mockEquipmentService },
+        { provide: ConsumableService, useValue: mockConsumableService },
         {
           provide: ActivatedRoute,
           useValue: {
@@ -101,6 +108,7 @@ describe('AssignQuest', () => {
         { provide: QuestService, useValue: mockQuestService },
         { provide: AdventurerService, useValue: mockAdventurerService },
         { provide: EquipmentService, useValue: mockEquipmentService },
+        { provide: ConsumableService, useValue: mockConsumableService },
         {
           provide: ActivatedRoute,
           useValue: { snapshot: { paramMap: { get: () => '1' } } }
@@ -157,6 +165,61 @@ describe('AssignQuest', () => {
   // -----------------------------------------------------
   it('should calculate successRate correctly', () => {
     expect(component.successRate).toBe(64);
+  });
+
+  // -----------------------------------------------------
+  it('should assign equipment when toggled and not selected', () => {
+    const equipment = { id: 10 };
+    mockEquipmentService.assignEquipment.and.returnValue(of({} as any));
+
+    component.onToggleEquipment(equipment);
+
+    expect(mockEquipmentService.assignEquipment).toHaveBeenCalledWith(1, 10);
+    expect(component.selectedEquipmentIds.has(10)).toBeTrue();
+  });
+
+  // -----------------------------------------------------
+  it('should unassign equipment when toggled and selected', () => {
+    component.selectedEquipmentIds.add(10);
+    const equipment = { id: 10 };
+    mockEquipmentService.unassignEquipment.and.returnValue(of({} as any));
+
+    component.onToggleEquipment(equipment);
+
+    expect(mockEquipmentService.unassignEquipment).toHaveBeenCalledWith(1, 10);
+    expect(component.selectedEquipmentIds.has(10)).toBeFalse();
+  });
+
+  // -----------------------------------------------------
+  it('should update consumable quantity on valid input', () => {
+    mockConsumableService.setConsumableToQuest.and.returnValue(of({} as any));
+    const event = { target: { value: '5' } } as unknown as Event;
+
+    component.onConsumableQuantityChange(1, event);
+
+    expect(component.selectedConsumableQuantities[1]).toBe(5);
+    expect(mockConsumableService.setConsumableToQuest).toHaveBeenCalledWith(1, [{ consumableId: 1, quantity: 5 }]);
+  });
+
+  // -----------------------------------------------------
+  it('should remove consumable quantity on invalid input', () => {
+    component.selectedConsumableQuantities[1] = 5;
+    mockConsumableService.setConsumableToQuest.and.returnValue(of({} as any));
+    const event = { target: { value: '-1' } } as unknown as Event;
+
+    component.onConsumableQuantityChange(1, event);
+
+    expect(component.selectedConsumableQuantities[1]).toBeUndefined();
+  });
+
+  // -----------------------------------------------------
+  it('should start quest and navigate', () => {
+    mockQuestService.startQuest.and.returnValue(of({} as any));
+
+    component.startQuest();
+
+    expect(mockQuestService.startQuest).toHaveBeenCalledWith(1);
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/quest/', 1]);
   });
 
 });

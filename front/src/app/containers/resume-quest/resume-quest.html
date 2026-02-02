@@ -76,6 +76,19 @@
         <p>Aucun équipement assigné</p>
         }
     </div>
+    <div assign-container>
+        @for (consumable of quest.questConsumables; track consumable.id) {
+            <div class="consumable-item">
+                <h3>{{ consumable.consumable.name }}</h3>
+                <p>Type: {{ consumable.consumable.consumableType.name }}</p>
+                <p>Coût: {{ consumable.consumable.cost }} Pc</p>
+                <p>Quantité en stock: {{ consumable.consumable.quantity }}</p>
+                <p>Quantité assignée à la quête: {{consumable.quantity}}</p>
+            </div>
+        } @empty {
+        <p>Aucun Consomable trouvé</p>
+        }
+    </div>
     @if (quest.status.id === 4) {
         <button (click)="finish(true)">Réussite de la quête</button>
         <button (click)="finish(false)">Échec de la quête</button>

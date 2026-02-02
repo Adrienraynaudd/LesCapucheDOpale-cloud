@@ -1,3 +1,4 @@
+import { Consumable } from './../../models/consumable';
 import { Component, OnInit } from '@angular/core';
 import { Adventurer, Quest, StockEquipment } from '../../models/models';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -7,6 +8,7 @@ import { ItemAdventurer } from '../../components/item-adventurer/item-adventurer
 import { DatePipe } from '@angular/common';
 import { ItemStockEquipment } from '../../components/item-stock-equipment/item-stock-equipment';
 import { EquipmentService } from '../../services/equipment/equipment.service';
+import { ConsumableService } from '../../services/consumable/consumable.service';
 
 @Component({
   selector: 'app-assign-quest',
@@ -24,6 +26,7 @@ export class AssignQuest implements OnInit {
     private readonly questService: QuestService,
     private readonly adventurerService: AdventurerService,
     private readonly equipmentService: EquipmentService,
+    private readonly consumableService: ConsumableService,
     private readonly activatedRoute: ActivatedRoute,
     private readonly router: Router
   ) { }
@@ -34,6 +37,8 @@ export class AssignQuest implements OnInit {
   selectedAdventurerIds: Set<number> = new Set<number>();
   equipments: StockEquipment[] = [];
   selectedEquipmentIds: Set<number> = new Set<number>();
+  consumables: Consumable[] = [];
+  selectedConsumableQuantities: { [consumableId: number]: number } = {};
   cost: number = 0;
   successRateForAdventurer: { [adventurerId: number]: number } = {};
 
@@ -41,7 +46,7 @@ export class AssignQuest implements OnInit {
     const idStr = this.activatedRoute.snapshot.paramMap.get('id');
     this.id = idStr ? Number(idStr) : -1;
 
-    if (!idStr || !/^\d+$/.test(idStr) || this.id < 0 || isNaN(this.id)) {
+    if (!idStr || !/^\d+$/.test(idStr) || this.id < 0 || Number.isNaN(this.id)) {
       console.error('Invalid quest ID');
       this.router.navigate(['/quests']);
       return;
@@ -74,6 +79,18 @@ export class AssignQuest implements OnInit {
     this.equipmentService.getStockEquipments().subscribe((equipments) => {
       this.equipments = equipments;
     });
+
+    this.consumableService.getAllConsumables().subscribe((consumables) => {
+      this.consumables = consumables;
+    });
+  }
+
+  getQuantityConsumable(consumableId: number){
+    if (this.quest?.questConsumables?.map((x) => x.consumableId).includes(consumableId)) {
+      console.log(this.quest.questConsumables?.find((x) => x.consumableId == consumableId).quantity)
+      return this.quest.questConsumables?.find((x) => x.consumableId == consumableId).quantity
+    }
+    return 0
   }
 
   onToggleAdventurer(adventurer: Adventurer) {
@@ -115,6 +132,24 @@ export class AssignQuest implements OnInit {
     }
   }
 
+  onConsumableQuantityChange(consumableId: number, event: Event) {
+    const inputElement = event.target as HTMLInputElement;
+    const quantity = Number.parseInt(inputElement.value, 10);
+
+    if (Number.isNaN(quantity) || quantity < 0) {
+      delete this.selectedConsumableQuantities[consumableId];
+    } else {
+      this.selectedConsumableQuantities[consumableId] = quantity;
+    }
+
+    this.consumableService.setConsumableToQuest(this.id,
+      Object.entries(this.selectedConsumableQuantities).map(([id, qty]) => ({
+        consumableId: Number(id),
+        quantity: qty
+      }))
+    ).subscribe();
+  }
+
   get costBreakdown() {
     return {
       po: Math.floor(this.cost / 100),
@@ -132,9 +167,10 @@ export class AssignQuest implements OnInit {
   }
 
   get successRate(): number {
-    const totalSuccess = Object.values(this.successRateForAdventurer).reduce((sum, rate) => sum + rate, 0);
+    const totalSuccess = Object.values(this.successRateForAdventurer).reduce((sum, rate) => sum + rate + 0, 0);
     const totalAdventurers = Object.keys(this.successRateForAdventurer).length;
-    return totalAdventurers > 0 ? Math.round((Math.min(1, totalSuccess / Math.max(1,totalAdventurers*0.8)) * 80) * 100) / 100 : 0;
+    const res = totalAdventurers > 0 ? Math.round((Math.min(1, totalSuccess / Math.max(1, totalAdventurers * 0.8)) * 80) * 100) / 100 : 0;
+    return res ?? 0;
   }
 
   startQuest() {

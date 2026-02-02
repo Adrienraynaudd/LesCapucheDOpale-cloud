@@ -43,4 +43,8 @@ export class ConsumableService {
   purchaseConsumable(id: number, quantity: number): Observable<any> {
     return this.http.post<any>(`${this.baseUrl}/${id}/purchase`, { quantity });
   }
+
+  setConsumableToQuest(questId: number, data: {consumableId: number, quantity: number}[]): Observable<any> {
+    return this.http.patch<any>(`api/quests/${questId}/consumables/set`, {consumables: data});
+  }
 }
