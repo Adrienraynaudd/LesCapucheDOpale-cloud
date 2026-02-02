@@ -11,10 +11,15 @@ html {
     density: 0,
   ));
 }
+$color1: #65e3e0;
+$color2: #007c91;
+$color3: #0e528a;
+$color4: #e4dfda;
+$color5: #6a45ba;
 
 body {
   color-scheme: light;
-  background-color: var(--mat-sys-surface);
+  background-color: $color4;
   color: var(--mat-sys-on-surface);
   font: var(--mat-sys-body-medium);
   margin: 0;
@@ -27,11 +32,7 @@ body {
   box-sizing: border-box;
 }
 
-$color1: #65e3e0;
-$color2: #007c91;
-$color3: #0e528a;
-$color4: #e4dfda;
-$color5: #6a45ba;
+
 
 .commun-btn {
   color: $color4;
@@ -102,5 +103,21 @@ app-form-money {
       box-shadow: inset -13px -13px 26px #082d4c,
       inset 13px 13px 26px #1477c8, 0px 6px 6px 0px #00000040 !important;
     }
+  }
+}
+
+
+.commun-card {
+  background: $color3;
+  color: $color4;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: inset 8px 8px 16px #093457, inset -8px -8px 16px #1370bd;
+  transition: all 0.3s ease;
+  &:hover {
+    transition: all 0.3s ease;
+    background: $color3;
+    box-shadow: inset -13px -13px 26px #082d4c,
+    inset 13px 13px 26px #1477c8, 0px 6px 6px 0px #00000040;
   }
 }

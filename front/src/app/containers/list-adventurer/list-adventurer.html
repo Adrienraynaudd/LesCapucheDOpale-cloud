@@ -1,8 +1,15 @@
-<a routerLink="/adventurer/new" routerLinkActive="active">Nouveaux Aventuriers</a>
-<div class="container">
+<section class="container">
+  <a class="btn-new-adventurer commun-btn" routerLink="/adventurer/new" routerLinkActive="active"
+    >Nouveaux Aventuriers</a
+  >
+  <div class="container-adventurers">
     @for (adventurer of adventurers; track adventurer.id) {
-        <app-item-adventurer [adventurer]="adventurer" (click)="onAdventurerClick(adventurer.id)"></app-item-adventurer>
+    <app-item-adventurer
+      [adventurer]="adventurer"
+      (click)="onAdventurerClick(adventurer.id)"
+    ></app-item-adventurer>
     } @empty {
-        <p>Aucun élément</p>
+    <p>Aucun élément</p>
     }
-</div>
+  </div>
+</section>
