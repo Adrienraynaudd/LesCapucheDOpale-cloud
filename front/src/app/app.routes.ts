@@ -18,6 +18,7 @@ import { Stock } from './containers/stock/stock';
 import { NewConsumable } from './containers/new-consumable/new-consumable';
 import { UpdateConsumable } from './containers/update-consumable/update-consumable';
 import { ListConsumable } from './containers/list-consumable/list-consumable';
+import { FinancesComponent } from './containers/finances/finances.component';
 
 export const routes: Routes = [
     { path: '', component: HomeComponent },
@@ -50,4 +51,7 @@ export const routes: Routes = [
     { path: 'quest/:id', component: UpdateQuest, canActivate: [authGuard] },
     { path: 'quest/:id/assign', component: AssignQuest, canActivate: [authGuard] },
     { path: 'quest/:id/resume', component: ResumeQuest, canActivate: [authGuard] },
+
+    // Finances
+    { path: 'finances', component: FinancesComponent, canActivate: [authGuard] },
 ];

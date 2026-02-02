@@ -58,16 +58,6 @@ async function main() {
     await prisma.equipmentStatus.create({ data: { name: EQUIPMENT_STATUSES.BROKEN } });
 
 
-  await Promise.all([
-    prisma.user.create({
-      data: {
-        name: USERS.ASSISTANT.name,
-        email: USERS.ASSISTANT.email,
-        password: USERS.ASSISTANT.password,
-        role: { connect: { name: ROLES.ASSISTANT } },
-      },
-    }),
-  ]);
 
 }
 

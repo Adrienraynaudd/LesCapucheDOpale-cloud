@@ -1,0 +1,136 @@
+<section class="container">
+  <div class="header-section">
+    <h1>Gestion des Finances</h1>
+    <div class="balance-card">
+      <span class="balance-label">Solde actuel</span>
+      <span class="balance-value" [class.positive]="balance >= 0" [class.negative]="balance < 0">
+        {{ balance }} pièces d'or
+      </span>
+    </div>
+  </div>
+
+  @if (statistics) {
+    <div class="stats-section">
+      <div class="stat-card income">
+        <span class="stat-label">Total Revenus</span>
+        <span class="stat-value positive">+{{ statistics.totalIncome }}</span>
+      </div>
+      <div class="stat-card expenses">
+        <span class="stat-label">Total Dépenses</span>
+        <span class="stat-value negative">-{{ statistics.totalExpenses }}</span>
+      </div>
+      <div class="stat-card count">
+        <span class="stat-label">Nombre de transactions</span>
+        <span class="stat-value">{{ statistics.transactionCount }}</span>
+      </div>
+    </div>
+  }
+
+  <div class="chart-section">
+    <h2>Graphique des Prédictions</h2>
+    <div class="chart-legend">
+      <div class="legend-item">
+        <span class="legend-color optimistic"></span>
+        <span>Optimiste (toutes les quêtes réussies)</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-color realistic"></span>
+        <span>Réaliste (80% réussies)</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-color pessimistic"></span>
+        <span>Pessimiste (toutes échouées)</span>
+      </div>
+    </div>
+    <div class="chart-info">
+      <p>Basé sur {{ pendingQuests.length }} quête(s) en cours avec un total de récompenses potentielles de 
+        <strong>{{ totalPendingRewards }} pièces d'or</strong>
+      </p>
+    </div>
+    <div class="chart-container">
+      <canvas baseChart
+        [type]="predictionChartType"
+        [data]="predictionChartData"
+        [options]="predictionChartOptions">
+      </canvas>
+    </div>
+  </div>
+
+  <div class="form-section commun-form-container">
+    <h2>Nouvelle Transaction</h2>
+    <form (ngSubmit)="submitTransaction()">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="commun-label" for="amount">Montant (+ recette, - dépense)</label>
+          <input
+            class="commun-input"
+            type="number"
+            id="amount"
+            [(ngModel)]="newTransaction.amount"
+            name="amount"
+            placeholder="Ex: 100 ou -50"
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label class="commun-label" for="description">Description</label>
+          <input
+            class="commun-input"
+            type="text"
+            id="description"
+            [(ngModel)]="newTransaction.description"
+            name="description"
+            placeholder="Ex: Vente d'équipement"
+            required
+          />
+        </div>
+        <button type="submit" class="commun-btn submit-btn">Ajouter</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="history-section">
+    <h2>Historique des Transactions</h2>
+    <div class="table-container">
+      <table class="transactions-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Description</th>
+            <th>Montant</th>
+            <th>Solde après</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (transaction of transactions; track transaction.id) {
+            <tr>
+              <td>{{ formatDate(transaction.date) }}</td>
+              <td>{{ transaction.description }}</td>
+              <td [class.positive]="transaction.amount > 0" [class.negative]="transaction.amount < 0">
+                {{ transaction.amount > 0 ? '+' : '' }}{{ transaction.amount }}
+              </td>
+              <td>{{ transaction.total }}</td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="4" class="empty-message">Aucune transaction</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination">
+      <button class="commun-btn" (click)="previousPage()" [disabled]="skip === 0">
+        Précédent
+      </button>
+      <span class="page-info">
+        {{ skip + 1 }} - {{ skip + transactions.length }} sur {{ totalCount }}
+      </span>
+      <button class="commun-btn" (click)="nextPage()" [disabled]="skip + take >= totalCount">
+        Suivant
+      </button>
+    </div>
+  </div>
+</section>

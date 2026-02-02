@@ -46,10 +46,6 @@ npm run studio
 
 Le script crée les données suivantes :
 
-### 👥 Utilisateurs
-
-- **Assistant** : admin@gmail.com / admin123
-
 ### 📋 Statuts
 
 - Validée
