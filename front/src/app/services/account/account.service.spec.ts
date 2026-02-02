@@ -73,19 +73,35 @@ describe('AccountService', () => {
       localStorage.clear();
     });
 
-    it('should return true when a token exists in localStorage', () => {
+    it('should call verify endpoint when a token exists in localStorage', () => {
       localStorage.setItem('token', 'fake-token');
-      expect(service.isLogin()).toBeTrue();
+      const mockResponse = { roleId: '1' };
+
+      service.isLogin().subscribe((response) => {
+        expect(response).toEqual(mockResponse);
+      });
+
+      const req = httpMock.expectOne('api/auth/verify');
+      expect(req.request.method).toBe('GET');
+      req.flush(mockResponse);
     });
 
-    it('should return false when token is null', () => {
+    it('should return false when token is null', (done) => {
       localStorage.removeItem('token');
-      expect(service.isLogin()).toBeFalse();
+
+      service.isLogin().subscribe((response) => {
+        expect(response).toBeFalse();
+        done();
+      });
     });
 
-    it('should return false when token is empty string', () => {
+    it('should return false when token is empty string', (done) => {
       localStorage.setItem('token', '');
-      expect(service.isLogin()).toBeFalse();
+
+      service.isLogin().subscribe((response) => {
+        expect(response).toBeFalse();
+        done();
+      });
     });
   });
 

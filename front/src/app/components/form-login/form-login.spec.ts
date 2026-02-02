@@ -56,8 +56,7 @@ describe('FormLogin', () => {
   it('should call login and navigate on success', () => {
     const mockResponse = {
       access_token: 'abc123',
-      role: 'USER',
-      userName: 'John',
+      username: 'John',
     };
 
     accountServiceSpy.login.and.returnValue(of(mockResponse));
@@ -76,9 +75,25 @@ describe('FormLogin', () => {
     });
 
     expect(localStorage.setItem).toHaveBeenCalledWith('token', 'abc123');
-    expect(localStorage.setItem).toHaveBeenCalledWith('role', 'USER');
     expect(localStorage.setItem).toHaveBeenCalledWith('userName', 'John');
     expect(router.navigate).toHaveBeenCalledWith(['/']);
+  });
+
+  it('should show specific error message for 400', () => {
+    accountServiceSpy.login.and.returnValue(
+      throwError(() => ({ status: 400 }))
+    );
+
+    component['formulaire'].patchValue({
+      email: 'john@example.com',
+      password: 'wrongpassword',
+    });
+
+    component.submitForm();
+
+    expect(component['errorMessage']).toBe(
+      'Adresse e-mail ou mot de passe incorrect.'
+    );
   });
 
   it('should show specific error message for 401', () => {

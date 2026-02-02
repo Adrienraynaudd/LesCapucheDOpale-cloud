@@ -23,8 +23,6 @@ export class NewConsumable {
     const quantity = data.quantity;
     const consumableData = { ...data, quantity: 0 }; // éviter de muter l'objet original
 
-    console.log('Creating consumable with data:', consumableData, 'and purchasing quantity:', quantity);
-
     this.consumableService.createConsumable(consumableData).pipe(
       switchMap(consumable =>
         this.consumableService.purchaseConsumable(consumable.id, quantity).pipe(

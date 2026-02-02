@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -19,7 +19,11 @@ export class AccountService {
     return this.http.post<any>(this.urlLogin, user);
   }
 
-  isLogin(): boolean {
-    return localStorage.getItem('token') !== null && localStorage.getItem('token') !== undefined && localStorage.getItem('token') !== '';
+  isLogin(): Observable<any> {
+    if (localStorage.getItem('token')) {
+      return this.http.get<any>('api/auth/verify');
+    } else {
+      return of(false);
+    }
   }
 }
