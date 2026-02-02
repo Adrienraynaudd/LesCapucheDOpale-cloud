@@ -16,6 +16,7 @@ import { StatusesModule } from './modules/statuses.module';
 import { AuthModule } from './modules/auth.module';
 import { RolesModule } from './modules/roles.module';
 import { FinancesModule } from './modules/finances.module';
+import { AdventurerAvailabilityModule } from './modules/adventurer-availability.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { FinancesModule } from './modules/finances.module';
     StatusesModule,
     RolesModule,
     FinancesModule,
+    AdventurerAvailabilityModule,
     AuthModule,
   ],
   controllers: [AppController],

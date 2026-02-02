@@ -1,0 +1,61 @@
+<div class="form-rest-period">
+  <h2>{{ editingRest ? 'Modifier' : 'Ajouter' }} une période</h2>
+
+  <form (ngSubmit)="onSubmit()">
+    <div class="form-group">
+      <label for="type">Type de période *</label>
+      <select id="type" [(ngModel)]="formData.type" name="type" required>
+        @for (restType of restTypes; track restType.value) {
+          <option [value]="restType.value">{{ restType.label }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="startDate">Date de début *</label>
+        <input 
+          type="date" 
+          id="startDate" 
+          [(ngModel)]="formData.startDate" 
+          name="startDate" 
+          required>
+      </div>
+
+      <div class="form-group">
+        <label for="endDate">Date de fin *</label>
+        <input 
+          type="date" 
+          id="endDate" 
+          [(ngModel)]="formData.endDate" 
+          name="endDate" 
+          required>
+      </div>
+    </div>
+
+    @if (dateError) {
+      <div class="error-message">{{ dateError }}</div>
+    }
+
+    <div class="form-group">
+      <label for="reason">Raison *</label>
+      <textarea 
+        id="reason" 
+        [(ngModel)]="formData.reason" 
+        name="reason" 
+        rows="3" 
+        placeholder="Ex: Repos après la mission du dragon, Congé personnel..."
+        required>
+      </textarea>
+    </div>
+
+    <div class="form-actions">
+      <button type="button" class="btn-cancel" (click)="onCancel()">
+        Annuler
+      </button>
+      <button type="submit" class="btn-submit" [disabled]="!isValid()">
+        {{ editingRest ? 'Modifier' : 'Ajouter' }}
+      </button>
+    </div>
+  </form>
+</div>

@@ -1,6 +1,11 @@
 <section class="update-adventurer-section">
   <div class="contain-title">
     <h2 class="title">Modifier l'aventurier</h2>
+    @if (adventurer) {
+      <a class="btn-schedule" [routerLink]="['/adventurer', id, 'schedule']">
+        Voir l'emploi du temps
+      </a>
+    }
   </div>
   <app-form-adventurer
     (formSubmitted)="onFormSubmitted($event)"

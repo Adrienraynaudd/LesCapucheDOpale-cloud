@@ -15,6 +15,11 @@ RUN npm run build
 
 FROM node:18-alpine AS runner
 
+# Configurer le timezone pour la France
+RUN apk add --no-cache tzdata && \
+    cp /usr/share/zoneinfo/Europe/Paris /etc/localtime && \
+    echo "Europe/Paris" > /etc/timezone
+
 # Créer un utilisateur non-root pour la sécurité
 RUN addgroup -g 1001 -S nodejs && adduser -S nestjs -u 1001
 

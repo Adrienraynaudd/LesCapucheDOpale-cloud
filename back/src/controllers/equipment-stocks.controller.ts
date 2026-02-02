@@ -102,7 +102,11 @@ export class EquipmentStocksController {
       type: 'object',
       properties: {
         equipmentId: { type: 'number', example: 12 },
-        quantity: { type: 'number', example: 5, description: 'Number of items to create (default: 1)' },
+        quantity: {
+          type: 'number',
+          example: 5,
+          description: 'Number of items to create (default: 1)',
+        },
       },
       required: ['equipmentId'],
       additionalProperties: false,

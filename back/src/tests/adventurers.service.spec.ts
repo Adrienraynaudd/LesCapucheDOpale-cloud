@@ -83,6 +83,7 @@ describe('AdventurersService', () => {
         speciality: true,
         equipmentTypes: true,
         consumableTypes: true,
+        rests: true,
       },
     });
   });
@@ -104,6 +105,7 @@ describe('AdventurersService', () => {
           speciality: true,
           equipmentTypes: true,
           consumableTypes: true,
+          rests: true,
         },
       }),
     );
@@ -120,6 +122,7 @@ describe('AdventurersService', () => {
           speciality: true,
           equipmentTypes: true,
           consumableTypes: true,
+          rests: true,
         },
       }),
     );

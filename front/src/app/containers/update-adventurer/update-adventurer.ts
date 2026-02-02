@@ -1,12 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { AdventurerFormData } from '../../models/adventurer';
 import { AdventurerService } from '../../services/adventurer/adventurer.service';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormAdventurerComponent } from '../../components/form-adventurer/form-adventurer.component';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-update-adventurer',
-  imports: [FormAdventurerComponent],
+  imports: [FormAdventurerComponent, RouterLink, CommonModule],
   templateUrl: './update-adventurer.html',
   styleUrl: './update-adventurer.scss'
 })

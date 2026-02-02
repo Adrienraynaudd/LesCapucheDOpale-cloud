@@ -19,6 +19,7 @@ import { NewConsumable } from './containers/new-consumable/new-consumable';
 import { UpdateConsumable } from './containers/update-consumable/update-consumable';
 import { ListConsumable } from './containers/list-consumable/list-consumable';
 import { FinancesComponent } from './containers/finances/finances.component';
+import { AdventurerSchedule } from './containers/adventurer-schedule/adventurer-schedule';
 
 export const routes: Routes = [
     { path: '', component: HomeComponent },
@@ -27,6 +28,8 @@ export const routes: Routes = [
     { path: 'adventurer/new', component: NewAdventurerComponent, canActivate: [authGuard] },
     { path: 'adventurers', component: ListAdventurer, canActivate: [authGuard]},
     { path: 'adventurer/:id', component: UpdateAdventurer, canActivate: [authGuard]},
+    { path: 'adventurer/:id/schedule', component: AdventurerSchedule, canActivate: [authGuard]},
+    { path: 'adventurer-schedule', component: AdventurerSchedule, canActivate: [authGuard]},
 
     // User
     { path: 'user/new', component: NewUserComponent },

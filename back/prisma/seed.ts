@@ -23,21 +23,18 @@ const EQUIPMENT_STATUSES = {
   BROKEN: 'Cassé',
 };
 
-const USERS = {
-  ASSISTANT: {
-    name: 'Admin',
-    email: 'admin@gmail.com',
-    password: 'admin123',
-    roleId: ROLES.ASSISTANT,
-  },
-};
-
 async function main() {
 
+  await prisma.user.deleteMany({});
+  await prisma.role.deleteMany({});
   await prisma.equipmentStatus.deleteMany({});
   await prisma.status.deleteMany({});
-  await prisma.role.deleteMany({});
-  await prisma.user.deleteMany({});
+
+  // Reset auto-increment sequences to start from 1
+  await prisma.$executeRaw`ALTER SEQUENCE "Role_id_seq" RESTART WITH 1`;
+  await prisma.$executeRaw`ALTER SEQUENCE "User_id_seq" RESTART WITH 1`;
+  await prisma.$executeRaw`ALTER SEQUENCE "Status_id_seq" RESTART WITH 1`;
+  await prisma.$executeRaw`ALTER SEQUENCE "EquipmentStatus_id_seq" RESTART WITH 1`;
 
   await Promise.all([
     prisma.role.create({ data: { name: ROLES.ASSISTANT } }),

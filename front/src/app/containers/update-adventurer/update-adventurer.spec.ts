@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, provideRouter, Router } from '@angular/router';
 import { UpdateAdventurer } from './update-adventurer';
 import { AdventurerService } from '../../services/adventurer/adventurer.service';
 import { AdventurerFormData } from '../../models/adventurer';
@@ -38,22 +38,36 @@ describe('UpdateAdventurer', () => {
   let fixture: ComponentFixture<UpdateAdventurer>;
   let adventurerService: MockAdventurerService;
   let route: ActivatedRoute;
-  let routerSpy: jasmine.SpyObj<Router>;
+  let router: Router;
+  let mockParamMap: any;
+
+  afterEach(() => {
+    TestBed.resetTestingModule();
+  });
 
   beforeEach(async () => {
-    routerSpy = jasmine.createSpyObj('Router', ['navigate']);
-
+    mockParamMap = {
+      get: jasmine.createSpy('get').and.callFake((key: string) => key === 'id' ? '1' : null),
+      has: jasmine.createSpy('has').and.returnValue(true),
+      getAll: jasmine.createSpy('getAll').and.returnValue(['1']),
+      keys: []
+    };
+    
     await TestBed.configureTestingModule({
       imports: [UpdateAdventurer],
       providers: [
         { provide: AdventurerService, useClass: MockAdventurerService },
+        provideRouter([]),
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
         {
           provide: ActivatedRoute,
-          useValue: { snapshot: { paramMap: new Map([['id', '1']]) } }
-        },
-        { provide: Router, useValue: routerSpy },
-        provideHttpClient(withInterceptorsFromDi()),
-        provideHttpClientTesting()
+          useValue: {
+            snapshot: {
+              paramMap: mockParamMap
+            }
+          }
+        }
       ]
     }).compileComponents();
 
@@ -61,6 +75,8 @@ describe('UpdateAdventurer', () => {
     component = fixture.componentInstance;
     adventurerService = TestBed.inject(AdventurerService) as any;
     route = TestBed.inject(ActivatedRoute);
+    router = TestBed.inject(Router);
+    spyOn(router, 'navigate');
     fixture.detectChanges();
   });
 
@@ -92,7 +108,7 @@ describe('UpdateAdventurer', () => {
     (component as any).onFormSubmitted(mockFormData);
 
     expect(adventurerService.updateAdventurer).toHaveBeenCalledWith(1, mockFormData);
-    expect(routerSpy.navigate).toHaveBeenCalledWith(['/adventurers']);
+    expect(router.navigate).toHaveBeenCalledWith(['/adventurers']);
   });
 
   it('should handle error when updateAdventurer fails', () => {
@@ -121,28 +137,28 @@ describe('UpdateAdventurer', () => {
     });
 
     it('should not call service if id is null', () => {
-      (route.snapshot.paramMap as any).get = () => null;
+      mockParamMap.get.and.returnValue(null);
       component.ngOnInit();
       expect(adventurerService.getAdventurerById).not.toHaveBeenCalled();
       expect(console.error).toHaveBeenCalledWith('Invalid adventurer ID');
     });
 
     it('should not call service if id is not numeric', () => {
-      (route.snapshot.paramMap as any).get = () => 'abc';
+      mockParamMap.get.and.returnValue('abc');
       component.ngOnInit();
       expect(adventurerService.getAdventurerById).not.toHaveBeenCalled();
       expect(console.error).toHaveBeenCalledWith('Invalid adventurer ID');
     });
 
     it('should not call service if id is negative', () => {
-      (route.snapshot.paramMap as any).get = () => '-5';
+      mockParamMap.get.and.returnValue('-5');
       component.ngOnInit();
       expect(adventurerService.getAdventurerById).not.toHaveBeenCalled();
       expect(console.error).toHaveBeenCalledWith('Invalid adventurer ID');
     });
 
     it('should not call service if id is NaN', () => {
-      (route.snapshot.paramMap as any).get = () => 'NaN';
+      mockParamMap.get.and.returnValue('NaN');
       component.ngOnInit();
       expect(adventurerService.getAdventurerById).not.toHaveBeenCalled();
       expect(console.error).toHaveBeenCalledWith('Invalid adventurer ID');

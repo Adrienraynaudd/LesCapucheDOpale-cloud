@@ -34,6 +34,7 @@ export class AdventurersService {
         speciality: true,
         equipmentTypes: true,
         consumableTypes: true,
+        rests: true,
       },
     });
   }
@@ -45,6 +46,7 @@ export class AdventurersService {
         speciality: true,
         equipmentTypes: true,
         consumableTypes: true,
+        rests: true,
       },
     });
     if (!adventurer) throw new NotFoundException('Adventurer not found');

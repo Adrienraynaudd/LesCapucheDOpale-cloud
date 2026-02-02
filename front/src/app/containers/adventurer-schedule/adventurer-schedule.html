@@ -1,0 +1,218 @@
+<section class="container">
+  <div class="header">
+    <h1>Emploi du temps des aventuriers</h1>
+    <a routerLink="/adventurers" class="commun-btn btn-back">← Retour aux aventuriers</a>
+  </div>
+
+  <!-- Sélection de l'aventurier -->
+  <div class="adventurer-selector">
+    <label for="adventurer-select">Sélectionner un aventurier :</label>
+    <select 
+      id="adventurer-select" 
+      [(ngModel)]="selectedAdventurerId" 
+      (ngModelChange)="onAdventurerChange()">
+      <option [ngValue]="null">-- Choisir un aventurier --</option>
+      @for (adventurer of adventurers; track adventurer.id) {
+        <option [ngValue]="adventurer.id">{{ adventurer.name }}</option>
+      }
+    </select>
+  </div>
+
+  @if (selectedAdventurer) {
+    <!-- Informations de l'aventurier -->
+    <div class="adventurer-info commun-card">
+      <h2>{{ selectedAdventurer.name }}</h2>
+      <p><strong>Spécialité :</strong> {{ selectedAdventurer.speciality?.name }}</p>
+      <p><strong>Expérience :</strong> {{ selectedAdventurer.experience }} XP</p>
+      @if (availability) {
+        <p class="availability-status" [class.available]="availability.isAvailable" [class.unavailable]="!availability.isAvailable">
+          <strong>Statut ce mois :</strong> 
+          {{ availability.isAvailable ? 'Disponible' : 'Indisponible' }}
+        </p>
+      }
+    </div>
+
+    <!-- Contrôles de vue -->
+    <div class="view-controls">
+      <div class="view-toggle">
+        <button 
+          class="btn-view commun-btn" 
+          [class.active]="viewMode === 'calendar'" 
+          (click)="viewMode = 'calendar'">
+           Calendrier
+        </button>
+        <button 
+          class="btn-view commun-btn" 
+          [class.active]="viewMode === 'list'" 
+          (click)="viewMode = 'list'">
+           Liste
+        </button>
+      </div>
+      <button class="btn-add commun-btn" (click)="openAddRestForm()">
+        + Ajouter un repos/indisponibilité
+      </button>
+    </div>
+
+    <!-- Légende -->
+    <div class="legend">
+      <div class="legend-item">
+        <span class="legend-color" [style.background-color]="statusColors['available']"></span>
+        <span>Disponible</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-color" [style.background-color]="statusColors['mission']"></span>
+        <span>En mission</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-color" [style.background-color]="statusColors['rest']"></span>
+        <span>Repos</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-color" [style.background-color]="statusColors['unavailable']"></span>
+        <span>Indisponible</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-color" [style.background-color]="statusColors['mission_rest']"></span>
+        <span>Repos post-mission</span>
+      </div>
+    </div>
+
+    <!-- Vue Calendrier -->
+    @if (viewMode === 'calendar') {
+      <div class="calendar-container">
+        <div class="calendar-header">
+          <button class="nav-btn" (click)="previousMonth()">◀</button>
+          <h3 class="month-title">{{ getMonthName() }}</h3>
+          <button class="nav-btn" (click)="nextMonth()">▶</button>
+          <button class="btn-today" (click)="goToToday()">Aujourd'hui</button>
+        </div>
+
+        <div class="calendar">
+          <div class="weekday-header">
+            <div class="weekday">Lun</div>
+            <div class="weekday">Mar</div>
+            <div class="weekday">Mer</div>
+            <div class="weekday">Jeu</div>
+            <div class="weekday">Ven</div>
+            <div class="weekday">Sam</div>
+            <div class="weekday">Dim</div>
+          </div>
+
+          @for (week of calendarWeeks; track $index) {
+            <div class="calendar-week">
+              @for (day of week.days; track day.dateStr) {
+                <div 
+                  [class]="getDayClass(day)" 
+                  [style.--status-color]="getStatusColor(day.status)"
+                  [title]="getStatusLabel(day.status)">
+                  <span class="day-number">{{ day.dayOfMonth }}</span>
+                  @if (day.events.length > 0) {
+                    <div class="day-events">
+                      @for (event of day.events; track event.id) {
+                        <span class="event-dot" [title]="event.reason"></span>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Vue Liste -->
+    @if (viewMode === 'list') {
+      <div class="list-container">
+        <h3>Événements du mois</h3>
+        @if (availability && availability.events.length > 0) {
+          <table class="events-table">
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Début</th>
+                <th>Fin</th>
+                <th>Raison</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (event of availability.events; track event.id) {
+                <tr>
+                  <td>
+                    <span 
+                      class="status-badge" 
+                      [style.background-color]="getStatusColor(event.type)">
+                      {{ getStatusLabel(event.type) }}
+                    </span>
+                  </td>
+                  <td>{{ formatDate(event.startDate) }}</td>
+                  <td>{{ formatDate(event.endDate) }}</td>
+                  <td>{{ event.reason }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        } @else {
+          <p class="no-events">Aucun événement ce mois-ci - l'aventurier est entièrement disponible.</p>
+        }
+      </div>
+    }
+
+    <!-- Liste des repos -->
+    <div class="rest-periods-section">
+      <h3>Périodes de repos / Indisponibilités</h3>
+      @if (restPeriods.length > 0) {
+        <table class="rest-table">
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Début</th>
+              <th>Fin</th>
+              <th>Raison</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (rest of restPeriods; track rest.id) {
+              <tr>
+                <td>
+                  <span class="rest-type-badge" [class]="'type-' + rest.type">
+                    {{ getRestTypeLabel(rest.type) }}
+                  </span>
+                </td>
+                <td>{{ formatDate(rest.startDate) }}</td>
+                <td>{{ formatDate(rest.endDate) }}</td>
+                <td>{{ rest.reason }}</td>
+                <td class="actions">
+                  <button class="btn-edit" (click)="openEditRestForm(rest)">✏️</button>
+                  <button class="btn-delete" (click)="deleteRest(rest)">🗑️</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      } @else {
+        <p class="no-rests">Aucune période de repos ou d'indisponibilité enregistrée.</p>
+      }
+    </div>
+  } @else {
+    <div class="no-selection">
+      <p>Veuillez sélectionner un aventurier pour voir son emploi du temps.</p>
+    </div>
+  }
+
+  <!-- Modal de formulaire -->
+  @if (showAddRestForm && selectedAdventurerId) {
+    <div class="modal-overlay" (click)="closeRestForm()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <button class="modal-close" (click)="closeRestForm()">×</button>
+        <app-form-rest-period
+          [adventurerId]="selectedAdventurerId"
+          [editingRest]="editingRest"
+          (submitForm)="onRestFormSubmit($event)"
+          (cancel)="closeRestForm()">
+        </app-form-rest-period>
+      </div>
+    </div>
+  }
+</section>
