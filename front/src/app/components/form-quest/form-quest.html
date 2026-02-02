@@ -1,23 +1,39 @@
-    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <form [formGroup]="questForm" (ngSubmit)="onSubmit()">
       <div class="container-text primary">
         <span>
           <label for="title" class="commun-label">Titre :</label>
           <input id="title" formControlName="name" type="text" placeholder="Titre" class="commun-input" />
+          @if ((questForm.get('name')?.touched || hasSubmitted) &&
+      questForm.get('name')?.invalid) {
+      <p class="error">Le titre doit contenir au moins 3 caractères.</p>
+      }
         </span>
       
         <span>
           <label for="description" class="commun-label">Description :</label>
           <textarea id="description" formControlName="description" placeholder="Description" class="commun-input"></textarea>
+           @if ((questForm.get('description')?.touched || hasSubmitted) &&
+            questForm.get('description')?.invalid) {
+            <p class="error">La description doit contenir au moins 50 caractères.</p>
+          }
         </span>
       </div>
       <div class="container-text secondary">
         <span>
           <label for="finalDate" class="commun-label">Date limite :</label>
           <input id="finalDate" formControlName="finalDate" type="date" class="commun-input"/>
+          @if ((questForm.get('finalDate')?.touched || hasSubmitted) &&
+            questForm.get('finalDate')?.invalid) {
+            <p class="error">La date limite est requise.</p>
+          }
         </span>
         <span class="duration-container">
           <label for="estimatedDuration" class="commun-label">Durée en jours :</label>
           <input id="estimatedDuration" formControlName="estimatedDuration" type="number" min="1" placeholder="1" class="commun-input"/>
+          @if ((questForm.get('estimatedDuration')?.touched || hasSubmitted) &&
+            questForm.get('estimatedDuration')?.invalid) {
+            <p class="error">La durée estimée doit être au moins de 1 jour.</p>
+          }
         </span>
       </div> 
       <app-form-money label="Prime : " [money]="getMoney()" (moneyChange)="setMoney($event)"></app-form-money>

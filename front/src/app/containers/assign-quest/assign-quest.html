@@ -1,99 +1,121 @@
 @if (quest) {
-<h2>{{quest.name}}</h2>
-<div class="status">{{quest.status.name}}</div>
-<div class="quest-details">
+<section class="contain-assign">
+  <span class="container-head">
+    <span class="contain-title">
+      <h2 class="title">{{quest.name}}</h2>
+    </span>
+    <div class="status">{{quest.status.name}}</div>
+  </span>
+  <div class="quest-details">
     <div class="left-side-content">
-        <p>{{quest.description}}</p>
+      <p>{{quest.description}}</p>
     </div>
     <div class="right-side-content">
-        <div>
-            <label for="finalDate">Date limite :</label>
-            <span id="finalDate">{{quest.finalDate | date:'longDate'}}</span>
-        </div>
-        <div>
-            <label for="estimatedDuration">Durée estimée :</label>
-            <span id="estimatedDuration">{{quest.estimatedDuration}} jours</span>
-        </div>
-        <div>
-            <label for="recommendedXP">Expérience recommandée :</label>
-            <span id="recommendedXP">{{quest.recommendedXP}}</span>
-        </div>
-        <div>
-            <label for="reward">Récompense :</label>
-            <span id="reward">
-                @if (rewardBreakdown.po + rewardBreakdown.pa + rewardBreakdown.pc === 0) {
-                    0Pc
-                }@else {
-                    @if (rewardBreakdown.po > 0){
-                    {{ rewardBreakdown.po }}Po
-                    }
-                    @if (rewardBreakdown.pa > 0){
-                    {{ rewardBreakdown.pa }}Pa
-                    }
-                    @if (rewardBreakdown.pc > 0){
-                    {{ rewardBreakdown.pc }}Pc
-                    }
-                }
-            </span>
-        </div>
-    </div>
-</div>
-<div class="assign-section">
-    <h3>Assigner un aventurier</h3>
-    <div>
-        <label for="cost">Coût de la mission :</label>
-        <span id="cost">
-            @if (costBreakdown.po + costBreakdown.pa + costBreakdown.pc === 0) {
-                0Pc
-            }@else {
-                @if (costBreakdown.po > 0){
-                {{ costBreakdown.po }}Po
-                }
-                @if (costBreakdown.pa > 0){
-                {{ costBreakdown.pa }}Pa
-                }
-                @if (costBreakdown.pc > 0){
-                {{ costBreakdown.pc }}Pc
-                }
-            }
+      <div>
+        <label for="finalDate">Date limite :</label>
+        <span id="finalDate">{{quest.finalDate | date:'longDate'}}</span>
+      </div>
+      <div>
+        <label for="estimatedDuration">Durée estimée :</label>
+        <span id="estimatedDuration">{{quest.estimatedDuration}} jours</span>
+      </div>
+      <div>
+        <label for="recommendedXP">Expérience recommandée :</label>
+        <span id="recommendedXP">{{quest.recommendedXP}}</span>
+      </div>
+      <div>
+        <label for="reward">Récompense :</label>
+        <span id="reward">
+          @if (rewardBreakdown.po + rewardBreakdown.pa + rewardBreakdown.pc ===
+          0) { 0Pc }@else { @if (rewardBreakdown.po > 0){ {{ rewardBreakdown.po
+          }}Po } @if (rewardBreakdown.pa > 0){ {{ rewardBreakdown.pa }}Pa } @if
+          (rewardBreakdown.pc > 0){ {{ rewardBreakdown.pc }}Pc } }
         </span>
+      </div>
     </div>
-    <div>
-        <label for="succes">Chances de réussite de la mission :</label>
-        <span id="succes">{{ successRate }}%</span>
-    </div>
-    <div assign-container>
+  </div>
+  <div class="assign-section">
+    <div class="assign-adventurer">
+      <div class="contain-detail-quest">
+        <h3>Assigner un ou plusieurs aventuriers</h3>
+        <div class="contain-stats">
+          <span style="font-size: 1.1rem">
+            <label for="cost" style="font-weight: bold"
+              >Coût de la mission :</label
+            >
+            <span id="cost">
+              @if (costBreakdown.po + costBreakdown.pa + costBreakdown.pc === 0)
+              { 0Pc }@else { @if (costBreakdown.po > 0){ {{ costBreakdown.po
+              }}Po } @if (costBreakdown.pa > 0){ {{ costBreakdown.pa }}Pa } @if
+              (costBreakdown.pc > 0){ {{ costBreakdown.pc }}Pc } }
+            </span>
+          </span>
+          <span style="font-size: 1.1rem">
+            <label for="succes" style="font-weight: bold"
+              >Chances de réussite de la mission :</label
+            >
+            <span id="succes">{{ successRate }}%</span>
+          </span>
+        </div>
+      </div>
+      <div assign-container class="list-adventurers">
         @for (adventurer of adventurers; track adventurer.id) {
-        <app-item-adventurer (click)="onToggleAdventurer(adventurer)" [adventurer]="adventurer"
-            [isSelected]="selectedAdventurerIds.has(adventurer.id)">
+        <app-item-adventurer
+          (click)="onToggleAdventurer(adventurer)"
+          [adventurer]="adventurer"
+          [isSelected]="selectedAdventurerIds.has(adventurer.id)"
+        >
         </app-item-adventurer>
         } @empty {
         <p>Aucun aventurier trouvé</p>
         }
+      </div>
     </div>
-    <div assign-container>
+    <div class="assign-equipment">
+      <div assign-container class="list-equipments">
         @for (equipment of equipments; track equipment.id) {
-        <app-item-stock-equipment (click)="onToggleEquipment(equipment)" [equipment]="equipment"
-            [isSelected]="selectedEquipmentIds.has(equipment.id)">
+        <app-item-stock-equipment
+          (click)="onToggleEquipment(equipment)"
+          [equipment]="equipment"
+          [isSelected]="selectedEquipmentIds.has(equipment.id)"
+        >
         </app-item-stock-equipment>
         } @empty {
         <p>Aucun equipment trouvé</p>
         }
+      </div>
     </div>
-    <div assign-container>
-        @for (consumable of consumables; track consumable.id) {
-            <div class="consumable-item">
-                <h3>{{ consumable.name }}</h3>
-                <p>Type: {{ consumable.consumableType.name }}</p>
-                <p>Coût: {{ consumable.cost }} Pc</p>
-                <p>Quantité en stock: {{ consumable.quantity }}</p>
-                <label for="quantity">Quantité assignée à la quête:</label>
-                <input id="quantity" type="number" (change)="onConsumableQuantityChange(consumable.id, $event)" min="0" [value]="getQuantityConsumable(consumable.id)"/>
-            </div>
-        } @empty {
-        <p>Aucun Consomable trouvé</p>
-        }
+    <div assign-container class="list-consumables">
+      @for (consumable of consumables; track consumable.id) {
+      <div class="consumable-item commun-card">
+        <h3>{{ consumable.name }}</h3>
+        <p>Type: {{ consumable.consumableType.name }}</p>
+        <p>Coût: {{ consumable.cost }} Pc</p>
+        <p>Quantité en stock: {{ consumable.quantity }}</p>
+
+        <span class="quantity">
+          <label for="quantity">Quantité assignée à la quête:</label>
+          <input
+            id="quantity"
+            type="number"
+            class="commun-input quantity-input"
+            (change)="onConsumableQuantityChange(consumable.id, $event)"
+            min="0"
+            [value]="getQuantityConsumable(consumable.id)"
+          />
+        </span>
+      </div>
+      } @empty {
+      <p>Aucun Consomable trouvé</p>
+      }
     </div>
-    <button (click)="startQuest()" [disabled]="selectedAdventurerIds.size === 0">Démarrer la quête</button>
-</div>
+    <button
+      (click)="startQuest()"
+      [disabled]="selectedAdventurerIds.size === 0"
+      class="commun-btn"
+    >
+      Démarrer la quête
+    </button>
+  </div>
+</section>
 }

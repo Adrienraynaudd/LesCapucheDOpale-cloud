@@ -1,84 +1,85 @@
-@if (quest) {
-<h2>{{quest.name}}</h2>
-<div class="status">{{quest.status.name}}</div>
-<div class="quest-details">
+<section class="contain-resume">
+  @if (quest) {
+  <span class="container-head">
+    <span class="contain-title">
+      <h2 class="title">{{quest.name}}</h2>
+    </span>
+    <div class="status">{{quest.status.name}}</div>
+  </span>
+  <div class="quest-details">
     <div class="left-side-content">
-        <p>{{quest.description}}</p>
+      <p>{{quest.description}}</p>
     </div>
     <div class="right-side-content">
-        <div>
-            <label for="finalDate">Date limite :</label>
-            <span id="finalDate">{{quest.finalDate | date:'longDate'}}</span>
-        </div>
-        <div>
-            <label for="estimatedDuration">Durée estimée :</label>
-            <span id="estimatedDuration">{{quest.estimatedDuration}} jours</span>
-        </div>
-        <div>
-            <label for="recommendedXP">Expérience recommandée :</label>
-            <span id="recommendedXP">{{quest.recommendedXP}}</span>
-        </div>
-        <div>
-            <label for="reward">Récompense :</label>
-            <span id="reward">
-                @if (rewardBreakdown.po + rewardBreakdown.pa + rewardBreakdown.pc === 0) {
-                    0Pc
-                }@else {
-                    @if (rewardBreakdown.po > 0){
-                    {{ rewardBreakdown.po }}Po
-                    }
-                    @if (rewardBreakdown.pa > 0){
-                    {{ rewardBreakdown.pa }}Pa
-                    }
-                    @if (rewardBreakdown.pc > 0){
-                    {{ rewardBreakdown.pc }}Pc
-                    }
-                }
-            </span>
-        </div>
-    </div>
-</div>
-<div class="assign-section">
-    <h3>Assigner un aventurier</h3>
-    <div>
-        <label for="cost">Coût de la mission :</label>
-        <span id="cost">
-            @if (costBreakdown.po + costBreakdown.pa + costBreakdown.pc === 0) {
-                0Pc
-            }@else {
-                @if (costBreakdown.po > 0){
-                {{ costBreakdown.po }}Po
-                }
-                @if (costBreakdown.pa > 0){
-                {{ costBreakdown.pa }}Pa
-                }
-                @if (costBreakdown.pc > 0){
-                {{ costBreakdown.pc }}Pc
-                }
-            }
+      <div>
+        <label for="finalDate">Date limite :</label>
+        <span id="finalDate">{{quest.finalDate | date:'longDate'}}</span>
+      </div>
+      <div>
+        <label for="estimatedDuration">Durée estimée :</label>
+        <span id="estimatedDuration">{{quest.estimatedDuration}} jours</span>
+      </div>
+      <div>
+        <label for="recommendedXP">Expérience recommandée :</label>
+        <span id="recommendedXP">{{quest.recommendedXP}}</span>
+      </div>
+      <div>
+        <label for="reward">Récompense :</label>
+        <span id="reward">
+          @if (rewardBreakdown.po + rewardBreakdown.pa + rewardBreakdown.pc ===
+          0) { 0Pc }@else { @if (rewardBreakdown.po > 0){ {{ rewardBreakdown.po
+          }}Po } @if (rewardBreakdown.pa > 0){ {{ rewardBreakdown.pa }}Pa } @if
+          (rewardBreakdown.pc > 0){ {{ rewardBreakdown.pc }}Pc } }
         </span>
+      </div>
     </div>
-    <div>
-        <label for="succes">Chances de réussite de la mission :</label>
-        <span id="succes">{{ successRate }}%</span>
-    </div>
-    <div assign-container>
+  </div>
+  <div class="assign-section">
+    <div class="assign-adventurer">
+      <div class="contain-detail-quest">
+        <h3>Aventuriers assignés</h3>
+        <div class="contain-stats">
+          <span style="font-size: 1.1rem">
+            <label for="cost" style="font-weight: bold"
+              >Coût de la mission :</label
+            >
+            <span id="cost">
+              @if (costBreakdown.po + costBreakdown.pa + costBreakdown.pc === 0)
+              { 0Pc }@else { @if (costBreakdown.po > 0){ {{ costBreakdown.po
+              }}Po } @if (costBreakdown.pa > 0){ {{ costBreakdown.pa }}Pa } @if
+              (costBreakdown.pc > 0){ {{ costBreakdown.pc }}Pc } }
+            </span>
+          </span>
+
+          <span style="font-size: 1.1rem">
+            <label for="succes" style="font-weight: bold"
+              >Chances de réussite de la mission :</label
+            >
+            <span id="succes">{{ successRate }}%</span>
+          </span>
+        </div>
+      </div>
+      <div assign-container class="list-adventurers">
         @for (adventurer of quest.adventurers; track adventurer.id) {
         <app-item-adventurer [adventurer]="adventurer" />
         } @empty {
         <p>Aucun aventurier assigné</p>
         }
+      </div>
     </div>
-    <div assign-container>
-        @for (equipment of quest.questStockEquipments; track equipment.equipmentStock.id) {
+    <div class="assign-equipment">
+      <div assign-container class="list-equipments">
+        @for (equipment of quest.questStockEquipments; track
+        equipment.equipmentStock.id) {
         <app-item-stock-equipment [equipment]="equipment.equipmentStock" />
         } @empty {
         <p>Aucun équipement assigné</p>
         }
+      </div>
     </div>
-    <div assign-container>
+    <div assign-container class="list-consumables">
         @for (consumable of quest.questConsumables; track consumable.id) {
-            <div class="consumable-item">
+            <div class="consumable-item commun-card">
                 <h3>{{ consumable.consumable.name }}</h3>
                 <p>Type: {{ consumable.consumable.consumableType.name }}</p>
                 <p>Coût: {{ consumable.consumable.cost }} Pc</p>
@@ -86,12 +87,14 @@
                 <p>Quantité assignée à la quête: {{consumable.quantity}}</p>
             </div>
         } @empty {
-        <p>Aucun Consomable trouvé</p>
+        <p>Aucun Consomable assigné</p>
         }
     </div>
+    <span class="contain-btn">
     @if (quest.status.id === 4) {
-        <button (click)="finish(true)">Réussite de la quête</button>
-        <button (click)="finish(false)">Échec de la quête</button>
-    }
-</div>
-}
+    <button (click)="finish(true)" class="commun-btn">Réussite de la quête</button>
+    <button (click)="finish(false)" class="commun-btn">Échec de la quête</button>
+    }</span>
+  </div>
+  }
+</section>
