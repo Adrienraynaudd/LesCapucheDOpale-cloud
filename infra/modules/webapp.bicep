@@ -74,7 +74,7 @@ resource backendApp 'Microsoft.Web/sites@2023-01-01' = {
       http20Enabled: true
       minTlsVersion: '1.2'
       ftpsState: 'Disabled'
-      appCommandLine: 'node dist/main.js'
+      appCommandLine: 'node dist/src/main.js'
       appSettings: [
         {
           name: 'NODE_ENV'

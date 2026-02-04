@@ -60,8 +60,10 @@ jobs:
           cp -r dist deploy/
           cp package.json deploy/
           cp package-lock.json deploy/
-          # Installer uniquement les dépendances de production
+          cp -r prisma deploy/
+          # Installer dépendances de production + générer Prisma client
           cd deploy && npm ci --omit=dev
+          npx prisma generate
 
       - name: 📤 Upload backend artifact
         uses: actions/upload-artifact@v4
