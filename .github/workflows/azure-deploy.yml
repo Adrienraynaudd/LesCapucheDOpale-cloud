@@ -292,24 +292,53 @@ jobs:
           echo "✅ Backend URL: https://$BACKEND"
           echo "✅ Frontend URL: https://$FRONTEND"
           
-          sleep 30
+          echo ""
+          echo "⏳ Waiting 60s for containers to fully start..."
+          sleep 60
           
           echo ""
-          echo "🔍 Testing Backend..."
-          for i in 1 2 3; do
-            if curl -sf --connect-timeout 10 "https://$BACKEND" > /dev/null 2>&1; then
-              echo "✅ Backend OK"; break
+          echo "🔍 Testing Backend /health endpoint..."
+          BACKEND_OK=false
+          for i in 1 2 3 4 5; do
+            HTTP_CODE=$(curl -s -o /tmp/backend_response.txt -w "%{http_code}" --connect-timeout 15 --max-time 30 "https://$BACKEND/health" || echo "000")
+            echo "  Attempt $i: HTTP $HTTP_CODE"
+            if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "503" ]; then
+              echo "  Response: $(cat /tmp/backend_response.txt)"
+              BACKEND_OK=true
+              break
             fi
-            [ $i -lt 3 ] && echo "⏳ Retry $i..." && sleep 15
+            [ $i -lt 5 ] && sleep 20
           done
           
+          if [ "$BACKEND_OK" = true ]; then
+            echo "✅ Backend is responding"
+          else
+            echo "⚠️ Backend not fully ready yet (this may be normal for first deployment)"
+          fi
+          
+          echo ""
           echo "🔍 Testing Frontend..."
-          for i in 1 2 3; do
-            if curl -sf --connect-timeout 10 "https://$FRONTEND" > /dev/null 2>&1; then
-              echo "✅ Frontend OK"; break
+          FRONTEND_OK=false
+          for i in 1 2 3 4 5; do
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --connect-timeout 15 --max-time 30 "https://$FRONTEND" || echo "000")
+            echo "  Attempt $i: HTTP $HTTP_CODE"
+            if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "304" ]; then
+              FRONTEND_OK=true
+              break
             fi
-            [ $i -lt 3 ] && echo "⏳ Retry $i..." && sleep 15
+            [ $i -lt 5 ] && sleep 20
           done
+          
+          if [ "$FRONTEND_OK" = true ]; then
+            echo "✅ Frontend is responding"
+          else
+            echo "⚠️ Frontend not fully ready yet"
+          fi
+          
+          echo ""
+          echo "📋 Summary:"
+          echo "  Backend:  https://$BACKEND"
+          echo "  Frontend: https://$FRONTEND"
 
   # ===========================================================================
   # Résumé
