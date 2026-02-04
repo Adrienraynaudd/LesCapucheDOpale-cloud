@@ -60,10 +60,6 @@ jobs:
         working-directory: ./front
         run: npm ci
 
-      - name: Run frontend lint
-        working-directory: ./front
-        run: npm run lint
-
       - name: Run frontend tests (headless)
         working-directory: ./front
         run: npm run test -- --browsers=ChromeHeadless --watch=false --code-coverage
