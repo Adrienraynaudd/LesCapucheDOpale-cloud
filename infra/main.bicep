@@ -1,6 +1,3 @@
-// main.bicep - Infrastructure principale Azure pour Les Capuches d'Opale
-// Architecture 3-tiers : Frontend (Container App) + Backend (Container App) + Database (Azure SQL)
-
 targetScope = 'resourceGroup'
 
 // ============================================================================

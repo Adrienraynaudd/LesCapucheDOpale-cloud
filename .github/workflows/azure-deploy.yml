@@ -1,6 +1,5 @@
 # =============================================================================
-# CI/CD Pipeline - Les Capuches d'Opale (OPTIMISÉ)
-# Pipeline rapide avec jobs parallèles
+# CI/CD Pipeline - Les Capuches d'Opale
 # =============================================================================
 
 name: CI/CD Azure Deployment
@@ -11,13 +10,11 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Environment to deploy to'
+        description: 'Environment'
         required: true
         default: 'dev'
         type: choice
-        options:
-          - dev
-          - prod
+        options: [dev, prod]
 
 env:
   AZURE_LOCATION: francecentral
@@ -25,12 +22,11 @@ env:
 
 jobs:
   # ===========================================================================
-  # JOBS PARALLÈLES: Tests + Build Docker en même temps
+  # PHASE 1: Tests + Builds (5 jobs en parallèle)
   # ===========================================================================
   
-  # Job 1a: Tests Backend (parallèle)
   test-backend:
-    name: Test Backend
+    name: 🧪 Test Backend
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -48,9 +44,8 @@ jobs:
         working-directory: ./back
         continue-on-error: true
 
-  # Job 1b: Tests Frontend (parallèle)
   test-frontend:
-    name: Test Frontend
+    name: 🧪 Test Frontend
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -65,9 +60,8 @@ jobs:
         working-directory: ./front
         continue-on-error: true
 
-  # Job 1c: Build Docker Backend (parallèle)
   build-backend-image:
-    name: Build Backend Image
+    name: 🐳 Build Backend
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -80,7 +74,6 @@ jobs:
       - uses: docker/build-push-action@v6
         with:
           context: ./back
-          file: ./back/Dockerfile
           push: true
           tags: |
             ${{ secrets.ACR_LOGIN_SERVER }}/capuchesdopale-api:${{ github.sha }}
@@ -88,9 +81,8 @@ jobs:
           cache-from: type=gha,scope=backend
           cache-to: type=gha,mode=max,scope=backend
 
-  # Job 1d: Build Docker Frontend (parallèle)
   build-frontend-image:
-    name: Build Frontend Image
+    name: 🐳 Build Frontend
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -103,7 +95,6 @@ jobs:
       - uses: docker/build-push-action@v6
         with:
           context: ./front
-          file: ./front/Dockerfile
           push: true
           tags: |
             ${{ secrets.ACR_LOGIN_SERVER }}/capuchesdopale-web:${{ github.sha }}
@@ -111,9 +102,8 @@ jobs:
           cache-from: type=gha,scope=frontend
           cache-to: type=gha,mode=max,scope=frontend
 
-  # Job 1e: Build Azure Functions (parallèle)
   build-functions:
-    name: Build Azure Functions
+    name: ⚡ Build Functions
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -122,9 +112,7 @@ jobs:
           node-version: '20'
           cache: 'npm'
           cache-dependency-path: azure-functions/package-lock.json
-      - run: npm ci
-        working-directory: ./azure-functions
-      - run: npm run build
+      - run: npm ci && npm run build
         working-directory: ./azure-functions
       - uses: actions/upload-artifact@v4
         with:
@@ -133,47 +121,34 @@ jobs:
           retention-days: 1
 
   # ===========================================================================
-  # JOB 2: Déploiement Infrastructure (attend les builds Docker)
+  # PHASE 2: Déploiement Infrastructure Azure
   # ===========================================================================
+  
   deploy-infrastructure:
-    name: Deploy Infrastructure
+    name: 🏗️ Deploy Infrastructure
     runs-on: ubuntu-latest
     needs: [build-backend-image, build-frontend-image]
     environment: ${{ github.event.inputs.environment || 'dev' }}
-    
-    outputs:
-      backendFqdn: ${{ steps.get-urls.outputs.backendFqdn }}
-      frontendFqdn: ${{ steps.get-urls.outputs.frontendFqdn }}
-      resourceGroup: ${{ steps.set-vars.outputs.resourceGroup }}
-      env: ${{ steps.set-vars.outputs.environment }}
-    
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set variables
-        id: set-vars
-        run: |
-          ENV="${{ github.event.inputs.environment || 'dev' }}"
-          echo "environment=$ENV" >> $GITHUB_OUTPUT
-          echo "resourceGroup=rg-${{ env.PROJECT_NAME }}-$ENV" >> $GITHUB_OUTPUT
-
       - uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Create Resource Group
         run: |
-          az group create --name ${{ steps.set-vars.outputs.resourceGroup }} --location ${{ env.AZURE_LOCATION }} --tags project=${{ env.PROJECT_NAME }}
+          az group create \
+            --name rg-${{ env.PROJECT_NAME }}-${{ github.event.inputs.environment || 'dev' }} \
+            --location ${{ env.AZURE_LOCATION }}
 
       - name: Deploy Bicep
-        id: deploy-bicep
         uses: azure/arm-deploy@v2
         with:
-          resourceGroupName: ${{ steps.set-vars.outputs.resourceGroup }}
+          resourceGroupName: rg-${{ env.PROJECT_NAME }}-${{ github.event.inputs.environment || 'dev' }}
           template: ./infra/main.bicep
           parameters: >
             projectName=${{ env.PROJECT_NAME }}
-            environment=${{ steps.set-vars.outputs.environment }}
+            environment=${{ github.event.inputs.environment || 'dev' }}
             location=${{ env.AZURE_LOCATION }}
             sqlAdminUsername=${{ secrets.SQL_ADMIN_USERNAME }}
             sqlAdminPassword=${{ secrets.SQL_ADMIN_PASSWORD }}
@@ -186,36 +161,12 @@ jobs:
             frontendImageTag=${{ github.sha }}
           failOnStdErr: false
 
-      - name: Get Container Apps URLs
-        id: get-urls
-        run: |
-          ENV="${{ steps.set-vars.outputs.environment }}"
-          RG="${{ steps.set-vars.outputs.resourceGroup }}"
-          
-          BACKEND_FQDN=$(az containerapp show \
-            --name "ca-${{ env.PROJECT_NAME }}-${ENV}-api" \
-            --resource-group "$RG" \
-            --query "properties.configuration.ingress.fqdn" \
-            --output tsv)
-          
-          FRONTEND_FQDN=$(az containerapp show \
-            --name "ca-${{ env.PROJECT_NAME }}-${ENV}-web" \
-            --resource-group "$RG" \
-            --query "properties.configuration.ingress.fqdn" \
-            --output tsv)
-          
-          echo "✅ Backend: https://$BACKEND_FQDN"
-          echo "✅ Frontend: https://$FRONTEND_FQDN"
-          
-          echo "backendFqdn=$BACKEND_FQDN" >> $GITHUB_OUTPUT
-          echo "frontendFqdn=$FRONTEND_FQDN" >> $GITHUB_OUTPUT
-
   # ===========================================================================
-  # JOBS PARALLÈLES POST-INFRA: Function + DB Migration en même temps
+  # PHASE 3: Déploiements post-infra (2 jobs en parallèle)
   # ===========================================================================
   
   deploy-function:
-    name: Deploy Function
+    name: ⚡ Deploy Function
     runs-on: ubuntu-latest
     needs: [deploy-infrastructure, build-functions]
     environment: ${{ github.event.inputs.environment || 'dev' }}
@@ -233,7 +184,7 @@ jobs:
           package: ./azure-functions
 
   database-migration:
-    name: Database Migration
+    name: 🗄️ Database Migration
     runs-on: ubuntu-latest
     needs: deploy-infrastructure
     environment: ${{ github.event.inputs.environment || 'dev' }}
@@ -250,130 +201,49 @@ jobs:
         working-directory: ./back
         env:
           DATABASE_URL: "sqlserver://sql-${{ env.PROJECT_NAME }}-${{ github.event.inputs.environment || 'dev' }}.database.windows.net:1433;database=guild-db;user=${{ secrets.SQL_ADMIN_USERNAME }};password=${{ secrets.SQL_ADMIN_PASSWORD }};encrypt=true;trustServerCertificate=false"
-        run: |
-          npx prisma generate
-          npx prisma db push --accept-data-loss
+        run: npx prisma generate && npx prisma db push --accept-data-loss
         continue-on-error: true
 
   # ===========================================================================
-  # JOB FINAL: Smoke Tests rapides
+  # PHASE 4: Smoke Tests + Résumé
   # ===========================================================================
+  
   smoke-tests:
-    name: Smoke Tests
+    name: 🔍 Smoke Tests
     runs-on: ubuntu-latest
     needs: [deploy-infrastructure, deploy-function, database-migration]
     if: always() && needs.deploy-infrastructure.result == 'success'
-    
     steps:
-      - name: Login to Azure
-        uses: azure/login@v2
+      - uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Get URLs and test endpoints
+      - name: Test endpoints
         run: |
           ENV="${{ github.event.inputs.environment || 'dev' }}"
           RG="rg-${{ env.PROJECT_NAME }}-$ENV"
           
-          echo "📍 Resource Group: $RG"
+          # Récupérer les URLs
+          BACKEND=$(az containerapp show --name "ca-${{ env.PROJECT_NAME }}-${ENV}-api" --resource-group "$RG" --query "properties.configuration.ingress.fqdn" -o tsv)
+          FRONTEND=$(az containerapp show --name "ca-${{ env.PROJECT_NAME }}-${ENV}-web" --resource-group "$RG" --query "properties.configuration.ingress.fqdn" -o tsv)
           
-          BACKEND=$(az containerapp show \
-            --name "ca-${{ env.PROJECT_NAME }}-${ENV}-api" \
-            --resource-group "$RG" \
-            --query "properties.configuration.ingress.fqdn" \
-            --output tsv)
+          echo "🔗 Backend: https://$BACKEND"
+          echo "🔗 Frontend: https://$FRONTEND"
           
-          FRONTEND=$(az containerapp show \
-            --name "ca-${{ env.PROJECT_NAME }}-${ENV}-web" \
-            --resource-group "$RG" \
-            --query "properties.configuration.ingress.fqdn" \
-            --output tsv)
-          
-          echo "✅ Backend URL: https://$BACKEND"
-          echo "✅ Frontend URL: https://$FRONTEND"
+          # Test avec retry intégré à curl (plus rapide que des boucles)
+          echo ""
+          echo "🧪 Testing Backend..."
+          curl -sf --retry 5 --retry-delay 10 --retry-all-errors "https://$BACKEND/health" && echo "✅ Backend OK" || echo "⚠️ Backend warming up"
           
           echo ""
-          echo "⏳ Waiting 60s for containers to fully start..."
-          sleep 60
+          echo "🧪 Testing Frontend..."
+          curl -sf --retry 5 --retry-delay 10 --retry-all-errors "https://$FRONTEND" > /dev/null && echo "✅ Frontend OK" || echo "⚠️ Frontend warming up"
           
-          echo ""
-          echo "🔍 Testing Backend /health endpoint..."
-          BACKEND_OK=false
-          for i in 1 2 3 4 5; do
-            HTTP_CODE=$(curl -s -o /tmp/backend_response.txt -w "%{http_code}" --connect-timeout 15 --max-time 30 "https://$BACKEND/health" || echo "000")
-            echo "  Attempt $i: HTTP $HTTP_CODE"
-            if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "503" ]; then
-              echo "  Response: $(cat /tmp/backend_response.txt)"
-              BACKEND_OK=true
-              break
-            fi
-            [ $i -lt 5 ] && sleep 20
-          done
-          
-          if [ "$BACKEND_OK" = true ]; then
-            echo "✅ Backend is responding"
-          else
-            echo "⚠️ Backend not fully ready yet (this may be normal for first deployment)"
-          fi
-          
-          echo ""
-          echo "🔍 Testing Frontend..."
-          FRONTEND_OK=false
-          for i in 1 2 3 4 5; do
-            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --connect-timeout 15 --max-time 30 "https://$FRONTEND" || echo "000")
-            echo "  Attempt $i: HTTP $HTTP_CODE"
-            if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "304" ]; then
-              FRONTEND_OK=true
-              break
-            fi
-            [ $i -lt 5 ] && sleep 20
-          done
-          
-          if [ "$FRONTEND_OK" = true ]; then
-            echo "✅ Frontend is responding"
-          else
-            echo "⚠️ Frontend not fully ready yet"
-          fi
-          
-          echo ""
-          echo "📋 Summary:"
-          echo "  Backend:  https://$BACKEND"
-          echo "  Frontend: https://$FRONTEND"
-
-  # ===========================================================================
-  # Résumé
-  # ===========================================================================
-  summary:
-    name: Summary
-    runs-on: ubuntu-latest
-    needs: [deploy-infrastructure, smoke-tests]
-    if: always()
-    steps:
-      - name: Login to Azure
-        uses: azure/login@v2
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      - name: Generate Summary
-        run: |
-          ENV="${{ github.event.inputs.environment || 'dev' }}"
-          RG="rg-${{ env.PROJECT_NAME }}-$ENV"
-          
-          BACKEND=$(az containerapp show \
-            --name "ca-${{ env.PROJECT_NAME }}-${ENV}-api" \
-            --resource-group "$RG" \
-            --query "properties.configuration.ingress.fqdn" \
-            --output tsv 2>/dev/null || echo "N/A")
-          
-          FRONTEND=$(az containerapp show \
-            --name "ca-${{ env.PROJECT_NAME }}-${ENV}-web" \
-            --resource-group "$RG" \
-            --query "properties.configuration.ingress.fqdn" \
-            --output tsv 2>/dev/null || echo "N/A")
-          
+          # Générer le résumé
+          echo "" >> $GITHUB_STEP_SUMMARY
           echo "## 🚀 Deployment Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Resource | URL |" >> $GITHUB_STEP_SUMMARY
           echo "|----------|-----|" >> $GITHUB_STEP_SUMMARY
-          echo "| Frontend | https://$FRONTEND |" >> $GITHUB_STEP_SUMMARY
-          echo "| Backend | https://$BACKEND |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🌐 Frontend | https://$FRONTEND |" >> $GITHUB_STEP_SUMMARY
+          echo "| ⚙️ Backend | https://$BACKEND/health |" >> $GITHUB_STEP_SUMMARY
