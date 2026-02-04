@@ -69,7 +69,7 @@ var tags = {
 module keyVault 'modules/keyvault.bicep' = {
   name: 'keyVault-deployment'
   params: {
-    name: 'kv-${replace(resourcePrefix, '-', '')}'
+    name: 'kv-${replace(resourcePrefix, '-', '')}${uniqueString(resourceGroup().id)}'
     location: location
     tags: tags
     sqlAdminUsername: sqlAdminUsername

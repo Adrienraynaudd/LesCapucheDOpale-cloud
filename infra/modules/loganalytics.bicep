@@ -46,5 +46,5 @@ output workspaceName string = logAnalyticsWorkspace.name
 @description('ID du client Log Analytics')
 output customerId string = logAnalyticsWorkspace.properties.customerId
 
-@description('Clé primaire du workspace')
-output primarySharedKey string = logAnalyticsWorkspace.listKeys().primarySharedKey
+// Note: La clé partagée ne doit pas être exposée en output
+// Utiliser logAnalyticsWorkspace.listKeys().primarySharedKey directement dans les modules qui en ont besoin
