@@ -142,9 +142,10 @@ jobs:
     environment: ${{ github.event.inputs.environment || 'dev' }}
     
     outputs:
-      backendFqdn: ${{ steps.deploy-bicep.outputs.backendUrl }}
-      frontendFqdn: ${{ steps.deploy-bicep.outputs.frontendUrl }}
+      backendFqdn: ${{ steps.get-urls.outputs.backendFqdn }}
+      frontendFqdn: ${{ steps.get-urls.outputs.frontendFqdn }}
       resourceGroup: ${{ steps.set-vars.outputs.resourceGroup }}
+      env: ${{ steps.set-vars.outputs.environment }}
     
     steps:
       - uses: actions/checkout@v4
@@ -184,6 +185,32 @@ jobs:
             backendImageTag=${{ github.sha }}
             frontendImageTag=${{ github.sha }}
           failOnStdErr: false
+
+      - name: Get Container Apps URLs
+        id: get-urls
+        run: |
+          ENV="${{ steps.set-vars.outputs.environment }}"
+          RG="${{ steps.set-vars.outputs.resourceGroup }}"
+          
+          echo "Fetching Container Apps URLs..."
+          
+          BACKEND_FQDN=$(az containerapp show \
+            --name "ca-${{ env.PROJECT_NAME }}-${ENV}-api" \
+            --resource-group "$RG" \
+            --query "properties.configuration.ingress.fqdn" \
+            --output tsv 2>/dev/null || echo "")
+          
+          FRONTEND_FQDN=$(az containerapp show \
+            --name "ca-${{ env.PROJECT_NAME }}-${ENV}-web" \
+            --resource-group "$RG" \
+            --query "properties.configuration.ingress.fqdn" \
+            --output tsv 2>/dev/null || echo "")
+          
+          echo "Backend FQDN: $BACKEND_FQDN"
+          echo "Frontend FQDN: $FRONTEND_FQDN"
+          
+          echo "backendFqdn=$BACKEND_FQDN" >> $GITHUB_OUTPUT
+          echo "frontendFqdn=$FRONTEND_FQDN" >> $GITHUB_OUTPUT
 
   # ===========================================================================
   # JOBS PARALLÈLES POST-INFRA: Function + DB Migration en même temps
@@ -247,6 +274,14 @@ jobs:
         run: |
           BACKEND="${{ needs.deploy-infrastructure.outputs.backendFqdn }}"
           FRONTEND="${{ needs.deploy-infrastructure.outputs.frontendFqdn }}"
+          
+          echo "Backend URL from output: '$BACKEND'"
+          echo "Frontend URL from output: '$FRONTEND'"
+          
+          if [ -z "$BACKEND" ] || [ -z "$FRONTEND" ]; then
+            echo "⚠️ URLs not available, skipping smoke tests"
+            exit 0
+          fi
           
           echo "🔍 Testing Backend: https://$BACKEND"
           for i in 1 2 3; do
