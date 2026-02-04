@@ -2,15 +2,24 @@ FROM node:18-alpine AS builder
 
 WORKDIR /app
 
+# Copy package files first
 COPY package*.json ./
 COPY prisma ./prisma
 
-RUN npm ci --prefer-offline --no-audit
+# Install ALL dependencies (including devDependencies for build)
+RUN npm ci
 
+# Generate Prisma client AFTER npm ci
 RUN npx prisma generate
+
+# Copy source code
 COPY . .
 
-RUN npm run build && ls -la dist/
+# Build the application
+RUN npm run build
+
+# Verify build output exists
+RUN ls -la dist/ && test -f dist/main.js
 
 
 FROM node:18-alpine AS runner

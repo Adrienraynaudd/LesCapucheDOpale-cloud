@@ -12,7 +12,7 @@ RUN npm run build
 FROM nginx:alpine
 
 RUN printf 'server {\n\
-    listen 4200;\n\
+    listen 80;\n\
     location / {\n\
         root /usr/share/nginx/html;\n\
         index index.html;\n\
@@ -22,6 +22,6 @@ RUN printf 'server {\n\
 
 COPY --from=builder /app/dist/opal-project/browser /usr/share/nginx/html
 
-EXPOSE 4200
+EXPOSE 80
 
 CMD ["nginx", "-g", "daemon off;"]
