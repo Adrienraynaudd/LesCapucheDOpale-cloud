@@ -131,10 +131,10 @@ jobs:
     environment: ${{ github.event.inputs.environment || 'dev' }}
     
     outputs:
-      backendUrl: ${{ steps.deploy.outputs.backendUrl }}
-      frontendUrl: ${{ steps.deploy.outputs.frontendUrl }}
-      functionAppName: ${{ steps.deploy.outputs.functionAppName }}
-      storageAccountName: ${{ steps.deploy.outputs.storageAccountName }}
+      backendUrl: ${{ steps.get-urls.outputs.backendUrl }}
+      frontendUrl: ${{ steps.get-urls.outputs.frontendUrl }}
+      functionAppName: ${{ steps.get-urls.outputs.functionAppName }}
+      storageAccountName: ${{ steps.get-urls.outputs.storageAccountName }}
     
     steps:
       - name: Checkout repository
@@ -179,6 +179,22 @@ jobs:
           echo "Frontend URL: ${{ steps.deploy.outputs.frontendUrl }}"
           echo "Backend URL: ${{ steps.deploy.outputs.backendUrl }}"
           echo "Function App URL: ${{ steps.deploy.outputs.functionAppUrl }}"
+
+      - name: Get Container App URLs
+        id: get-urls
+        uses: azure/cli@v1
+        with:
+          inlineScript: |
+            BACKEND_FQDN=$(az containerapp show --name ca-capuchesdopale-${{ github.event.inputs.environment || 'dev' }}-api --resource-group ${{ env.AZURE_RESOURCE_GROUP }} --query properties.configuration.ingress.fqdn -o tsv)
+            FRONTEND_FQDN=$(az containerapp show --name ca-capuchesdopale-${{ github.event.inputs.environment || 'dev' }}-web --resource-group ${{ env.AZURE_RESOURCE_GROUP }} --query properties.configuration.ingress.fqdn -o tsv)
+            FUNC_NAME=$(az functionapp list --resource-group ${{ env.AZURE_RESOURCE_GROUP }} --query "[0].name" -o tsv)
+            STORAGE_NAME=$(az storage account list --resource-group ${{ env.AZURE_RESOURCE_GROUP }} --query "[0].name" -o tsv)
+            echo "backendUrl=$BACKEND_FQDN" >> $GITHUB_OUTPUT
+            echo "frontendUrl=$FRONTEND_FQDN" >> $GITHUB_OUTPUT
+            echo "functionAppName=$FUNC_NAME" >> $GITHUB_OUTPUT
+            echo "storageAccountName=$STORAGE_NAME" >> $GITHUB_OUTPUT
+            echo "Backend URL: $BACKEND_FQDN"
+            echo "Frontend URL: $FRONTEND_FQDN"
 
   # ============================================================================
   # JOB 4: Déploiement de la Function App
