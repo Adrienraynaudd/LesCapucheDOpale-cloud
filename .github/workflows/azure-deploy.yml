@@ -292,12 +292,31 @@ jobs:
     environment: ${{ github.event.inputs.environment || 'dev' }}
     
     steps:
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Get Container App URLs
+        id: get-urls
+        uses: azure/cli@v1
+        with:
+          inlineScript: |
+            BACKEND_FQDN=$(az containerapp show --name ca-capuchesdopale-${{ github.event.inputs.environment || 'dev' }}-api --resource-group rg-capuchesdopale-${{ github.event.inputs.environment || 'dev' }} --query properties.configuration.ingress.fqdn -o tsv)
+            FRONTEND_FQDN=$(az containerapp show --name ca-capuchesdopale-${{ github.event.inputs.environment || 'dev' }}-web --resource-group rg-capuchesdopale-${{ github.event.inputs.environment || 'dev' }} --query properties.configuration.ingress.fqdn -o tsv)
+            echo "backendUrl=$BACKEND_FQDN" >> $GITHUB_OUTPUT
+            echo "frontendUrl=$FRONTEND_FQDN" >> $GITHUB_OUTPUT
+            echo "Backend URL: https://$BACKEND_FQDN"
+            echo "Frontend URL: https://$FRONTEND_FQDN"
+
       - name: Wait for services to be ready
         run: sleep 60
 
       - name: Test Backend Health
         run: |
-          response=$(curl -s -o /dev/null -w "%{http_code}" https://${{ needs.deploy-infrastructure.outputs.backendUrl }}/health)
+          BACKEND_URL="${{ steps.get-urls.outputs.backendUrl }}"
+          echo "Testing backend at: https://$BACKEND_URL/health"
+          response=$(curl -s -o /dev/null -w "%{http_code}" "https://$BACKEND_URL/health")
           if [ $response -eq 200 ]; then
             echo "✅ Backend is healthy"
           else
@@ -307,7 +326,9 @@ jobs:
 
       - name: Test Frontend
         run: |
-          response=$(curl -s -o /dev/null -w "%{http_code}" https://${{ needs.deploy-infrastructure.outputs.frontendUrl }})
+          FRONTEND_URL="${{ steps.get-urls.outputs.frontendUrl }}"
+          echo "Testing frontend at: https://$FRONTEND_URL"
+          response=$(curl -s -o /dev/null -w "%{http_code}" "https://$FRONTEND_URL")
           if [ $response -eq 200 ]; then
             echo "✅ Frontend is accessible"
           else
@@ -318,7 +339,8 @@ jobs:
       - name: Test API Endpoints
         run: |
           # Test swagger endpoint
-          response=$(curl -s -o /dev/null -w "%{http_code}" https://${{ needs.deploy-infrastructure.outputs.backendUrl }}/api)
+          BACKEND_URL="${{ steps.get-urls.outputs.backendUrl }}"
+          response=$(curl -s -o /dev/null -w "%{http_code}" "https://$BACKEND_URL/api")
           echo "Swagger endpoint: $response"
 
   # ============================================================================
@@ -331,13 +353,28 @@ jobs:
     if: always()
     
     steps:
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Get URLs for Summary
+        id: get-urls
+        uses: azure/cli@v1
+        with:
+          inlineScript: |
+            BACKEND_FQDN=$(az containerapp show --name ca-capuchesdopale-${{ github.event.inputs.environment || 'dev' }}-api --resource-group rg-capuchesdopale-${{ github.event.inputs.environment || 'dev' }} --query properties.configuration.ingress.fqdn -o tsv 2>/dev/null || echo "N/A")
+            FRONTEND_FQDN=$(az containerapp show --name ca-capuchesdopale-${{ github.event.inputs.environment || 'dev' }}-web --resource-group rg-capuchesdopale-${{ github.event.inputs.environment || 'dev' }} --query properties.configuration.ingress.fqdn -o tsv 2>/dev/null || echo "N/A")
+            echo "backendUrl=$BACKEND_FQDN" >> $GITHUB_OUTPUT
+            echo "frontendUrl=$FRONTEND_FQDN" >> $GITHUB_OUTPUT
+
       - name: Deployment Summary
         run: |
           echo "## 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Resource | URL |" >> $GITHUB_STEP_SUMMARY
           echo "|----------|-----|" >> $GITHUB_STEP_SUMMARY
-          echo "| Frontend | https://${{ needs.deploy-infrastructure.outputs.frontendUrl }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Backend API | https://${{ needs.deploy-infrastructure.outputs.backendUrl }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontend | https://${{ steps.get-urls.outputs.frontendUrl }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Backend API | https://${{ steps.get-urls.outputs.backendUrl }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Environment | ${{ github.event.inputs.environment || 'dev' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Commit | ${{ github.sha }} |" >> $GITHUB_STEP_SUMMARY
