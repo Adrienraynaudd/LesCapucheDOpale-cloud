@@ -99,8 +99,8 @@ output serverFqdn string = sqlServer.properties.fullyQualifiedDomainName
 @description('Nom de la base de données')
 output databaseName string = sqlDatabase.name
 
-@description('Chaîne de connexion')
-output connectionString string = 'Server=tcp:${sqlServer.properties.fullyQualifiedDomainName},1433;Initial Catalog=${databaseName};Persist Security Info=False;User ID=${adminUsername};Password=${adminPassword};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;'
+@description('Chaîne de connexion ADO.NET')
+output connectionStringAdoNet string = 'Server=tcp:${sqlServer.properties.fullyQualifiedDomainName},1433;Initial Catalog=${databaseName};Persist Security Info=False;User ID=${adminUsername};Password=${adminPassword};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;'
 
-@description('Chaîne de connexion Prisma')
-output prismaConnectionString string = 'sqlserver://${sqlServer.properties.fullyQualifiedDomainName}:1433;database=${databaseName};user=${adminUsername};password=${adminPassword};encrypt=true;trustServerCertificate=false'
+@description('Chaîne de connexion Prisma SQL Server')
+output connectionString string = 'sqlserver://${sqlServer.properties.fullyQualifiedDomainName}:1433;database=${databaseName};user=${adminUsername};password=${adminPassword};encrypt=true;trustServerCertificate=false'
