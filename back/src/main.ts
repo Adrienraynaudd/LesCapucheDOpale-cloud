@@ -7,6 +7,7 @@ import { mkdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { DefaultAzureCredential } from '@azure/identity';
 import { SecretClient } from '@azure/keyvault-secrets';
+import { GlobalExceptionFilter } from './filters/global-exception.filter';
 
 async function loadKeyVaultSecrets(): Promise<void> {
   const logger = new Logger('KeyVault');
@@ -99,6 +100,9 @@ async function bootstrap() {
     }),
   );
 
+  // Global exception filter - catches all errors and returns proper JSON responses
+  app.useGlobalFilters(new GlobalExceptionFilter());
+
   app.enableCors();
 
   const port = Number(process.env.PORT ?? 3000);
@@ -107,4 +111,21 @@ async function bootstrap() {
   console.log(`📚 Swagger UI: http://localhost:${port}/docs`);
 }
 
-void bootstrap();
+// Global error handlers to prevent crashes
+const logger = new Logger('Bootstrap');
+
+process.on('uncaughtException', (error: Error) => {
+  logger.error(`Uncaught Exception: ${error.message}`, error.stack);
+  // Don't exit - keep the server running
+});
+
+process.on('unhandledRejection', (reason: unknown) => {
+  logger.error(`Unhandled Rejection: ${reason}`);
+  // Don't exit - keep the server running
+});
+
+void bootstrap().catch((error) => {
+  logger.error('Failed to start application:', error);
+  // Exit only if bootstrap fails completely
+  process.exit(1);
+});
