@@ -8,12 +8,13 @@ import {
   HistoryResponse,
   CreateTransactionDto
 } from '../../models/finance';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class FinancesService {
-  private readonly baseUrl = `/api/finances`;
+  private readonly baseUrl = `${environment.apiUrl}/finances`;
 
   constructor(private readonly http: HttpClient) { }
 

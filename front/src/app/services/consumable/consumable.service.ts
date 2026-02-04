@@ -2,13 +2,14 @@ import { Injectable } from '@angular/core';
 import { ConsumableType } from '../../models/models';
 import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ConsumableService {
-  private readonly baseUrlType = `/api/consumable-types`;
-  private readonly baseUrl = `/api/consumables`;
+  private readonly baseUrlType = `${environment.apiUrl}/consumable-types`;
+  private readonly baseUrl = `${environment.apiUrl}/consumables`;
 
   constructor(private readonly http: HttpClient) { }
 
@@ -45,6 +46,6 @@ export class ConsumableService {
   }
 
   setConsumableToQuest(questId: number, data: {consumableId: number, quantity: number}[]): Observable<any> {
-    return this.http.patch<any>(`api/quests/${questId}/consumables/set`, {consumables: data});
+    return this.http.patch<any>(`${environment.apiUrl}/quests/${questId}/consumables/set`, {consumables: data});
   }
 }

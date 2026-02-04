@@ -2,12 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { QuestForm, Quest } from '../../models/models';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class QuestService {
-  private readonly baseUrl = `/api/quests`;
+  private readonly baseUrl = `${environment.apiUrl}/quests`;
 
   constructor(private readonly http: HttpClient) { }
 

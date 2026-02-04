@@ -2,12 +2,13 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Speciality } from '../../models/models';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SpecialityService {
-  private readonly baseUrl = `/api/specialities`;
+  private readonly baseUrl = `${environment.apiUrl}/specialities`;
 
   constructor(private readonly http: HttpClient) { }
 

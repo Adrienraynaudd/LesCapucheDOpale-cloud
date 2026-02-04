@@ -8,12 +8,13 @@ import {
   DayStatus 
 } from '../../models/adventurer-availability';
 import { Adventurer } from '../../models/adventurer';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AdventurerAvailabilityService {
-  private readonly baseUrl = '/api/adventurer-availability';
+  private readonly baseUrl = `${environment.apiUrl}/adventurer-availability`;
 
   constructor(private readonly http: HttpClient) {}
 

@@ -1,13 +1,14 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AccountService {
-  private readonly urlUser = `/api/users`;
-  private readonly urlLogin = `/api/auth/login`;
+  private readonly urlUser = `${environment.apiUrl}/users`;
+  private readonly urlLogin = `${environment.apiUrl}/auth/login`;
 
   constructor(private readonly http: HttpClient) {  }
 
@@ -21,7 +22,7 @@ export class AccountService {
 
   isLogin(): Observable<any> {
     if (localStorage.getItem('token')) {
-      return this.http.get<any>('api/auth/verify');
+      return this.http.get<any>(`${environment.apiUrl}/auth/verify`);
     } else {
       return of(false);
     }

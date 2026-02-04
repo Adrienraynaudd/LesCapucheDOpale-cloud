@@ -3211,6 +3211,338 @@ paths:
         - bearer: []
       tags:
         - Finances
+  /adventurer-availability/{adventurerId}/check:
+    get:
+      operationId: AdventurerAvailabilityController_checkAvailability
+      parameters:
+        - name: adventurerId
+          required: true
+          in: path
+          description: Adventurer ID
+          schema:
+            example: 1
+            type: number
+        - name: startDate
+          required: true
+          in: query
+          description: Start date of the period
+          schema:
+            example: '2026-02-01'
+            type: string
+        - name: endDate
+          required: true
+          in: query
+          description: End date of the period
+          schema:
+            example: '2026-02-28'
+            type: string
+      responses:
+        '200':
+          description: Adventurer availability status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  adventurerId:
+                    type: number
+                    example: 1
+                  adventurerName:
+                    type: string
+                    example: Aria Stormblade
+                  isAvailable:
+                    type: boolean
+                    example: false
+                  events:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: number
+                          example: 1
+                        startDate:
+                          type: string
+                          example: '2026-02-05T00:00:00.000Z'
+                        endDate:
+                          type: string
+                          example: '2026-02-10T00:00:00.000Z'
+                        type:
+                          type: string
+                          example: mission
+                        reason:
+                          type: string
+                          example: 'Quest: Dragon Hunt'
+      security:
+        - bearer: []
+      tags:
+        - Adventurer Availability
+  /adventurer-availability/{adventurerId}/schedule:
+    get:
+      operationId: AdventurerAvailabilityController_getSchedule
+      parameters:
+        - name: adventurerId
+          required: true
+          in: path
+          description: Adventurer ID
+          schema:
+            example: 1
+            type: number
+        - name: startDate
+          required: true
+          in: query
+          description: Start date of the period
+          schema:
+            example: '2026-02-01'
+            type: string
+        - name: endDate
+          required: true
+          in: query
+          description: End date of the period
+          schema:
+            example: '2026-02-28'
+            type: string
+      responses:
+        '200':
+          description: Adventurer schedule with daily status
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    date:
+                      type: string
+                      example: '2026-02-05'
+                    status:
+                      type: string
+                      enum:
+                        - available
+                        - mission
+                        - rest
+                        - unavailable
+                        - mission_rest
+                    events:
+                      type: array
+                      items:
+                        type: object
+      security:
+        - bearer: []
+      tags:
+        - Adventurer Availability
+  /adventurer-availability/available:
+    get:
+      operationId: AdventurerAvailabilityController_findAvailableAdventurers
+      parameters:
+        - name: startDate
+          required: true
+          in: query
+          description: Start date of the period
+          schema:
+            example: '2026-02-01'
+            type: string
+        - name: endDate
+          required: true
+          in: query
+          description: End date of the period
+          schema:
+            example: '2026-02-28'
+            type: string
+      responses:
+        '200':
+          description: List of available adventurers for the period
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: number
+                      example: 1
+                    name:
+                      type: string
+                      example: Aria Stormblade
+                    specialityId:
+                      type: number
+                      example: 3
+                    dailyRate:
+                      type: number
+                      example: 150
+      security:
+        - bearer: []
+      tags:
+        - Adventurer Availability
+  /adventurer-availability/{adventurerId}/rests:
+    get:
+      operationId: AdventurerAvailabilityController_findAllRests
+      parameters:
+        - name: adventurerId
+          required: true
+          in: path
+          description: Adventurer ID
+          schema:
+            example: 1
+            type: number
+      responses:
+        '200':
+          description: List of rest periods for the adventurer
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: number
+                      example: 1
+                    adventurerId:
+                      type: number
+                      example: 1
+                    startDate:
+                      type: string
+                      example: '2026-02-05T00:00:00.000Z'
+                    endDate:
+                      type: string
+                      example: '2026-02-10T00:00:00.000Z'
+                    reason:
+                      type: string
+                      example: Repos après mission
+                    type:
+                      type: string
+                      example: rest
+      security:
+        - bearer: []
+      tags:
+        - Adventurer Availability
+  /adventurer-availability/rests:
+    post:
+      operationId: AdventurerAvailabilityController_createRest
+      parameters: []
+      requestBody:
+        required: true
+        description: Create a new rest period
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                adventurerId:
+                  type: number
+                  example: 1
+                startDate:
+                  type: string
+                  example: '2026-02-05T00:00:00.000Z'
+                endDate:
+                  type: string
+                  example: '2026-02-10T00:00:00.000Z'
+                reason:
+                  type: string
+                  example: Repos après mission
+                type:
+                  type: string
+                  enum:
+                    - rest
+                    - unavailable
+                    - mission_rest
+                  example: rest
+              required:
+                - adventurerId
+                - startDate
+                - endDate
+                - reason
+                - type
+      responses:
+        '201':
+          description: Rest period created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: number
+                    example: 1
+                  adventurerId:
+                    type: number
+                    example: 1
+                  startDate:
+                    type: string
+                    example: '2026-02-05T00:00:00.000Z'
+                  endDate:
+                    type: string
+                    example: '2026-02-10T00:00:00.000Z'
+                  reason:
+                    type: string
+                    example: Repos après mission
+                  type:
+                    type: string
+                    example: rest
+      security:
+        - bearer: []
+      tags:
+        - Adventurer Availability
+  /adventurer-availability/rests/{id}:
+    patch:
+      operationId: AdventurerAvailabilityController_updateRest
+      parameters:
+        - name: id
+          required: true
+          in: path
+          description: Rest period ID
+          schema:
+            example: 1
+            type: number
+      requestBody:
+        required: true
+        description: Update a rest period
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                startDate:
+                  type: string
+                  example: '2026-02-06T00:00:00.000Z'
+                endDate:
+                  type: string
+                  example: '2026-02-12T00:00:00.000Z'
+                reason:
+                  type: string
+                  example: Repos prolongé
+                type:
+                  type: string
+                  enum:
+                    - rest
+                    - unavailable
+                    - mission_rest
+      responses:
+        '200':
+          description: Updated rest period
+      security:
+        - bearer: []
+      tags:
+        - Adventurer Availability
+    delete:
+      operationId: AdventurerAvailabilityController_deleteRest
+      parameters:
+        - name: id
+          required: true
+          in: path
+          description: Rest period ID
+          schema:
+            example: 1
+            type: number
+      responses:
+        '200':
+          description: Rest period deleted
+      security:
+        - bearer: []
+      tags:
+        - Adventurer Availability
   /:
     get:
       operationId: AppController_getHello

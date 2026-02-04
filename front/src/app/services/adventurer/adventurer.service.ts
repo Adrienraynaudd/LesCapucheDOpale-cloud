@@ -2,12 +2,13 @@ import { Injectable } from '@angular/core';
 import { Adventurer, AdventurerFormData } from '../../models/models';
 import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AdventurerService {
-  private readonly baseUrl = `/api/adventurers`;
+  private readonly baseUrl = `${environment.apiUrl}/adventurers`;
 
   constructor(private readonly http: HttpClient) { }
 
