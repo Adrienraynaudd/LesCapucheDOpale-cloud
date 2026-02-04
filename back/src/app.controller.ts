@@ -36,4 +36,37 @@ export class AppController {
       },
     };
   }
+
+  @Get('health/db')
+  @ApiTags('Health')
+  @ApiOperation({ summary: 'Database ping endpoint' })
+  @ApiResponse({ status: 200, description: 'Database ping result' })
+  async pingDatabase(): Promise<{
+    success: boolean;
+    latency?: number;
+    error?: string;
+    connectionString?: string;
+  }> {
+    const start = Date.now();
+    try {
+      await this.prisma.$queryRaw`SELECT 1 as ping`;
+      return {
+        success: true,
+        latency: Date.now() - start,
+        connectionString: this.maskConnectionString(process.env.DATABASE_URL),
+      };
+    } catch (error) {
+      return {
+        success: false,
+        latency: Date.now() - start,
+        error: error instanceof Error ? error.message : String(error),
+        connectionString: this.maskConnectionString(process.env.DATABASE_URL),
+      };
+    }
+  }
+
+  private maskConnectionString(connectionString?: string): string {
+    if (!connectionString) return 'NOT_SET';
+    return connectionString.replace(/password=[^;]+/gi, 'password=***');
+  }
 }

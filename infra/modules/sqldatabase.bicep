@@ -103,4 +103,4 @@ output databaseName string = sqlDatabase.name
 output connectionStringAdoNet string = 'Server=tcp:${sqlServer.properties.fullyQualifiedDomainName},1433;Initial Catalog=${databaseName};Persist Security Info=False;User ID=${adminUsername};Password=${adminPassword};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;'
 
 @description('Chaîne de connexion Prisma SQL Server')
-output connectionString string = 'sqlserver://${sqlServer.properties.fullyQualifiedDomainName}:1433;database=${databaseName};user=${adminUsername};password=${adminPassword};encrypt=true;trustServerCertificate=false'
+output connectionString string = 'sqlserver://${sqlServer.properties.fullyQualifiedDomainName}:1433;database=${databaseName};user=${adminUsername};password=${adminPassword};encrypt=true;trustServerCertificate=true;connectionTimeout=30'
