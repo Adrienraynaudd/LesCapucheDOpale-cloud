@@ -7,7 +7,7 @@
       adventurerForm.get('name')?.invalid) {
       <p class="error">Le nom doit contenir au moins 3 caractères.</p>
       }
-      <input type="file"/>
+      
     </div>
     <app-form-money label="Taux journalier : " [money]="getMoney()" (moneyChange)="setMoney($event)"></app-form-money>
     <button class="submit-btn commun-btn" type="submit">
@@ -132,3 +132,7 @@
     </div>
   </span>
 </form>
+
+<p>selectionner un fichier</p>
+<input type="file" #fileInput/>
+<button (click)="fileInput.files && fileInput.files.length > 0 && uploadFileImage(fileInput.files[0])">Uploader</button>

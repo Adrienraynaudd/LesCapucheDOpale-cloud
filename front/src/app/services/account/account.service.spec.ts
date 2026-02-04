@@ -81,7 +81,7 @@ describe('AccountService', () => {
         expect(response).toEqual(mockResponse);
       });
 
-      const req = httpMock.expectOne('api/auth/verify');
+      const req = httpMock.expectOne('/api/auth/verify');
       expect(req.request.method).toBe('GET');
       req.flush(mockResponse);
     });

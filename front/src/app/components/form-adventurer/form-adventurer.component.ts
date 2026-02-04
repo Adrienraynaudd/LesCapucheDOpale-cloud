@@ -8,6 +8,7 @@ import { forkJoin } from 'rxjs';
 import { SpecialityService } from '../../services/speciality/speciality.service';
 import { EquipmentService } from '../../services/equipment/equipment.service';
 import { ConsumableService } from '../../services/consumable/consumable.service';
+import { Upload} from '../../services/upload/upload';
 import { FormMoney } from '../form-money/form-money';
 
 @Component({
@@ -51,7 +52,8 @@ export class FormAdventurerComponent implements OnInit, OnChanges {
   constructor(
     private readonly specialityService: SpecialityService,
     private readonly equipmentService: EquipmentService,
-    private readonly consumableService: ConsumableService
+    private readonly consumableService: ConsumableService,
+    public upload: Upload
   ) { }
 
   ngOnInit(): void {
@@ -179,4 +181,16 @@ export class FormAdventurerComponent implements OnInit, OnChanges {
     this.newSpecialityForm.get('name')?.setValue('');
     this.newSpeError = '';
   }
+
+  uploadFileImage(file: File): void {
+    this.upload.postFileImage(file).subscribe({
+      next: (response) => {
+        console.log('Fichier uploadé avec succès :', response);
+      },
+      error: (error) => {
+        console.error('Erreur lors de l\'upload du fichier :', error);
+      }
+    });
+  }
+
 }

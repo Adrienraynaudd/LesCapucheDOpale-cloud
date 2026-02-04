@@ -4,6 +4,7 @@ import { FormAdventurerComponent } from './form-adventurer.component';
 import { SpecialityService } from '../../services/speciality/speciality.service';
 import { EquipmentService } from '../../services/equipment/equipment.service';
 import { ConsumableService } from '../../services/consumable/consumable.service';
+import { Upload } from '../../services/upload/upload';
 
 describe('FormAdventurerComponent', () => {
   let component: FormAdventurerComponent;
@@ -12,15 +13,18 @@ describe('FormAdventurerComponent', () => {
   let specialityServiceSpy: jasmine.SpyObj<SpecialityService>;
   let equipmentServiceSpy: jasmine.SpyObj<EquipmentService>;
   let consumableServiceSpy: jasmine.SpyObj<ConsumableService>;
+  let uploadSpy: jasmine.SpyObj<Upload>;
 
   beforeEach(async () => {
     specialityServiceSpy = jasmine.createSpyObj('SpecialityService', ['getSpecialities', 'addSpeciality']);
     equipmentServiceSpy = jasmine.createSpyObj('EquipmentService', ['getEquipmentType', 'addEquipmentType']);
     consumableServiceSpy = jasmine.createSpyObj('ConsumableService', ['getConsumableTypes', 'addConsumableType']);
+    uploadSpy = jasmine.createSpyObj('Upload', ['postFileImage']);
 
     specialityServiceSpy.getSpecialities.and.returnValue(of([{ id: 1, name: 'Guerrier' }]));
     equipmentServiceSpy.getEquipmentType.and.returnValue(of([{ id: 10, name: 'Épée' }]));
     consumableServiceSpy.getConsumableTypes.and.returnValue(of([{ id: 20, name: 'Potion' }]));
+    uploadSpy.postFileImage.and.returnValue(of({ url: 'http://example.com/image.png' }));
 
     await TestBed.configureTestingModule({
       imports: [FormAdventurerComponent],
@@ -28,6 +32,7 @@ describe('FormAdventurerComponent', () => {
         { provide: SpecialityService, useValue: specialityServiceSpy },
         { provide: EquipmentService, useValue: equipmentServiceSpy },
         { provide: ConsumableService, useValue: consumableServiceSpy },
+        { provide: Upload, useValue: uploadSpy },
       ],
     }).compileComponents();
 
@@ -285,6 +290,42 @@ describe('FormAdventurerComponent', () => {
       expect((component as any).showTypePopupSpe).toBeFalse();
       expect((component as any).newSpecialityForm.get('name')?.value).toBe('');
       expect((component as any).newSpeError).toBe('');
+    });
+  });
+
+  describe('uploadFileImage', () => {
+    beforeEach(() => {
+      fixture.detectChanges();
+    });
+
+    it('should call upload.postFileImage with the file', () => {
+      const mockFile = new File(['test content'], 'test-image.png', { type: 'image/png' });
+
+      (component as any).uploadFileImage(mockFile);
+
+      expect(uploadSpy.postFileImage).toHaveBeenCalledWith(mockFile);
+    });
+
+    it('should log success message on successful upload', () => {
+      const mockFile = new File(['test content'], 'test-image.png', { type: 'image/png' });
+      const mockResponse = { url: 'http://example.com/uploaded-image.png' };
+      uploadSpy.postFileImage.and.returnValue(of(mockResponse));
+      const consoleSpy = spyOn(console, 'log');
+
+      (component as any).uploadFileImage(mockFile);
+
+      expect(consoleSpy).toHaveBeenCalledWith('Fichier uploadé avec succès :', mockResponse);
+    });
+
+    it('should log error message on upload failure', () => {
+      const mockFile = new File(['test content'], 'test-image.png', { type: 'image/png' });
+      const mockError = { message: 'Upload failed' };
+      uploadSpy.postFileImage.and.returnValue(throwError(() => mockError));
+      const consoleErrorSpy = spyOn(console, 'error');
+
+      (component as any).uploadFileImage(mockFile);
+
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Erreur lors de l\'upload du fichier :', mockError);
     });
   });
 });
