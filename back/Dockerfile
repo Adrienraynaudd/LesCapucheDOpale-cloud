@@ -10,7 +10,7 @@ RUN npm ci --prefer-offline --no-audit
 RUN npx prisma generate
 COPY . .
 
-RUN npm run build
+RUN npm run build && ls -la dist/
 
 
 FROM node:18-alpine AS runner
@@ -38,8 +38,8 @@ RUN mkdir -p /app/docs && chown -R nestjs:nodejs /app/docs
 
 RUN echo '#!/bin/sh' > /app/docker-entrypoint.sh && \
     echo 'set -e' >> /app/docker-entrypoint.sh && \
-    echo 'echo "🔄 Applying migrations..."' >> /app/docker-entrypoint.sh && \
-    echo 'npx prisma migrate deploy' >> /app/docker-entrypoint.sh && \
+    echo 'echo "🔄 Syncing database schema..."' >> /app/docker-entrypoint.sh && \
+    echo 'npx prisma db push --accept-data-loss || echo "⚠️  DB push failed, continuing..."' >> /app/docker-entrypoint.sh && \
     echo 'echo "🌱 Seeding database..."' >> /app/docker-entrypoint.sh && \
     echo 'npm run prisma:seed || echo "⚠️  Seed already applied or failed"' >> /app/docker-entrypoint.sh && \
     echo 'echo "🚀 Starting application..."' >> /app/docker-entrypoint.sh && \

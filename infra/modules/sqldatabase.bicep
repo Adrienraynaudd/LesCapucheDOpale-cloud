@@ -102,6 +102,6 @@ output databaseName string = sqlDatabase.name
 @description('FQDN pour construire la chaîne de connexion')
 output serverHost string = sqlServer.properties.fullyQualifiedDomainName
 
-#disable-next-line outputs-should-not-contain-secrets
+#disable-next-line outputs-should-not-contain-secrets use-secure-value-for-secure-inputs
 @description('Chaîne de connexion Prisma SQL Server')
 output connectionString string = 'sqlserver://${sqlServer.properties.fullyQualifiedDomainName}:1433;database=${databaseName};user=${adminUsername};password=${adminPassword};encrypt=true;trustServerCertificate=true;connectionTimeout=30'

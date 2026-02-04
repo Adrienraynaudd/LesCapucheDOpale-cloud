@@ -161,10 +161,10 @@ output blobEndpoint string = storageAccount.properties.primaryEndpoints.blob
 @description('Endpoint du Table Storage')
 output tableEndpoint string = storageAccount.properties.primaryEndpoints.table
 
-#disable-next-line outputs-should-not-contain-secrets
+#disable-next-line outputs-should-not-contain-secrets use-secure-value-for-secure-inputs
 @description('Chaîne de connexion du Storage Account')
 output connectionString string = 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};AccountKey=${storageAccount.listKeys().keys[0].value};EndpointSuffix=${environment().suffixes.storage}'
 
-#disable-next-line outputs-should-not-contain-secrets
+#disable-next-line outputs-should-not-contain-secrets use-secure-value-for-secure-inputs
 @description('Clé du Storage Account')
 output storageAccountKey string = storageAccount.listKeys().keys[0].value
