@@ -1,9 +1,10 @@
 // ============================================================================
 // Azure App Service Module - Web Apps pour Backend et Frontend
 // Optimisé pour Azure for Students
+// IMPORTANT: F1 (Free) ne supporte qu'UN site par plan, donc 2 plans séparés
 // ============================================================================
 
-@description('Nom du App Service Plan')
+@description('Nom du App Service Plan Backend')
 param appServicePlanName string
 
 @description('Nom de l\'application backend (NestJS)')
@@ -36,10 +37,28 @@ param jwtSecret string
 param keyVaultUri string
 
 // ============================================================================
-// App Service Plan (Linux) - F1 gratuit pour Azure Student
+// App Service Plan Backend (Linux) - F1 gratuit pour Azure Student
 // ============================================================================
-resource appServicePlan 'Microsoft.Web/serverfarms@2023-01-01' = {
+resource appServicePlanBackend 'Microsoft.Web/serverfarms@2023-01-01' = {
   name: appServicePlanName
+  location: location
+  tags: tags
+  kind: 'linux'
+  sku: {
+    name: 'F1'      // Gratuit pour Azure Student
+    tier: 'Free'
+  }
+  properties: {
+    reserved: true  // Required for Linux
+  }
+}
+
+// ============================================================================
+// App Service Plan Frontend (Linux) - F1 gratuit pour Azure Student
+// Note: F1 ne supporte qu'UN site par plan, donc plan séparé
+// ============================================================================
+resource appServicePlanFrontend 'Microsoft.Web/serverfarms@2023-01-01' = {
+  name: '${appServicePlanName}-front'
   location: location
   tags: tags
   kind: 'linux'
@@ -64,7 +83,7 @@ resource backendApp 'Microsoft.Web/sites@2023-01-01' = {
     type: 'SystemAssigned'
   }
   properties: {
-    serverFarmId: appServicePlan.id
+    serverFarmId: appServicePlanBackend.id
     httpsOnly: true
     siteConfig: {
       linuxFxVersion: 'NODE|20-lts'
@@ -127,7 +146,7 @@ resource frontendApp 'Microsoft.Web/sites@2023-01-01' = {
   tags: tags
   kind: 'app,linux'
   properties: {
-    serverFarmId: appServicePlan.id
+    serverFarmId: appServicePlanFrontend.id
     httpsOnly: true
     siteConfig: {
       linuxFxVersion: 'NODE|20-lts'
