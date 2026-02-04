@@ -189,10 +189,10 @@ module functionApp 'modules/function-app.bicep' = {
 // ============================================================================
 
 @description('URL du frontend')
-output frontendUrl string = 'https://${frontendApp.outputs.fqdn}'
+output frontendUrl string = frontendApp.outputs.fqdn
 
 @description('URL du backend API')
-output backendUrl string = 'https://${backendApp.outputs.fqdn}'
+output backendUrl string = backendApp.outputs.fqdn
 
 @description('URL de la Function App')
 output functionAppUrl string = functionApp.outputs.functionAppUrl
