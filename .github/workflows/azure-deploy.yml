@@ -186,31 +186,90 @@ jobs:
             frontendImageTag=${{ github.sha }}
           failOnStdErr: false
 
+      - name: Debug - Show Bicep outputs
+        run: |
+          echo "=== BICEP DEPLOYMENT OUTPUTS ==="
+          echo "backendUrl: ${{ steps.deploy-bicep.outputs.backendUrl }}"
+          echo "frontendUrl: ${{ steps.deploy-bicep.outputs.frontendUrl }}"
+          echo "All outputs: ${{ toJson(steps.deploy-bicep.outputs) }}"
+
+      - name: Debug - List all resources in RG
+        run: |
+          echo "=== LISTING ALL RESOURCES IN RESOURCE GROUP ==="
+          az resource list --resource-group "${{ steps.set-vars.outputs.resourceGroup }}" --output table
+          
+          echo ""
+          echo "=== LISTING CONTAINER APPS ==="
+          az containerapp list --resource-group "${{ steps.set-vars.outputs.resourceGroup }}" --output table || echo "No container apps found"
+          
+          echo ""
+          echo "=== CONTAINER APP NAMES ==="
+          az containerapp list --resource-group "${{ steps.set-vars.outputs.resourceGroup }}" --query "[].name" --output tsv || echo "Failed to list names"
+
       - name: Get Container Apps URLs
         id: get-urls
         run: |
           ENV="${{ steps.set-vars.outputs.environment }}"
           RG="${{ steps.set-vars.outputs.resourceGroup }}"
           
-          echo "Fetching Container Apps URLs..."
+          echo "=== DEBUG INFO ==="
+          echo "Environment: $ENV"
+          echo "Resource Group: $RG"
+          echo "Project Name: ${{ env.PROJECT_NAME }}"
+          echo ""
+          
+          # Expected names
+          BACKEND_NAME="ca-${{ env.PROJECT_NAME }}-${ENV}-api"
+          FRONTEND_NAME="ca-${{ env.PROJECT_NAME }}-${ENV}-web"
+          
+          echo "Looking for Backend Container App: $BACKEND_NAME"
+          echo "Looking for Frontend Container App: $FRONTEND_NAME"
+          echo ""
+          
+          # Try to get backend URL
+          echo "=== FETCHING BACKEND URL ==="
+          az containerapp show --name "$BACKEND_NAME" --resource-group "$RG" --output json 2>&1 || echo "Backend container app not found"
           
           BACKEND_FQDN=$(az containerapp show \
-            --name "ca-${{ env.PROJECT_NAME }}-${ENV}-api" \
+            --name "$BACKEND_NAME" \
             --resource-group "$RG" \
             --query "properties.configuration.ingress.fqdn" \
-            --output tsv 2>/dev/null || echo "")
+            --output tsv 2>&1) || BACKEND_FQDN=""
+          
+          echo "Backend FQDN result: '$BACKEND_FQDN'"
+          
+          # Try to get frontend URL
+          echo ""
+          echo "=== FETCHING FRONTEND URL ==="
+          az containerapp show --name "$FRONTEND_NAME" --resource-group "$RG" --output json 2>&1 || echo "Frontend container app not found"
           
           FRONTEND_FQDN=$(az containerapp show \
-            --name "ca-${{ env.PROJECT_NAME }}-${ENV}-web" \
+            --name "$FRONTEND_NAME" \
             --resource-group "$RG" \
             --query "properties.configuration.ingress.fqdn" \
-            --output tsv 2>/dev/null || echo "")
+            --output tsv 2>&1) || FRONTEND_FQDN=""
           
-          echo "Backend FQDN: $BACKEND_FQDN"
-          echo "Frontend FQDN: $FRONTEND_FQDN"
+          echo "Frontend FQDN result: '$FRONTEND_FQDN'"
+          
+          # Clean up any error messages from the FQDN
+          if [[ "$BACKEND_FQDN" == *"ERROR"* ]] || [[ "$BACKEND_FQDN" == *"not found"* ]]; then
+            BACKEND_FQDN=""
+          fi
+          if [[ "$FRONTEND_FQDN" == *"ERROR"* ]] || [[ "$FRONTEND_FQDN" == *"not found"* ]]; then
+            FRONTEND_FQDN=""
+          fi
+          
+          echo ""
+          echo "=== FINAL VALUES ==="
+          echo "Backend FQDN: '$BACKEND_FQDN'"
+          echo "Frontend FQDN: '$FRONTEND_FQDN'"
           
           echo "backendFqdn=$BACKEND_FQDN" >> $GITHUB_OUTPUT
           echo "frontendFqdn=$FRONTEND_FQDN" >> $GITHUB_OUTPUT
+          
+          echo ""
+          echo "=== GITHUB_OUTPUT FILE CONTENT ==="
+          cat $GITHUB_OUTPUT
 
   # ===========================================================================
   # JOBS PARALLÈLES POST-INFRA: Function + DB Migration en même temps
