@@ -26,6 +26,9 @@ param sqlAdminPassword string
 @secure()
 param jwtSecret string
 
+@description('Date de déploiement (générée automatiquement)')
+param deploymentDate string = utcNow('yyyy-MM-dd')
+
 // ============================================================================
 // Variables
 // ============================================================================
@@ -36,7 +39,7 @@ var tags = {
   Project: 'LesCapuchesDOpale'
   Environment: environment
   ManagedBy: 'Bicep'
-  DeployedAt: utcNow('yyyy-MM-dd')
+  DeployedAt: deploymentDate
 }
 
 // ============================================================================
@@ -76,6 +79,9 @@ module database 'modules/database.bicep' = {
   }
 }
 
+// Variables pour les connection strings (construites ici pour éviter les secrets dans les outputs)
+var sqlConnectionString = 'Server=tcp:${database.outputs.serverFqdn},1433;Initial Catalog=${database.outputs.databaseName};Persist Security Info=False;User ID=${sqlAdminLogin};Password=${sqlAdminPassword};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;'
+
 // Web App - App Service pour héberger NestJS (Backend) et Angular (Frontend)
 module webApp 'modules/webapp.bicep' = {
   name: 'deploy-webapp'
@@ -85,8 +91,8 @@ module webApp 'modules/webapp.bicep' = {
     frontendAppName: 'web-${resourcePrefix}'
     location: location
     tags: tags
-    databaseConnectionString: database.outputs.connectionString
-    storageConnectionString: storage.outputs.connectionString
+    databaseConnectionString: sqlConnectionString
+    storageAccountName: storage.outputs.storageAccountName
     storageBlobEndpoint: storage.outputs.blobEndpoint
     jwtSecret: jwtSecret
     keyVaultUri: keyVault.outputs.keyVaultUri
@@ -101,11 +107,7 @@ module keyVaultSecrets 'modules/keyvault-secrets.bicep' = {
     secrets: [
       {
         name: 'SqlConnectionString'
-        value: database.outputs.connectionString
-      }
-      {
-        name: 'StorageConnectionString'
-        value: storage.outputs.connectionString
+        value: sqlConnectionString
       }
       {
         name: 'JwtSecret'

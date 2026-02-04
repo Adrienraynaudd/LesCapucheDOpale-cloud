@@ -98,4 +98,5 @@ resource adventurersContainer 'Microsoft.Storage/storageAccounts/blobServices/co
 output storageAccountId string = storageAccount.id
 output storageAccountName string = storageAccount.name
 output blobEndpoint string = storageAccount.properties.primaryEndpoints.blob
-output connectionString string = 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${storageAccount.listKeys().keys[0].value}'
+
+// Note: La connection string est construite dans le module webapp via listKeys()

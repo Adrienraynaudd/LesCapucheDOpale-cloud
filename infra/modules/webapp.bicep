@@ -22,9 +22,8 @@ param tags object
 @secure()
 param databaseConnectionString string
 
-@description('Connection string vers le Storage Account')
-@secure()
-param storageConnectionString string
+@description('Nom du Storage Account')
+param storageAccountName string
 
 @description('Endpoint Blob Storage')
 param storageBlobEndpoint string
@@ -88,8 +87,8 @@ resource backendApp 'Microsoft.Web/sites@2023-01-01' = {
           value: jwtSecret
         }
         {
-          name: 'AZURE_STORAGE_CONNECTION_STRING'
-          value: storageConnectionString
+          name: 'AZURE_STORAGE_ACCOUNT_NAME'
+          value: storageAccountName
         }
         {
           name: 'AZURE_STORAGE_BLOB_ENDPOINT'

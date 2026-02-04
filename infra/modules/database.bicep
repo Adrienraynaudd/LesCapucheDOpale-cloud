@@ -91,4 +91,6 @@ resource firewallAllowAll 'Microsoft.Sql/servers/firewallRules@2023-05-01-previe
 // ============================================================================
 output serverFqdn string = sqlServer.properties.fullyQualifiedDomainName
 output databaseName string = sqlDatabase.name
-output connectionString string = 'Server=tcp:${sqlServer.properties.fullyQualifiedDomainName},1433;Initial Catalog=${databaseName};Persist Security Info=False;User ID=${administratorLogin};Password=${administratorPassword};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;'
+output serverName string = sqlServer.name
+
+// Note: La connection string est construite dans main.bicep avec les secrets
