@@ -9,7 +9,7 @@ Write-Host "-----------------------------------------" -ForegroundColor DarkGray
 docker-compose up --build -d
 
 Write-Host "-----------------------------------------" -ForegroundColor DarkGray
-Write-Host "  GENERATION PRISMA" -ForegroundColor Green
+Write-Host "   GENERATION PRISMA" -ForegroundColor Green
 Write-Host "-----------------------------------------" -ForegroundColor DarkGray
 
 docker-compose exec backend npx prisma generate
