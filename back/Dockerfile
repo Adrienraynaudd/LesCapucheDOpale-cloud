@@ -30,6 +30,7 @@ RUN npm ci --omit=dev --prefer-offline --no-audit && npm install ts-node && npm 
 
 COPY --from=builder --chown=nestjs:nodejs /app/dist ./dist
 COPY --from=builder --chown=nestjs:nodejs /app/prisma ./prisma
+COPY --from=builder --chown=nestjs:nodejs /app/tsconfig.json ./tsconfig.json
 
 RUN npx prisma generate
 

@@ -1,5 +1,8 @@
 <div class="equipment-item commun-card">
   <h3 class="title">{{ equipment.equipment.name }}</h3>
+  @if (isSelected) {
+    <span class="selected-badge">Sélectionné</span>
+  }
   <div class="equipment-details">
     <span><label class="bold">Type :</label> <p>{{ equipment.equipment.equipmentType.name }}</p></span>
     <span><label class="bold">État :</label> <p>{{ equipment.durability }} / {{ equipment.equipment.maxDurability }}</p></span>

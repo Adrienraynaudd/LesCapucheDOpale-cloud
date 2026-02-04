@@ -121,3 +121,16 @@ app-form-money {
     inset 13px 13px 26px #1477c8, 0px 6px 6px 0px #00000040;
   }
 }
+
+.selected-badge {
+  display: inline-block;
+  background: #0e528a;
+  box-shadow: inset -13px -13px 26px #082d4c,inset 13px 13px 26px #1477c8, 0px 6px 6px 0px #00000040;
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+  padding: 4px 12px;
+  border-radius: 20px;
+  margin: 8px auto;
+  text-align: center;
+}

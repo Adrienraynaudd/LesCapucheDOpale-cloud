@@ -1,6 +1,9 @@
 <div class="consumable-item commun-card">
   <h3 class="title">{{ consumable.name }}</h3>
 
+     @if (isSelected) {
+  <span class="selected-badge">Sélectionné</span>
+  }
   <div class="consumable-details">
     <span>
       <label class="bold">Type :</label>

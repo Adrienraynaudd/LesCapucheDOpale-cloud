@@ -11,6 +11,7 @@ import { Router } from '@angular/router';
 export class ItemEquipment {
   @Input() equipment!: Equipment;
   @Output() quantityChange = new EventEmitter<number>();
+  @Input() isSelected: boolean = false;
 
   constructor(
     private readonly router: Router
