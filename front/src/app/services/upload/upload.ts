@@ -11,12 +11,12 @@ export class Upload {
 
   constructor(private readonly http: HttpClient) {}
 
-  postFile(file: File): Observable<any> {
+  postFile(file: FormData): Observable<any> {
     return this.http.post<any>(this.baseUrl, file);
   }
 
-  postFileImage(file: File): Observable<any> {
-    return this.http.post<any>(`${this.baseUrl}/image`, file);
+  postFileImage(data: FormData): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/image`, data);
   }
 
   getAllFiles(): Observable<any> {

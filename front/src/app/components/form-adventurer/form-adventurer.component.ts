@@ -183,7 +183,9 @@ export class FormAdventurerComponent implements OnInit, OnChanges {
   }
 
   uploadFileImage(file: File): void {
-    this.upload.postFileImage(file).subscribe({
+    const formdata = new FormData();
+    formdata.append('file', file, file.name);
+    this.upload.postFileImage(formdata).subscribe({
       next: (response) => {
         console.log('Fichier uploadé avec succès :', response);
       },
