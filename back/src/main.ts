@@ -7,7 +7,7 @@ import { mkdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { DefaultAzureCredential } from '@azure/identity';
 import { SecretClient } from '@azure/keyvault-secrets';
-import { GlobalExceptionFilter } from './filters/global-exception.filter';
+// GlobalExceptionFilter is now registered via APP_FILTER in AppModule
 
 async function loadKeyVaultSecrets(): Promise<void> {
   const logger = new Logger('KeyVault');
@@ -100,8 +100,7 @@ async function bootstrap() {
     }),
   );
 
-  // Global exception filter - catches all errors and returns proper JSON responses
-  app.useGlobalFilters(new GlobalExceptionFilter());
+  // GlobalExceptionFilter is registered via APP_FILTER in AppModule for dependency injection
 
   app.enableCors();
 
