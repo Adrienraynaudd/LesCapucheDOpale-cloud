@@ -25,37 +25,34 @@ const EQUIPMENT_STATUSES = {
 
 async function main() {
 
+  // Suppression des données existantes
   await prisma.user.deleteMany({});
   await prisma.role.deleteMany({});
   await prisma.equipmentStatus.deleteMany({});
   await prisma.status.deleteMany({});
 
-  // Reset auto-increment sequences to start from 1
-  await prisma.$executeRaw`ALTER SEQUENCE "Role_id_seq" RESTART WITH 1`;
-  await prisma.$executeRaw`ALTER SEQUENCE "User_id_seq" RESTART WITH 1`;
-  await prisma.$executeRaw`ALTER SEQUENCE "Status_id_seq" RESTART WITH 1`;
-  await prisma.$executeRaw`ALTER SEQUENCE "EquipmentStatus_id_seq" RESTART WITH 1`;
+  // Note: SQL Server utilise IDENTITY et non des séquences PostgreSQL
+  // Les IDs seront auto-incrémentés automatiquement
 
-  await Promise.all([
-    prisma.role.create({ data: { name: ROLES.ASSISTANT } }),
-    prisma.role.create({ data: { name: ROLES.CLIENT } }),
-  ]);
+  // Création des rôles
+  await prisma.role.create({ data: { name: ROLES.ASSISTANT } });
+  await prisma.role.create({ data: { name: ROLES.CLIENT } });
 
-    await prisma.status.create({ data: { name: STATUSES.STATUS_WAITING } });
-    await prisma.status.create({ data: { name: STATUSES.STATUS_VALIDATED } });
-    await prisma.status.create({ data: { name: STATUSES.STATUS_FAILED } });
-    await prisma.status.create({ data: { name: STATUSES.STATUS_STARTED } });
-    await prisma.status.create({ data: { name: STATUSES.STATUS_CANCELLED } });
-    await prisma.status.create({ data: { name: STATUSES.STATUS_REFUSED } });
-    await prisma.status.create({ data: { name: STATUSES.STATUS_SUCCEEDED } });
+  // Création des statuts de quête
+  await prisma.status.create({ data: { name: STATUSES.STATUS_WAITING } });
+  await prisma.status.create({ data: { name: STATUSES.STATUS_VALIDATED } });
+  await prisma.status.create({ data: { name: STATUSES.STATUS_FAILED } });
+  await prisma.status.create({ data: { name: STATUSES.STATUS_STARTED } });
+  await prisma.status.create({ data: { name: STATUSES.STATUS_CANCELLED } });
+  await prisma.status.create({ data: { name: STATUSES.STATUS_REFUSED } });
+  await prisma.status.create({ data: { name: STATUSES.STATUS_SUCCEEDED } });
 
+  // Création des statuts d'équipement
+  await prisma.equipmentStatus.create({ data: { name: EQUIPMENT_STATUSES.AVAILABLE } });
+  await prisma.equipmentStatus.create({ data: { name: EQUIPMENT_STATUSES.BORROWED } });
+  await prisma.equipmentStatus.create({ data: { name: EQUIPMENT_STATUSES.BROKEN } });
 
-    await prisma.equipmentStatus.create({ data: { name: EQUIPMENT_STATUSES.AVAILABLE } });
-    await prisma.equipmentStatus.create({ data: { name: EQUIPMENT_STATUSES.BORROWED } });
-    await prisma.equipmentStatus.create({ data: { name: EQUIPMENT_STATUSES.BROKEN } });
-
-
-
+  console.log('✅ Seed completed successfully!');
 }
 
 main()
