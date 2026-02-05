@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { APP_FILTER } from '@nestjs/core';
+import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './modules/users.module';
@@ -22,6 +22,7 @@ import { UploadModule } from './modules/upload.module';
 import { AzureKeyVaultModule } from './modules/azure-keyvault.module';
 import { RemoteLoggerService } from './services/remote-logger.service';
 import { GlobalExceptionFilter } from './filters/global-exception.filter';
+import { LoggingInterceptor } from './interceptors/logging.interceptor';
 
 @Module({
   imports: [
@@ -56,6 +57,10 @@ import { GlobalExceptionFilter } from './filters/global-exception.filter';
     {
       provide: APP_FILTER,
       useClass: GlobalExceptionFilter,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: LoggingInterceptor,
     },
   ],
   exports: [RemoteLoggerService],
