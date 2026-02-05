@@ -37,11 +37,14 @@ async function main() {
     await prisma.role.deleteMany({});
     
     // Réinitialiser le compteur IDENTITY et forcer les IDs
+    // IDENTITY_INSERT doit être dans la même requête que l'INSERT
     await prisma.$executeRawUnsafe(`DBCC CHECKIDENT ('Role', RESEED, 0)`);
-    await prisma.$executeRawUnsafe(`SET IDENTITY_INSERT [Role] ON`);
-    await prisma.$executeRawUnsafe(`INSERT INTO [Role] (id, name) VALUES (1, '${ROLES.ASSISTANT}')`);
-    await prisma.$executeRawUnsafe(`INSERT INTO [Role] (id, name) VALUES (2, '${ROLES.CLIENT}')`);
-    await prisma.$executeRawUnsafe(`SET IDENTITY_INSERT [Role] OFF`);
+    await prisma.$executeRawUnsafe(`
+      SET IDENTITY_INSERT [Role] ON;
+      INSERT INTO [Role] (id, name) VALUES (1, '${ROLES.ASSISTANT}');
+      INSERT INTO [Role] (id, name) VALUES (2, '${ROLES.CLIENT}');
+      SET IDENTITY_INSERT [Role] OFF;
+    `);
     
     console.log('✅ Rôles créés: assistant (ID=1), client (ID=2)');
   } else {
