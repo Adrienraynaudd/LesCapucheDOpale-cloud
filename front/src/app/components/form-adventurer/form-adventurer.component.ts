@@ -95,16 +95,19 @@ export class FormAdventurerComponent implements OnInit, OnChanges {
     if (this.adventurerForm.invalid) {
       return;
     }
-    this.formSubmitted.emit(
-      {
-        name: this.adventurerForm.get('name')?.value ?? "",
-        imageUrl: this.adventurerForm.get('imageUrl')?.value ?? undefined,
-        specialityId: +(this.adventurerForm.get('specialityId')?.value ?? 0),
-        equipmentTypeIds: (this.adventurerForm.get('equipmentTypeIds')?.value ?? []).map((id: any) => +id),
-        consumableTypeIds: (this.adventurerForm.get('consumableTypeIds')?.value ?? []).map((id: any) => +id),
-        dailyRate: this.getMoney(),
-      }
-    );
+    const imageUrlValue = this.adventurerForm.get('imageUrl')?.value;
+    const formData: AdventurerFormData = {
+      name: this.adventurerForm.get('name')?.value ?? "",
+      specialityId: +(this.adventurerForm.get('specialityId')?.value ?? 0),
+      equipmentTypeIds: (this.adventurerForm.get('equipmentTypeIds')?.value ?? []).map((id: any) => +id),
+      consumableTypeIds: (this.adventurerForm.get('consumableTypeIds')?.value ?? []).map((id: any) => +id),
+      dailyRate: this.getMoney(),
+    };
+    // N'inclure imageUrl que si elle a une valeur
+    if (imageUrlValue) {
+      formData.imageUrl = imageUrlValue;
+    }
+    this.formSubmitted.emit(formData);
   }
 
   protected getMoney(): number {

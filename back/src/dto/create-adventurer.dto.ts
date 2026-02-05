@@ -7,6 +7,7 @@ import {
   IsPositive,
   IsOptional,
   IsUrl,
+  ValidateIf,
 } from 'class-validator';
 
 export class CreateAdventurerDto {
@@ -15,7 +16,7 @@ export class CreateAdventurerDto {
   name: string;
 
   @IsOptional()
-  @IsString()
+  @ValidateIf((o) => o.imageUrl !== '' && o.imageUrl !== null)
   @IsUrl()
   imageUrl?: string;
 
