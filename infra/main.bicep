@@ -149,6 +149,7 @@ module backendApp 'modules/container-app-backend.bicep' = {
     jwtSecretAdmin: jwtSecretAdmin
     storageConnectionString: storage.outputs.connectionString
     appConfigEndpoint: appConfig.outputs.endpoint
+    logFunctionUrl: 'https://func-${resourcePrefix}.azurewebsites.net/api/log-receiver'
   }
 }
 

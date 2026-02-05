@@ -45,6 +45,9 @@ param storageConnectionString string
 @description('Endpoint App Configuration')
 param appConfigEndpoint string
 
+@description('URL de la Function App pour les logs')
+param logFunctionUrl string = ''
+
 // ============================================================================
 // CONTAINER APP - BACKEND API
 // ============================================================================
@@ -138,6 +141,10 @@ resource backendApp 'Microsoft.App/containerApps@2023-05-01' = {
             {
               name: 'AZURE_APP_CONFIG_ENDPOINT'
               value: appConfigEndpoint
+            }
+            {
+              name: 'LOG_FUNCTION_URL'
+              value: logFunctionUrl
             }
           ]
           probes: [
