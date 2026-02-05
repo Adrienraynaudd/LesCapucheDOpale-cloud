@@ -48,22 +48,20 @@ async function main() {
     console.log('✅ Rôles déjà corrects: assistant (ID=1), client (ID=2)');
   }
 
-  // Création des statuts de quête (upsert par nom unique)
+  // Création des statuts de quête (créer si n'existe pas)
   for (const statusName of Object.values(STATUSES)) {
-    await prisma.status.upsert({
-      where: { name: statusName },
-      update: {},
-      create: { name: statusName },
-    });
+    const existing = await prisma.status.findFirst({ where: { name: statusName } });
+    if (!existing) {
+      await prisma.status.create({ data: { name: statusName } });
+    }
   }
 
-  // Création des statuts d'équipement (upsert par nom unique)
+  // Création des statuts d'équipement (créer si n'existe pas)
   for (const statusName of Object.values(EQUIPMENT_STATUSES)) {
-    await prisma.equipmentStatus.upsert({
-      where: { name: statusName },
-      update: {},
-      create: { name: statusName },
-    });
+    const existing = await prisma.equipmentStatus.findFirst({ where: { name: statusName } });
+    if (!existing) {
+      await prisma.equipmentStatus.create({ data: { name: statusName } });
+    }
   }
 
   console.log('✅ Seed completed successfully!');
