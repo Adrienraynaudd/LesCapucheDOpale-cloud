@@ -4,12 +4,18 @@ import {
   IsOptional,
   IsPositive,
   IsString,
+  IsUrl,
 } from 'class-validator';
 
 export class UpdateAdventurerDto {
   @IsOptional()
   @IsString()
   name?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsUrl()
+  imageUrl?: string;
 
   @IsOptional()
   @IsInt()

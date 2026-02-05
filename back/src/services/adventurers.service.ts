@@ -56,6 +56,7 @@ export class AdventurersService {
   async create(createAdventurerDto: CreateAdventurerDto) {
     const {
       name,
+      imageUrl,
       specialityId,
       dailyRate,
       equipmentTypeIds = [],
@@ -101,6 +102,7 @@ export class AdventurersService {
     return this.prisma.adventurer.create({
       data: {
         name,
+        imageUrl,
         specialityId,
         dailyRate,
         experience: 0,

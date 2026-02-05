@@ -139,6 +139,7 @@
             <img [src]="imagePreviewUrl" alt="Aperçu de l'image" />
             <button type="button" class="remove-image-btn" (click)="removeImage()">✕</button>
           </div>
+          <p class="current-image-name">Image actuelle: {{ getImageFileName() }}</p>
         }
         <input 
           type="file" 

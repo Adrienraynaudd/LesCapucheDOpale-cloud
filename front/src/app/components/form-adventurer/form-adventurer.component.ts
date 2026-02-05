@@ -246,4 +246,16 @@ export class FormAdventurerComponent implements OnInit, OnChanges {
     this.imageUploadError = '';
   }
 
+  getImageFileName(): string {
+    const imageUrl = this.adventurerForm.get('imageUrl')?.value;
+    if (!imageUrl) return '';
+    try {
+      const url = new URL(imageUrl);
+      const pathname = url.pathname;
+      return pathname.split('/').pop() || 'image';
+    } catch {
+      return 'image';
+    }
+  }
+
 }
