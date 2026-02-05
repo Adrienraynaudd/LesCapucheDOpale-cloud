@@ -1,4 +1,4 @@
-// sqldatabase.bicep - Module Azure SQL Database
+// sqldatabase.bicep - Module Azure SQL Database 
 
 @description('Nom du serveur SQL')
 param serverName string
