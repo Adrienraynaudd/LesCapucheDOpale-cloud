@@ -22,6 +22,12 @@ export class LoggingInterceptor implements NestInterceptor {
     const response = ctx.getResponse<Response>();
 
     const { method, url } = request;
+
+    // Ne pas logger les health checks
+    if (url === '/health' || url.startsWith('/health?')) {
+      return next.handle();
+    }
+
     const startTime = Date.now();
 
     return next.handle().pipe(
