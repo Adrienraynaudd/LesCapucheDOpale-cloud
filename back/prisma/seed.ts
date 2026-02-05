@@ -31,10 +31,11 @@ async function main() {
   await prisma.equipmentStatus.deleteMany({});
   await prisma.status.deleteMany({});
 
-  // Note: SQL Server utilise IDENTITY et non des séquences PostgreSQL
-  // Les IDs seront auto-incrémentés automatiquement
+ await prisma.$executeRawUnsafe(`DBCC CHECKIDENT ('Role', RESEED, 0)`);
+  await prisma.$executeRawUnsafe(`DBCC CHECKIDENT ('Status', RESEED, 0)`);
+  await prisma.$executeRawUnsafe(`DBCC CHECKIDENT ('EquipmentStatus', RESEED, 0)`);
 
-  // Création des rôles
+  // Création des rôles (IDs seront 1 et 2)
   await prisma.role.create({ data: { name: ROLES.ASSISTANT } });
   await prisma.role.create({ data: { name: ROLES.CLIENT } });
 
