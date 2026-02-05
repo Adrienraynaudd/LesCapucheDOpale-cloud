@@ -6,12 +6,18 @@ import {
   IsNotEmpty,
   IsPositive,
   IsOptional,
+  IsUrl,
 } from 'class-validator';
 
 export class CreateAdventurerDto {
   @IsString()
   @IsNotEmpty()
   name: string;
+
+  @IsOptional()
+  @IsString()
+  @IsUrl()
+  imageUrl?: string;
 
   @IsInt()
   @IsPositive()

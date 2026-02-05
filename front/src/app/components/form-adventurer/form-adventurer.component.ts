@@ -8,7 +8,7 @@ import { forkJoin } from 'rxjs';
 import { SpecialityService } from '../../services/speciality/speciality.service';
 import { EquipmentService } from '../../services/equipment/equipment.service';
 import { ConsumableService } from '../../services/consumable/consumable.service';
-import { Upload} from '../../services/upload/upload';
+import { Upload } from '../../services/upload/upload';
 import { FormMoney } from '../form-money/form-money';
 
 @Component({
@@ -27,6 +27,7 @@ export class FormAdventurerComponent implements OnInit, OnChanges {
     equipmentTypeIds: new FormControl([] as number[], []),
     consumableTypeIds: new FormControl([] as number[], []),
     dailyRate: new FormControl(0, [Validators.required, Validators.min(0)]),
+    imageUrl: new FormControl<string | null>(null),
   });
   protected newSpecialityForm = new FormGroup({
     name: new FormControl(''),
@@ -48,6 +49,11 @@ export class FormAdventurerComponent implements OnInit, OnChanges {
   protected newEquipTypeError = '';
   protected newConsTypeError = '';
   protected newSpeError = '';
+
+  // Image upload
+  protected imagePreviewUrl: string | null = null;
+  protected imageUploading = false;
+  protected imageUploadError = '';
 
   constructor(
     private readonly specialityService: SpecialityService,
@@ -76,7 +82,11 @@ export class FormAdventurerComponent implements OnInit, OnChanges {
         equipmentTypeIds: this.initialData.equipmentTypeIds,
         consumableTypeIds: this.initialData.consumableTypeIds,
         dailyRate: this.initialData.dailyRate,
+        imageUrl: this.initialData.imageUrl || null,
       });
+      if (this.initialData.imageUrl) {
+        this.imagePreviewUrl = this.initialData.imageUrl;
+      }
     }
   }
 
@@ -88,6 +98,7 @@ export class FormAdventurerComponent implements OnInit, OnChanges {
     this.formSubmitted.emit(
       {
         name: this.adventurerForm.get('name')?.value ?? "",
+        imageUrl: this.adventurerForm.get('imageUrl')?.value ?? undefined,
         specialityId: +(this.adventurerForm.get('specialityId')?.value ?? 0),
         equipmentTypeIds: (this.adventurerForm.get('equipmentTypeIds')?.value ?? []).map((id: any) => +id),
         consumableTypeIds: (this.adventurerForm.get('consumableTypeIds')?.value ?? []).map((id: any) => +id),
@@ -182,15 +193,57 @@ export class FormAdventurerComponent implements OnInit, OnChanges {
     this.newSpeError = '';
   }
 
-  uploadFileImage(file: File): void {
+  onImageSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) {
+      return;
+    }
+
+    const file = input.files[0];
+    
+    // Vérifier le type de fichier
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      this.imageUploadError = 'Format non supporté. Utilisez JPG, PNG, GIF ou WEBP.';
+      return;
+    }
+
+    // Vérifier la taille (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      this.imageUploadError = 'L\'image est trop grande. Maximum 5MB.';
+      return;
+    }
+
+    this.imageUploadError = '';
+    this.imageUploading = true;
+
+    // Créer un aperçu local
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.imagePreviewUrl = reader.result as string;
+    };
+    reader.readAsDataURL(file);
+
+    // Upload vers Azure
     this.upload.postFileImage(file).subscribe({
       next: (response) => {
-        console.log('Fichier uploadé avec succès :', response);
+        this.imageUploading = false;
+        if (response && response.url) {
+          this.adventurerForm.get('imageUrl')?.setValue(response.url);
+        }
       },
       error: (error) => {
-        console.error('Erreur lors de l\'upload du fichier :', error);
+        this.imageUploading = false;
+        this.imageUploadError = 'Erreur lors de l\'upload de l\'image.';
+        console.error('Erreur upload:', error);
       }
     });
+  }
+
+  removeImage(): void {
+    this.imagePreviewUrl = null;
+    this.adventurerForm.get('imageUrl')?.setValue(null);
+    this.imageUploadError = '';
   }
 
 }

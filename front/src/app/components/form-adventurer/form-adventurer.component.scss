@@ -183,3 +183,72 @@
   margin-top: -1rem;
   z-index: 2;
 }
+
+// Image upload styles
+.image-upload-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  input[type="file"] {
+    padding: 10px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    color: white;
+    cursor: pointer;
+
+    &::file-selector-button {
+      background-color: $color4;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-right: 10px;
+
+      &:hover {
+        background-color: darken($color4, 10%);
+      }
+    }
+  }
+}
+
+.image-preview {
+  position: relative;
+  display: inline-block;
+  width: 120px;
+
+  img {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 2px solid $color4;
+  }
+
+  .remove-image-btn {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: #d32f2f;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover {
+      background-color: darken(#d32f2f, 10%);
+    }
+  }
+}
+
+.uploading {
+  color: $color4;
+  font-style: italic;
+}

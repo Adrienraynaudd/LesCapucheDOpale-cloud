@@ -130,9 +130,30 @@
       <p class="error">Le type de consommable est requis.</p>
       }
     </div>
+
+    <div class="form-group">
+      <label for="adventurerImage">Image de l'aventurier:</label>
+      <div class="image-upload-container">
+        @if (imagePreviewUrl) {
+          <div class="image-preview">
+            <img [src]="imagePreviewUrl" alt="Aperçu de l'image" />
+            <button type="button" class="remove-image-btn" (click)="removeImage()">✕</button>
+          </div>
+        }
+        <input 
+          type="file" 
+          id="adventurerImage" 
+          accept="image/jpeg,image/png,image/gif,image/webp"
+          (change)="onImageSelected($event)"
+          #fileInput
+        />
+        @if (imageUploading) {
+          <p class="uploading">Upload en cours...</p>
+        }
+        @if (imageUploadError) {
+          <p class="error">{{ imageUploadError }}</p>
+        }
+      </div>
+    </div>
   </span>
 </form>
-
-<p>selectionner un fichier</p>
-<input type="file" #fileInput/>
-<button (click)="fileInput.files && fileInput.files.length > 0 && uploadFileImage(fileInput.files[0])">Uploader</button>

@@ -1,5 +1,14 @@
 <div class="adventurer-item commun-card">
-  <h3 class="title">{{ adventurer.name }}</h3>
+  <div class="adventurer-header">
+    @if (adventurer.imageUrl) {
+      <img class="adventurer-avatar" [src]="adventurer.imageUrl" [alt]="adventurer.name" />
+    } @else {
+      <div class="adventurer-avatar-placeholder">
+        <span>{{ adventurer.name.charAt(0).toUpperCase() }}</span>
+      </div>
+    }
+    <h3 class="title">{{ adventurer.name }}</h3>
+  </div>
   @if (isSelected) {
   <span class="selected-badge">Sélectionné</span>
   }

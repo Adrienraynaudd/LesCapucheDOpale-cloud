@@ -3,6 +3,7 @@ import { ConsumableType, EquipmentType, Speciality } from "./models";
 export interface Adventurer {
   id: number;
   name: string;
+  imageUrl?: string;
   speciality: Speciality;
   specialityId: number;
   equipmentTypes: EquipmentType[];
@@ -15,6 +16,7 @@ export interface Adventurer {
 
 export interface AdventurerFormData {
   name: string;
+  imageUrl?: string;
   specialityId: number;
   equipmentTypeIds: number[];
   consumableTypeIds: number[];

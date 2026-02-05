@@ -26,6 +26,7 @@ model Role {
 model Adventurer {
   id             Int          @id @default(autoincrement())
   name           String
+  imageUrl       String?
   specialityId    Int
   speciality      Speciality    @relation(fields: [specialityId], references: [id])
   dailyRate      Int
