@@ -219,37 +219,51 @@ jobs:
     runs-on: ubuntu-latest
     needs: [deploy-infrastructure, deploy-function, database-migration]
     if: always() && needs.deploy-infrastructure.result == 'success'
+    outputs:
+      backend-url: ${{ steps.get-urls.outputs.backend }}
+      frontend-url: ${{ steps.get-urls.outputs.frontend }}
     steps:
       - uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Test endpoints
+      - name: Get deployment URLs
+        id: get-urls
         run: |
           ENV="${{ github.event.inputs.environment || 'dev' }}"
           RG="rg-${{ env.PROJECT_NAME }}-$ENV"
           
-          # Récupérer les URLs
           BACKEND=$(az containerapp show --name "ca-${{ env.PROJECT_NAME }}-${ENV}-api" --resource-group "$RG" --query "properties.configuration.ingress.fqdn" -o tsv)
           FRONTEND=$(az containerapp show --name "ca-${{ env.PROJECT_NAME }}-${ENV}-web" --resource-group "$RG" --query "properties.configuration.ingress.fqdn" -o tsv)
           
-          echo "🔗 Backend: https://$BACKEND"
-          echo "🔗 Frontend: https://$FRONTEND"
+          echo "backend=https://$BACKEND" >> $GITHUB_OUTPUT
+          echo "frontend=https://$FRONTEND" >> $GITHUB_OUTPUT
+
+      - name: 🧪 Test Backend Health
+        uses: jtalk/url-health-check-action@v4
+        with:
+          url: ${{ steps.get-urls.outputs.backend }}/health
+          max-attempts: 5
+          retry-delay: 10s
+          follow-redirect: true
+
+      - name: 🧪 Test Frontend
+        uses: jtalk/url-health-check-action@v4
+        with:
+          url: ${{ steps.get-urls.outputs.frontend }}
+          max-attempts: 5
+          retry-delay: 10s
+          follow-redirect: true
+
+      - name: 📋 Generate Summary
+        if: always()
+        run: |
+          ENV="${{ github.event.inputs.environment || 'dev' }}"
+          cat >> $GITHUB_STEP_SUMMARY << EOF
+          ## 🚀 Deployment Complete ($ENV)
           
-          # Test avec retry intégré à curl (plus rapide que des boucles)
-          echo ""
-          echo "🧪 Testing Backend..."
-          curl -sf --retry 5 --retry-delay 10 --retry-all-errors "https://$BACKEND/health" && echo "✅ Backend OK" || echo "⚠️ Backend warming up"
-          
-          echo ""
-          echo "🧪 Testing Frontend..."
-          curl -sf --retry 5 --retry-delay 10 --retry-all-errors "https://$FRONTEND" > /dev/null && echo "✅ Frontend OK" || echo "⚠️ Frontend warming up"
-          
-          # Générer le résumé
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "## 🚀 Deployment Complete" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Resource | URL |" >> $GITHUB_STEP_SUMMARY
-          echo "|----------|-----|" >> $GITHUB_STEP_SUMMARY
-          echo "| 🌐 Frontend | https://$FRONTEND |" >> $GITHUB_STEP_SUMMARY
-          echo "| ⚙️ Backend | https://$BACKEND/health |" >> $GITHUB_STEP_SUMMARY
+          | Resource | URL |
+          |----------|-----|
+          | 🌐 Frontend | ${{ steps.get-urls.outputs.frontend }} |
+          | ⚙️ Backend | ${{ steps.get-urls.outputs.backend }}/health |
+          EOF
