@@ -1,7 +1,3 @@
-# =============================================================================
-# CI/CD Pipeline - Les Capuches d'Opale
-# =============================================================================
-
 name: CI/CD Azure Deployment
 
 on:
@@ -21,9 +17,7 @@ env:
   PROJECT_NAME: capuchesdopale
 
 jobs:
-  # ===========================================================================
   # Tests + Builds en parallèle
-  # ===========================================================================
   
   test-backend:
     name:  Test Backend
@@ -120,9 +114,7 @@ jobs:
           path: ./azure-functions
           retention-days: 1
 
-  # ===========================================================================
   # PHASE 2: Déploiement Infrastructure Azure
-  # ===========================================================================
   
   deploy-infrastructure:
     name:  Deploy Infrastructure
@@ -161,9 +153,7 @@ jobs:
             frontendImageTag=${{ github.sha }}
           failOnStdErr: false
 
-  # ===========================================================================
   # Déploiements post-infra en parallèle
-  # ===========================================================================
   
   deploy-function:
     name:  Deploy Function
@@ -210,12 +200,10 @@ jobs:
         run: npx prisma db seed
         continue-on-error: true
 
-  # ===========================================================================
   # Smoke Tests
-  # ===========================================================================
   
   smoke-tests:
-    name: 🔍 Smoke Tests
+    name:  Smoke Tests
     runs-on: ubuntu-latest
     needs: [deploy-infrastructure, deploy-function, database-migration]
     if: always() && needs.deploy-infrastructure.result == 'success'
@@ -239,31 +227,31 @@ jobs:
           echo "backend=https://$BACKEND" >> $GITHUB_OUTPUT
           echo "frontend=https://$FRONTEND" >> $GITHUB_OUTPUT
 
-      - name: 🧪 Test Backend Health
+      - name:  Test Backend Health
         uses: jtalk/url-health-check-action@v4
         with:
           url: ${{ steps.get-urls.outputs.backend }}/health
-          max-attempts: 5
-          retry-delay: 10s
+          max-attempts: 3
+          retry-delay: 5s
           follow-redirect: true
 
-      - name: 🧪 Test Frontend
+      - name:  Test Frontend
         uses: jtalk/url-health-check-action@v4
         with:
           url: ${{ steps.get-urls.outputs.frontend }}
-          max-attempts: 5
-          retry-delay: 10s
+          max-attempts: 3
+          retry-delay: 5s
           follow-redirect: true
 
-      - name: 📋 Generate Summary
+      - name:  Generate Summary
         if: always()
         run: |
           ENV="${{ github.event.inputs.environment || 'dev' }}"
           cat >> $GITHUB_STEP_SUMMARY << EOF
-          ## 🚀 Deployment Complete ($ENV)
+          ##  Deployment Complete ($ENV)
           
           | Resource | URL |
           |----------|-----|
-          | 🌐 Frontend | ${{ steps.get-urls.outputs.frontend }} |
-          | ⚙️ Backend | ${{ steps.get-urls.outputs.backend }}/health |
+          |  Frontend | ${{ steps.get-urls.outputs.frontend }} |
+          |  Backend | ${{ steps.get-urls.outputs.backend }}/health |
           EOF
