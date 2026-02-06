@@ -22,11 +22,11 @@ env:
 
 jobs:
   # ===========================================================================
-  # PHASE 1: Tests + Builds (5 jobs en parallèle)
+  # Tests + Builds en parallèle
   # ===========================================================================
   
   test-backend:
-    name: 🧪 Test Backend
+    name:  Test Backend
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -45,7 +45,7 @@ jobs:
         continue-on-error: true
 
   test-frontend:
-    name: 🧪 Test Frontend
+    name: Test Frontend
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -61,7 +61,7 @@ jobs:
         continue-on-error: true
 
   build-backend-image:
-    name: 🐳 Build Backend
+    name: Build Backend
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -82,7 +82,7 @@ jobs:
           cache-to: type=gha,mode=max,scope=backend
 
   build-frontend-image:
-    name: 🐳 Build Frontend
+    name: Build Frontend
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -103,7 +103,7 @@ jobs:
           cache-to: type=gha,mode=max,scope=frontend
 
   build-functions:
-    name: ⚡ Build Functions
+    name:  Build Functions
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -125,7 +125,7 @@ jobs:
   # ===========================================================================
   
   deploy-infrastructure:
-    name: 🏗️ Deploy Infrastructure
+    name:  Deploy Infrastructure
     runs-on: ubuntu-latest
     needs: [build-backend-image, build-frontend-image]
     environment: ${{ github.event.inputs.environment || 'dev' }}
@@ -162,11 +162,11 @@ jobs:
           failOnStdErr: false
 
   # ===========================================================================
-  # PHASE 3: Déploiements post-infra (2 jobs en parallèle)
+  # Déploiements post-infra en parallèle
   # ===========================================================================
   
   deploy-function:
-    name: ⚡ Deploy Function
+    name:  Deploy Function
     runs-on: ubuntu-latest
     needs: [deploy-infrastructure, build-functions]
     environment: ${{ github.event.inputs.environment || 'dev' }}
@@ -184,7 +184,7 @@ jobs:
           package: ./azure-functions
 
   database-migration:
-    name: 🗄️ Database Migration
+    name:  Database Migration
     runs-on: ubuntu-latest
     needs: deploy-infrastructure
     environment: ${{ github.event.inputs.environment || 'dev' }}
@@ -211,7 +211,7 @@ jobs:
         continue-on-error: true
 
   # ===========================================================================
-  # PHASE 4: Smoke Tests + Résumé
+  # Smoke Tests
   # ===========================================================================
   
   smoke-tests:
