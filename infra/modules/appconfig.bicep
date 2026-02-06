@@ -1,5 +1,3 @@
-// appconfig.bicep - Module Azure App Configuration pour la centralisation des paramètres
-
 @description('Nom de l\'App Configuration')
 param name string
 
@@ -15,9 +13,7 @@ param environment string
 @description('Nom du Key Vault associé')
 param keyVaultName string
 
-// ============================================================================
 // APP CONFIGURATION
-// ============================================================================
 
 resource appConfiguration 'Microsoft.AppConfiguration/configurationStores@2023-03-01' = {
   name: name
@@ -32,11 +28,7 @@ resource appConfiguration 'Microsoft.AppConfiguration/configurationStores@2023-0
   }
 }
 
-// ============================================================================
-// KEY-VALUES (Configuration Settings)
-// ============================================================================
 
-// Configuration de l'environnement
 resource envConfig 'Microsoft.AppConfiguration/configurationStores/keyValues@2023-03-01' = {
   parent: appConfiguration
   name: 'App:Environment'
@@ -75,7 +67,6 @@ resource jwtExpirationConfig 'Microsoft.AppConfiguration/configurationStores/key
   }
 }
 
-// Feature Flags
 resource featureLoggingEnabled 'Microsoft.AppConfiguration/configurationStores/keyValues@2023-03-01' = {
   parent: appConfiguration
   name: '.appconfig.featureflag~2FLoggingEnabled'
@@ -103,7 +94,6 @@ resource featureNewQuestSystem 'Microsoft.AppConfiguration/configurationStores/k
   }
 }
 
-// Référence au Key Vault
 resource keyVaultReference 'Microsoft.AppConfiguration/configurationStores/keyValues@2023-03-01' = {
   parent: appConfiguration
   name: 'App:KeyVault:Name'
@@ -112,10 +102,6 @@ resource keyVaultReference 'Microsoft.AppConfiguration/configurationStores/keyVa
     contentType: 'text/plain'
   }
 }
-
-// ============================================================================
-// OUTPUTS
-// ============================================================================
 
 @description('Endpoint de l\'App Configuration')
 output endpoint string = appConfiguration.properties.endpoint
