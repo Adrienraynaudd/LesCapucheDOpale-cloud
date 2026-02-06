@@ -67,24 +67,6 @@ resource jwtExpirationConfig 'Microsoft.AppConfiguration/configurationStores/key
   }
 }
 
-resource featureLoggingEnabled 'Microsoft.AppConfiguration/configurationStores/keyValues@2023-03-01' = {
-  parent: appConfiguration
-  name: '.appconfig.featureflag~2FLoggingEnabled'
-  properties: {
-    value: '{"id":"LoggingEnabled","description":"Enable Azure Function logging","enabled":true}'
-    contentType: 'application/vnd.microsoft.appconfig.ff+json;charset=utf-8'
-  }
-}
-
-resource featureMaintenanceMode 'Microsoft.AppConfiguration/configurationStores/keyValues@2023-03-01' = {
-  parent: appConfiguration
-  name: '.appconfig.featureflag~2FMaintenanceMode'
-  properties: {
-    value: '{"id":"MaintenanceMode","description":"Enable maintenance mode","enabled":false}'
-    contentType: 'application/vnd.microsoft.appconfig.ff+json;charset=utf-8'
-  }
-}
-
 resource featureNewQuestSystem 'Microsoft.AppConfiguration/configurationStores/keyValues@2023-03-01' = {
   parent: appConfiguration
   name: '.appconfig.featureflag~2FNewQuestSystem'
