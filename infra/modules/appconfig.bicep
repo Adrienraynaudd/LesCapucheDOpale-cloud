@@ -46,25 +46,6 @@ resource envConfig 'Microsoft.AppConfiguration/configurationStores/keyValues@202
   }
 }
 
-// Configuration de la pagination
-resource paginationConfig 'Microsoft.AppConfiguration/configurationStores/keyValues@2023-03-01' = {
-  parent: appConfiguration
-  name: 'App:Pagination:DefaultPageSize'
-  properties: {
-    value: '20'
-    contentType: 'text/plain'
-  }
-}
-
-resource maxPageSizeConfig 'Microsoft.AppConfiguration/configurationStores/keyValues@2023-03-01' = {
-  parent: appConfiguration
-  name: 'App:Pagination:MaxPageSize'
-  properties: {
-    value: '100'
-    contentType: 'text/plain'
-  }
-}
-
 // Configuration des uploads
 resource maxFileSizeConfig 'Microsoft.AppConfiguration/configurationStores/keyValues@2023-03-01' = {
   parent: appConfiguration
@@ -80,25 +61,6 @@ resource allowedExtensionsConfig 'Microsoft.AppConfiguration/configurationStores
   name: 'App:Upload:AllowedExtensions'
   properties: {
     value: '.jpg,.jpeg,.png,.gif,.webp,.pdf,.json,.txt,.csv'
-    contentType: 'text/plain'
-  }
-}
-
-// Configuration des quêtes
-resource maxAdventurersPerQuestConfig 'Microsoft.AppConfiguration/configurationStores/keyValues@2023-03-01' = {
-  parent: appConfiguration
-  name: 'App:Quest:MaxAdventurersPerQuest'
-  properties: {
-    value: '10'
-    contentType: 'text/plain'
-  }
-}
-
-resource defaultRewardPercentageConfig 'Microsoft.AppConfiguration/configurationStores/keyValues@2023-03-01' = {
-  parent: appConfiguration
-  name: 'App:Quest:DefaultRewardPercentage'
-  properties: {
-    value: '70'
     contentType: 'text/plain'
   }
 }
