@@ -1,5 +1,3 @@
-// function-app.bicep - Module Azure Function App pour le logging FaaS
-
 @description('Nom de la Function App')
 param name string
 
@@ -19,9 +17,6 @@ param storageAccountKey string
 @description('ID du workspace Log Analytics')
 param logAnalyticsWorkspaceId string
 
-// ============================================================================
-// APP SERVICE PLAN (Consumption)
-// ============================================================================
 
 resource appServicePlan 'Microsoft.Web/serverfarms@2023-01-01' = {
   name: '${name}-plan'
@@ -40,9 +35,7 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2023-01-01' = {
   }
 }
 
-// ============================================================================
 // FUNCTION APP
-// ============================================================================
 
 resource functionApp 'Microsoft.Web/sites@2023-01-01' = {
   name: name
@@ -103,10 +96,6 @@ resource functionApp 'Microsoft.Web/sites@2023-01-01' = {
   }
 }
 
-// ============================================================================
-// APPLICATION INSIGHTS
-// ============================================================================
-
 resource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {
   name: '${name}-insights'
   location: location
@@ -119,10 +108,6 @@ resource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {
     publicNetworkAccessForQuery: 'Enabled'
   }
 }
-
-// ============================================================================
-// OUTPUTS
-// ============================================================================
 
 @description('URL de la Function App')
 output functionAppUrl string = 'https://${functionApp.properties.defaultHostName}'

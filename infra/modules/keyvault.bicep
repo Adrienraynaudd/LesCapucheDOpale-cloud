@@ -1,5 +1,3 @@
-// keyvault.bicep - Module Azure Key Vault pour la gestion sécurisée des secrets
-
 @description('Nom du Key Vault')
 param name string
 
@@ -25,9 +23,7 @@ param jwtSecret string
 @secure()
 param jwtSecretAdmin string
 
-// ============================================================================
 // KEY VAULT
-// ============================================================================
 
 resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' = {
   name: name
@@ -53,9 +49,6 @@ resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' = {
   }
 }
 
-// ============================================================================
-// SECRETS
-// ============================================================================
 
 resource sqlAdminUsernameSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
   parent: keyVault
@@ -105,9 +98,6 @@ resource jwtSecretAdminResource 'Microsoft.KeyVault/vaults/secrets@2023-07-01' =
   }
 }
 
-// ============================================================================
-// OUTPUTS
-// ============================================================================
 
 @description('Nom du Key Vault')
 output keyVaultName string = keyVault.name

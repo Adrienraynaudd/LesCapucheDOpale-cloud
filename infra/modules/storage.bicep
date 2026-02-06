@@ -1,5 +1,3 @@
-// storage.bicep - Module Azure Storage Account pour le Blob Storage
-
 @description('Nom du Storage Account (doit être unique globalement)')
 param name string
 
@@ -9,9 +7,7 @@ param location string
 @description('Tags des ressources')
 param tags object
 
-// ============================================================================
 // STORAGE ACCOUNT
-// ============================================================================
 
 resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
   name: name
@@ -55,9 +51,7 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
   }
 }
 
-// ============================================================================
-// BLOB SERVICES
-// ============================================================================
+// BLOB 
 
 resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2023-01-01' = {
   parent: storageAccount
@@ -81,9 +75,6 @@ resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2023-01-01'
   }
 }
 
-// ============================================================================
-// CONTAINERS
-// ============================================================================
 
 resource uploadsContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-01-01' = {
   parent: blobService
@@ -129,9 +120,7 @@ resource questFilesContainer 'Microsoft.Storage/storageAccounts/blobServices/con
   }
 }
 
-// ============================================================================
-// TABLE SERVICES (pour les logs Azure Function)
-// ============================================================================
+// TABLE SERVICES 
 
 resource tableService 'Microsoft.Storage/storageAccounts/tableServices@2023-01-01' = {
   parent: storageAccount
@@ -145,9 +134,6 @@ resource logsTable 'Microsoft.Storage/storageAccounts/tableServices/tables@2023-
   properties: {}
 }
 
-// ============================================================================
-// OUTPUTS
-// ============================================================================
 
 @description('Nom du Storage Account')
 output storageAccountName string = storageAccount.name

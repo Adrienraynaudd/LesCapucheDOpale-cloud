@@ -1,5 +1,3 @@
-// container-apps-env.bicep - Module Azure Container Apps Environment
-
 @description('Nom de l\'environnement Container Apps')
 param name string
 
@@ -12,9 +10,7 @@ param tags object
 @description('ID du workspace Log Analytics')
 param logAnalyticsWorkspaceId string
 
-// ============================================================================
 // CONTAINER APPS ENVIRONMENT
-// ============================================================================
 
 resource containerAppsEnvironment 'Microsoft.App/managedEnvironments@2023-05-01' = {
   name: name
@@ -38,9 +34,7 @@ resource containerAppsEnvironment 'Microsoft.App/managedEnvironments@2023-05-01'
   }
 }
 
-// ============================================================================
 // OUTPUTS
-// ============================================================================
 
 @description('ID de l\'environnement Container Apps')
 output environmentId string = containerAppsEnvironment.id

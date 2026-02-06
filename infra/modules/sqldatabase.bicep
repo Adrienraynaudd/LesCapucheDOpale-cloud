@@ -1,5 +1,3 @@
-// sqldatabase.bicep - Module Azure SQL Database 
-
 @description('Nom du serveur SQL')
 param serverName string
 
@@ -20,9 +18,7 @@ param adminUsername string
 @secure()
 param adminPassword string
 
-// ============================================================================
 // SQL SERVER
-// ============================================================================
 
 resource sqlServer 'Microsoft.Sql/servers@2023-05-01-preview' = {
   name: serverName
@@ -36,10 +32,6 @@ resource sqlServer 'Microsoft.Sql/servers@2023-05-01-preview' = {
     publicNetworkAccess: 'Enabled'
   }
 }
-
-// ============================================================================
-// FIREWALL RULES
-// ============================================================================
 
 // Autoriser les services Azure
 resource allowAzureServices 'Microsoft.Sql/servers/firewallRules@2023-05-01-preview' = {
@@ -61,9 +53,7 @@ resource allowAllIps 'Microsoft.Sql/servers/firewallRules@2023-05-01-preview' = 
   }
 }
 
-// ============================================================================
 // DATABASE
-// ============================================================================
 
 resource sqlDatabase 'Microsoft.Sql/servers/databases@2023-05-01-preview' = {
   parent: sqlServer
@@ -86,9 +76,6 @@ resource sqlDatabase 'Microsoft.Sql/servers/databases@2023-05-01-preview' = {
   }
 }
 
-// ============================================================================
-// OUTPUTS
-// ============================================================================
 
 @description('Nom du serveur SQL')
 output serverName string = sqlServer.name

@@ -1,5 +1,3 @@
-// loganalytics.bicep - Module Log Analytics Workspace pour la surveillance
-
 @description('Nom du workspace Log Analytics')
 param name string
 
@@ -9,9 +7,7 @@ param location string
 @description('Tags des ressources')
 param tags object
 
-// ============================================================================
 // LOG ANALYTICS WORKSPACE
-// ============================================================================
 
 resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {
   name: name
@@ -33,9 +29,6 @@ resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10
   }
 }
 
-// ============================================================================
-// OUTPUTS
-// ============================================================================
 
 @description('ID du workspace Log Analytics')
 output workspaceId string = logAnalyticsWorkspace.id
@@ -46,5 +39,3 @@ output workspaceName string = logAnalyticsWorkspace.name
 @description('ID du client Log Analytics')
 output customerId string = logAnalyticsWorkspace.properties.customerId
 
-// Note: La clé partagée ne doit pas être exposée en output
-// Utiliser logAnalyticsWorkspace.listKeys().primarySharedKey directement dans les modules qui en ont besoin

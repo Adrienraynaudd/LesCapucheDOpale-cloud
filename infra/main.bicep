@@ -1,9 +1,5 @@
 targetScope = 'resourceGroup'
 
-// ============================================================================
-// PARAMETERS
-// ============================================================================
-
 @description('Nom du projet')
 param projectName string = 'capuchesdopale'
 
@@ -47,9 +43,6 @@ param containerRegistryUsername string
 @secure()
 param containerRegistryPassword string
 
-// ============================================================================
-// VARIABLES
-// ============================================================================
 
 var resourcePrefix = '${projectName}-${environment}'
 var tags = {
@@ -58,11 +51,8 @@ var tags = {
   managedBy: 'bicep'
 }
 
-// ============================================================================
-// MODULES
-// ============================================================================
 
-// Module Key Vault pour la gestion des secrets
+// Module Key Vault
 module keyVault 'modules/keyvault.bicep' = {
   name: 'keyVault-deployment'
   params: {
@@ -76,7 +66,7 @@ module keyVault 'modules/keyvault.bicep' = {
   }
 }
 
-// Module App Configuration pour la centralisation des paramètres
+// Module App Configuration 
 module appConfig 'modules/appconfig.bicep' = {
   name: 'appConfig-deployment'
   params: {
@@ -88,7 +78,7 @@ module appConfig 'modules/appconfig.bicep' = {
   }
 }
 
-// Module Storage Account pour le Blob Storage
+// Module Storage Account
 module storage 'modules/storage.bicep' = {
   name: 'storage-deployment'
   params: {
@@ -111,7 +101,7 @@ module sqlDatabase 'modules/sqldatabase.bicep' = {
   }
 }
 
-// Module Log Analytics pour la surveillance
+// Module Log Analytics
 module logAnalytics 'modules/loganalytics.bicep' = {
   name: 'logAnalytics-deployment'
   params: {
@@ -182,9 +172,6 @@ module functionApp 'modules/function-app.bicep' = {
   }
 }
 
-// ============================================================================
-// OUTPUTS
-// ============================================================================
 
 @description('URL du frontend')
 output frontendUrl string = frontendApp.outputs.fqdn

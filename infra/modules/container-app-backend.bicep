@@ -1,5 +1,3 @@
-// container-app-backend.bicep - Module Container App pour le Backend API
-
 @description('Nom du Container App')
 param name string
 
@@ -48,9 +46,7 @@ param appConfigEndpoint string
 @description('URL de la Function App pour les logs')
 param logFunctionUrl string = ''
 
-// ============================================================================
 // CONTAINER APP - BACKEND API
-// ============================================================================
 
 resource backendApp 'Microsoft.App/containerApps@2023-05-01' = {
   name: name
@@ -158,16 +154,6 @@ resource backendApp 'Microsoft.App/containerApps@2023-05-01' = {
               periodSeconds: 10
               failureThreshold: 3
             }
-            {
-              type: 'Readiness'
-              httpGet: {
-                path: '/health'
-                port: 3000
-              }
-              initialDelaySeconds: 5
-              periodSeconds: 5
-              failureThreshold: 3
-            }
           ]
         }
       ]
@@ -189,9 +175,6 @@ resource backendApp 'Microsoft.App/containerApps@2023-05-01' = {
   }
 }
 
-// ============================================================================
-// OUTPUTS
-// ============================================================================
 
 @description('FQDN du Container App Backend')
 output fqdn string = backendApp.properties.configuration.ingress.fqdn

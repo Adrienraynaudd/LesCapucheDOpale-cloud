@@ -1,5 +1,3 @@
-// container-app-frontend.bicep - Module Container App pour le Frontend
-
 @description('Nom du Container App')
 param name string
 
@@ -29,9 +27,7 @@ param imageTag string
 @description('URL du backend')
 param backendUrl string
 
-// ============================================================================
 // CONTAINER APP - FRONTEND
-// ============================================================================
 
 resource frontendApp 'Microsoft.App/containerApps@2023-05-01' = {
   name: name
@@ -87,16 +83,6 @@ resource frontendApp 'Microsoft.App/containerApps@2023-05-01' = {
               periodSeconds: 10
               failureThreshold: 3
             }
-            {
-              type: 'Readiness'
-              httpGet: {
-                path: '/'
-                port: 80
-              }
-              initialDelaySeconds: 5
-              periodSeconds: 5
-              failureThreshold: 3
-            }
           ]
         }
       ]
@@ -117,10 +103,6 @@ resource frontendApp 'Microsoft.App/containerApps@2023-05-01' = {
     }
   }
 }
-
-// ============================================================================
-// OUTPUTS
-// ============================================================================
 
 @description('FQDN du Container App Frontend')
 output fqdn string = frontendApp.properties.configuration.ingress.fqdn
