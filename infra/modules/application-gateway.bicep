@@ -96,12 +96,12 @@ resource appGateway 'Microsoft.Network/applicationGateways@2022-09-01' = {
   name: name
   location: location
   tags: tags
-  sku: {
-    name: 'WAF_v2'
-    tier: 'WAF_v2'
-    capacity: 1
-  }
   properties: {
+    sku: {
+      name: 'WAF_v2'
+      tier: 'WAF_v2'
+      capacity: 1
+    }
     enableHttp2: true
     gatewayIPConfigurations: [
       {
