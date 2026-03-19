@@ -60,14 +60,14 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2023-09-01' = {
         vnetAddressPrefix
       ]
     }
-  }
-}
-
-resource appGatewaySubnet 'Microsoft.Network/virtualNetworks/subnets@2023-09-01' = {
-  parent: virtualNetwork
-  name: subnetName
-  properties: {
-    addressPrefix: appGatewaySubnetPrefix
+    subnets: [
+      {
+        name: subnetName
+        properties: {
+          addressPrefix: appGatewaySubnetPrefix
+        }
+      }
+    ]
   }
 }
 
@@ -97,87 +97,85 @@ resource wafPolicy 'Microsoft.Network/ApplicationGatewayWebApplicationFirewallPo
       fileUploadLimitInMb: 100
       maxRequestBodySizeInKb: 128
     }
-    customRules: {
-      rules: concat(
-        [
-          {
-            name: 'rate-limit-per-ip'
-            priority: 10
-            ruleType: 'RateLimitRule'
-            action: 'Block'
-            state: 'Enabled'
-            rateLimitDuration: 'OneMin'
-            rateLimitThreshold: rateLimitThreshold
-            groupByUserSession: [
-              {
-                groupByVariables: [
-                  {
-                    variableName: 'ClientAddr'
-                  }
-                ]
-              }
-            ]
-            matchConditions: [
-              {
-                matchVariables: [
-                  {
-                    variableName: 'RequestUri'
-                  }
-                ]
-                operator: 'Contains'
-                matchValues: [
-                  '/'
-                ]
-              }
-            ]
-          }
-        ],
-        length(blockedIpAddresses) > 0
-          ? [
-              {
-                name: 'block-listed-ips'
-                priority: 20
-                ruleType: 'MatchRule'
-                action: 'Block'
-                state: 'Enabled'
-                matchConditions: [
-                  {
-                    matchVariables: [
-                      {
-                        variableName: 'RemoteAddr'
-                      }
-                    ]
-                    operator: 'IPMatch'
-                    matchValues: blockedIpAddresses
-                  }
-                ]
-              }
-            ]
-          : [],
-        length(blockedCountryCodes) > 0
-          ? [
-              {
-                name: 'geo-filter-block-countries'
-                priority: 30
-                ruleType: 'MatchRule'
-                action: 'Block'
-                state: 'Enabled'
-                matchConditions: [
-                  {
-                    matchVariables: [
-                      {
-                        variableName: 'RemoteAddr'
-                      }
-                    ]
-                    operator: 'GeoMatch'
-                    matchValues: blockedCountryCodes
-                  }
-                ]
-              }
-            ]
-          : []
-      )
-    }
+    customRules: concat(
+      [
+        {
+          name: 'rate-limit-per-ip'
+          priority: 10
+          ruleType: 'RateLimitRule'
+          action: 'Block'
+          state: 'Enabled'
+          rateLimitDuration: 'OneMin'
+          rateLimitThreshold: rateLimitThreshold
+          groupByUserSession: [
+            {
+              groupByVariables: [
+                {
+                  variableName: 'ClientAddr'
+                }
+              ]
+            }
+          ]
+          matchConditions: [
+            {
+              matchVariables: [
+                {
+                  variableName: 'RequestUri'
+                }
+              ]
+              operator: 'Contains'
+              matchValues: [
+                '/'
+              ]
+            }
+          ]
+        }
+      ],
+      length(blockedIpAddresses) > 0
+        ? [
+            {
+              name: 'block-listed-ips'
+              priority: 20
+              ruleType: 'MatchRule'
+              action: 'Block'
+              state: 'Enabled'
+              matchConditions: [
+                {
+                  matchVariables: [
+                    {
+                      variableName: 'RemoteAddr'
+                    }
+                  ]
+                  operator: 'IPMatch'
+                  matchValues: blockedIpAddresses
+                }
+              ]
+            }
+          ]
+        : [],
+      length(blockedCountryCodes) > 0
+        ? [
+            {
+              name: 'geo-filter-block-countries'
+              priority: 30
+              ruleType: 'MatchRule'
+              action: 'Block'
+              state: 'Enabled'
+              matchConditions: [
+                {
+                  matchVariables: [
+                    {
+                      variableName: 'RemoteAddr'
+                    }
+                  ]
+                  operator: 'GeoMatch'
+                  matchValues: blockedCountryCodes
+                }
+              ]
+            }
+          ]
+        : []
+    )
     managedRules: {
       managedRuleSets: [
         {
@@ -205,7 +203,7 @@ resource appGateway 'Microsoft.Network/applicationGateways@2022-09-01' = {
         name: 'appGatewayIpConfig'
         properties: {
           subnet: {
-            id: appGatewaySubnet.id
+            id: resourceId('Microsoft.Network/virtualNetworks/subnets', vnetName, subnetName)
           }
         }
       }
