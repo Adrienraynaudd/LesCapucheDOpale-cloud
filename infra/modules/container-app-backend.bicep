@@ -36,15 +36,16 @@ param jwtSecret string
 @secure()
 param jwtSecretAdmin string
 
-@description('Chaîne de connexion Storage')
-@secure()
-param storageConnectionString string
+@description('Nom du Storage Account Azure')
+param storageAccountName string
 
 @description('Endpoint App Configuration')
 param appConfigEndpoint string
 
 @description('URL de la Function App pour les logs')
 param logFunctionUrl string = ''
+
+var storageConnectionString = 'DefaultEndpointsProtocol=https;AccountName=${storageAccountName};AccountKey=${listKeys(resourceId('"'"'Microsoft.Storage/storageAccounts'"'"', storageAccountName), '"'"'2023-01-01'"'"').keys[0].value};EndpointSuffix=${az.environment().suffixes.storage}'
 
 // CONTAINER APP - BACKEND API
 

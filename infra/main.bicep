@@ -52,8 +52,6 @@ var tags = {
 }
 var storageAccountName = 'st${replace(resourcePrefix, '-', '')}'
 var sqlConnectionString = 'sqlserver://${sqlDatabase.outputs.serverFqdn}:1433;database=${sqlDatabase.outputs.databaseName};user=${sqlAdminUsername};password=${sqlAdminPassword};encrypt=true;trustServerCertificate=true;connectionTimeout=30'
-var storageAccountKey = listKeys(resourceId('Microsoft.Storage/storageAccounts', storageAccountName), '2023-01-01').keys[0].value
-var storageConnectionString = 'DefaultEndpointsProtocol=https;AccountName=${storageAccountName};AccountKey=${storageAccountKey};EndpointSuffix=${az.environment().suffixes.storage}'
 
 
 // Module Key Vault
@@ -141,7 +139,7 @@ module backendApp 'modules/container-app-backend.bicep' = {
     databaseConnectionString: sqlConnectionString
     jwtSecret: jwtSecret
     jwtSecretAdmin: jwtSecretAdmin
-    storageConnectionString: storageConnectionString
+    storageAccountName: storage.outputs.storageAccountName
     appConfigEndpoint: appConfig.outputs.endpoint
     logFunctionUrl: 'https://func-${resourcePrefix}.azurewebsites.net/api/log-receiver'
   }
@@ -183,7 +181,6 @@ module functionApp 'modules/function-app.bicep' = {
     location: location
     tags: tags
     storageAccountName: storage.outputs.storageAccountName
-    storageAccountKey: storageAccountKey
     logAnalyticsWorkspaceId: logAnalytics.outputs.workspaceId
   }
 }

@@ -92,7 +92,7 @@ resource wafPolicy 'Microsoft.Network/ApplicationGatewayWebApplicationFirewallPo
   }
 }
 
-resource appGateway 'Microsoft.Network/applicationGateways@2023-09-01' = {
+resource appGateway 'Microsoft.Network/applicationGateways@2022-09-01' = {
   name: name
   location: location
   tags: tags
@@ -131,7 +131,6 @@ resource appGateway 'Microsoft.Network/applicationGateways@2023-09-01' = {
         }
       }
     ]
-    sslCertificates: []
     backendAddressPools: [
       {
         name: 'frontend-pool'
@@ -258,7 +257,6 @@ resource appGateway 'Microsoft.Network/applicationGateways@2023-09-01' = {
         }
       }
     ]
-    redirectConfigurations: []
     requestRoutingRules: [
       {
         name: 'path-based-routing-rule'
