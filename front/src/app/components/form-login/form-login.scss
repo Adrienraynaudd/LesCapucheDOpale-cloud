@@ -66,3 +66,13 @@
   color: lighten($color4, 10%);
   transition: color 0.3s ease;
 }
+
+.github-btn {
+  margin-top: 0;
+  background: #111;
+  border: 1px solid #2f2f2f;
+}
+
+.github-btn:hover {
+  background: #1f1f1f;
+}

@@ -9,6 +9,7 @@ import { NewQuest } from './containers/new-quest/new-quest';
 import { ListQuest } from './containers/list-quest/list-quest';
 import { UpdateQuest } from './containers/update-quest/update-quest';
 import { Login } from './containers/login/login';
+import { OauthCallback } from './containers/oauth-callback/oauth-callback';
 import { authGuard } from './guard/auth-guard';
 import { AssignQuest } from './containers/assign-quest/assign-quest';
 import { NewEquipment } from './containers/new-equipment/new-equipment';
@@ -34,6 +35,7 @@ export const routes: Routes = [
     // User
     { path: 'user/new', component: NewUserComponent },
     { path: 'login', component: Login },
+    { path: 'auth/callback', component: OauthCallback },
 
     // Stock
     { path: 'stock', component: Stock, canActivate: [authGuard] },
