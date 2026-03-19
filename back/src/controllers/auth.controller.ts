@@ -46,15 +46,27 @@ export class AuthController {
     }
 
     const authResult = await this.authService.loginWithGithubProfile(req.user);
-    const frontendSuccessUrl = process.env.FRONTEND_OAUTH_SUCCESS_URL;
+    const frontendSuccessUrl =
+      process.env.FRONTEND_OAUTH_SUCCESS_URL?.trim() ||
+      `${this.getPublicBaseUrl(req)}/auth/callback`;
 
-    if (frontendSuccessUrl) {
-      const separator = frontendSuccessUrl.includes('?') ? '&' : '?';
-      const redirectUrl = `${frontendSuccessUrl}${separator}access_token=${encodeURIComponent(authResult.access_token)}&username=${encodeURIComponent(authResult.username)}`;
-      return res.redirect(redirectUrl);
-    }
+    const separator = frontendSuccessUrl.includes('?') ? '&' : '?';
+    const redirectUrl = `${frontendSuccessUrl}${separator}access_token=${encodeURIComponent(authResult.access_token)}&username=${encodeURIComponent(authResult.username)}`;
+    return res.redirect(redirectUrl);
 
-    return res.status(200).json(authResult);
+  }
+
+  private getPublicBaseUrl(req: Request): string {
+    const forwardedProtoHeader = req.headers['x-forwarded-proto'];
+    const forwardedProto = Array.isArray(forwardedProtoHeader)
+      ? forwardedProtoHeader[0]
+      : forwardedProtoHeader;
+
+    const protocol =
+      forwardedProto?.split(',')[0]?.trim() || req.protocol || 'http';
+    const host = req.get('host') || 'localhost';
+
+    return `${protocol}://${host}`;
   }
 
   @Post('login')

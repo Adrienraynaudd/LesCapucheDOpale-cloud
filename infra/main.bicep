@@ -26,6 +26,19 @@ param jwtSecret string
 @secure()
 param jwtSecretAdmin string
 
+@description('GitHub OAuth Client ID')
+param githubClientId string
+
+@description('GitHub OAuth Client Secret')
+@secure()
+param githubClientSecret string
+
+@description('URL de callback OAuth GitHub')
+param githubCallbackUrl string = ''
+
+@description('URL de redirection frontend apres succes OAuth')
+param frontendOAuthSuccessUrl string = ''
+
 @description('Tag de l\'image Docker pour le backend')
 param backendImageTag string = 'latest'
 
@@ -155,6 +168,10 @@ module backendApp 'modules/container-app-backend.bicep' = {
     storageAccountName: storage.outputs.storageAccountName
     appConfigEndpoint: appConfig.outputs.endpoint
     logFunctionUrl: 'https://func-${resourcePrefix}.azurewebsites.net/api/log-receiver'
+    githubClientId: githubClientId
+    githubClientSecret: githubClientSecret
+    githubCallbackUrl: githubCallbackUrl
+    frontendOAuthSuccessUrl: frontendOAuthSuccessUrl
   }
 }
 

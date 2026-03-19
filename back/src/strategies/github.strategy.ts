@@ -9,8 +9,8 @@ export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
   private readonly configured: boolean;
 
   constructor() {
-    const clientID = process.env.GITHUB_CLIENT_ID ?? '';
-    const clientSecret = process.env.GITHUB_CLIENT_SECRET ?? '';
+    const clientID = process.env.OAUTH_GITHUB_CLIENT_ID ?? '';
+    const clientSecret = process.env.OAUTH_GITHUB_CLIENT_SECRET ?? '';
     const callbackURL =
       process.env.GITHUB_CALLBACK_URL ??
       'http://localhost/api/auth/github/callback';
@@ -28,7 +28,7 @@ export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
 
     if (!clientID || !clientSecret) {
       this.logger.warn(
-        'GITHUB_CLIENT_ID or GITHUB_CLIENT_SECRET is missing. GitHub OAuth endpoints will fail until configured.',
+        'OAUTH_GITHUB_CLIENT_ID or OAUTH_GITHUB_CLIENT_SECRET is missing. GitHub OAuth endpoints will fail until configured.',
       );
     }
   }
