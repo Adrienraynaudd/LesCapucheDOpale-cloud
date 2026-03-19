@@ -151,6 +151,9 @@ jobs:
             containerRegistryPassword=${{ secrets.ACR_PASSWORD }}
             backendImageTag=${{ github.sha }}
             frontendImageTag=${{ github.sha }}
+            appGatewayEnableHttps=${{ secrets.APP_GATEWAY_ENABLE_HTTPS || 'false' }}
+            appGatewaySslCertificateData=${{ secrets.APP_GATEWAY_SSL_CERTIFICATE_DATA || '' }}
+            appGatewaySslCertificatePassword=${{ secrets.APP_GATEWAY_SSL_CERTIFICATE_PASSWORD || '' }}
           failOnStdErr: false
 
   # Déploiements post-infra en parallèle
@@ -220,12 +223,21 @@ jobs:
         run: |
           ENV="${{ github.event.inputs.environment || 'dev' }}"
           RG="rg-${{ env.PROJECT_NAME }}-$ENV"
-          
-          BACKEND=$(az containerapp show --name "ca-${{ env.PROJECT_NAME }}-${ENV}-api" --resource-group "$RG" --query "properties.configuration.ingress.fqdn" -o tsv)
-          FRONTEND=$(az containerapp show --name "ca-${{ env.PROJECT_NAME }}-${ENV}-web" --resource-group "$RG" --query "properties.configuration.ingress.fqdn" -o tsv)
-          
-          echo "backend=https://$BACKEND" >> $GITHUB_OUTPUT
-          echo "frontend=https://$FRONTEND" >> $GITHUB_OUTPUT
+
+          AGW_NAME="agw-${{ env.PROJECT_NAME }}-${ENV}"
+          AGW_IP=$(az network public-ip show --name "pip-$AGW_NAME" --resource-group "$RG" --query "ipAddress" -o tsv)
+          HAS_HTTPS=$(az network application-gateway show --name "$AGW_NAME" --resource-group "$RG" --query "length(sslCertificates)" -o tsv)
+
+          SCHEME="http"
+          if [ "$HAS_HTTPS" -gt 0 ]; then
+            SCHEME="https"
+          fi
+
+          FRONTEND="$SCHEME://$AGW_IP"
+          BACKEND="$SCHEME://$AGW_IP/api"
+
+          echo "backend=$BACKEND" >> $GITHUB_OUTPUT
+          echo "frontend=$FRONTEND" >> $GITHUB_OUTPUT
 
       - name:  Test Backend Health
         uses: jtalk/url-health-check-action@v4

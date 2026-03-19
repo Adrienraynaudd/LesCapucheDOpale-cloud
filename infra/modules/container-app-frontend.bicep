@@ -24,8 +24,8 @@ param containerRegistryPassword string
 @description('Tag de l\'image')
 param imageTag string
 
-@description('URL du backend')
-param backendUrl string
+@description('Base URL de l\'API exposee au frontend')
+param apiBaseUrl string = '/api'
 
 // CONTAINER APP - FRONTEND
 
@@ -69,7 +69,7 @@ resource frontendApp 'Microsoft.App/containerApps@2023-05-01' = {
           env: [
             {
               name: 'API_URL'
-              value: 'https://${backendUrl}'
+              value: apiBaseUrl
             }
           ]
           probes: [

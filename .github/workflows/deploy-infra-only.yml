@@ -57,7 +57,10 @@ jobs:
                 jwtSecretAdmin=${{ secrets.JWT_SECRET_ADMIN }} \
                 containerRegistryUrl=${{ secrets.ACR_LOGIN_SERVER }} \
                 containerRegistryUsername=${{ secrets.ACR_USERNAME }} \
-                containerRegistryPassword=${{ secrets.ACR_PASSWORD }}
+                containerRegistryPassword=${{ secrets.ACR_PASSWORD }} \
+                appGatewayEnableHttps=${{ secrets.APP_GATEWAY_ENABLE_HTTPS || 'false' }} \
+                appGatewaySslCertificateData=${{ secrets.APP_GATEWAY_SSL_CERTIFICATE_DATA || '' }} \
+                appGatewaySslCertificatePassword=${{ secrets.APP_GATEWAY_SSL_CERTIFICATE_PASSWORD || '' }}
 
       - name: Create Resource Group
         uses: azure/cli@v1
@@ -86,6 +89,9 @@ jobs:
             containerRegistryPassword=${{ secrets.ACR_PASSWORD }}
             backendImageTag=latest
             frontendImageTag=latest
+            appGatewayEnableHttps=${{ secrets.APP_GATEWAY_ENABLE_HTTPS || 'false' }}
+            appGatewaySslCertificateData=${{ secrets.APP_GATEWAY_SSL_CERTIFICATE_DATA || '' }}
+            appGatewaySslCertificatePassword=${{ secrets.APP_GATEWAY_SSL_CERTIFICATE_PASSWORD || '' }}
           failOnStdErr: false
 
       - name: Output deployment results

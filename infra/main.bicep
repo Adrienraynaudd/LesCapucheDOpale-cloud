@@ -43,6 +43,17 @@ param containerRegistryUsername string
 @secure()
 param containerRegistryPassword string
 
+@description('Active HTTPS sur l\'Application Gateway (necessite un certificat PFX)')
+param appGatewayEnableHttps bool = false
+
+@description('Certificat TLS PFX encode en base64 pour l\'Application Gateway')
+@secure()
+param appGatewaySslCertificateData string = ''
+
+@description('Mot de passe du certificat TLS PFX pour l\'Application Gateway')
+@secure()
+param appGatewaySslCertificatePassword string = ''
+
 
 var resourcePrefix = '${projectName}-${environment}'
 var tags = {
@@ -155,7 +166,22 @@ module frontendApp 'modules/container-app-frontend.bicep' = {
     containerRegistryUsername: containerRegistryUsername
     containerRegistryPassword: containerRegistryPassword
     imageTag: frontendImageTag
-    backendUrl: backendApp.outputs.fqdn
+    apiBaseUrl: '/api'
+  }
+}
+
+// Module Application Gateway avec routage par chemin et WAF
+module applicationGateway 'modules/application-gateway.bicep' = {
+  name: 'applicationGateway-deployment'
+  params: {
+    name: 'agw-${resourcePrefix}'
+    location: location
+    tags: tags
+    frontendFqdn: frontendApp.outputs.fqdn
+    backendFqdn: backendApp.outputs.fqdn
+    enableHttps: appGatewayEnableHttps
+    sslCertificateData: appGatewaySslCertificateData
+    sslCertificatePassword: appGatewaySslCertificatePassword
   }
 }
 
@@ -174,10 +200,13 @@ module functionApp 'modules/function-app.bicep' = {
 
 
 @description('URL du frontend')
-output frontendUrl string = frontendApp.outputs.fqdn
+output frontendUrl string = applicationGateway.outputs.frontendUrl
 
 @description('URL du backend API')
-output backendUrl string = backendApp.outputs.fqdn
+output backendUrl string = applicationGateway.outputs.apiUrl
+
+@description('IP publique de l\'Application Gateway')
+output appGatewayPublicIp string = applicationGateway.outputs.publicIpAddress
 
 @description('URL de la Function App')
 output functionAppUrl string = functionApp.outputs.functionAppUrl
