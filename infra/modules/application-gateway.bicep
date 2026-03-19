@@ -34,6 +34,20 @@ var vnetName = 'vnet-${name}'
 var subnetName = 'appgw-subnet'
 var publicIpName = 'pip-${name}'
 var wafPolicyName = 'waf-${name}'
+var frontendProbeId = resourceId('Microsoft.Network/applicationGateways/probes', name, 'frontend-probe')
+var apiProbeId = resourceId('Microsoft.Network/applicationGateways/probes', name, 'api-probe')
+var frontendIpConfigId = resourceId('Microsoft.Network/applicationGateways/frontendIPConfigurations', name, 'publicFrontendIp')
+var httpPortId = resourceId('Microsoft.Network/applicationGateways/frontendPorts', name, 'port-80')
+var httpsPortId = resourceId('Microsoft.Network/applicationGateways/frontendPorts', name, 'port-443')
+var sslCertId = resourceId('Microsoft.Network/applicationGateways/sslCertificates', name, 'gateway-ssl-cert')
+var frontendPoolId = resourceId('Microsoft.Network/applicationGateways/backendAddressPools', name, 'frontend-pool')
+var apiPoolId = resourceId('Microsoft.Network/applicationGateways/backendAddressPools', name, 'api-pool')
+var frontendSettingsId = resourceId('Microsoft.Network/applicationGateways/backendHttpSettingsCollection', name, 'frontend-settings')
+var apiSettingsId = resourceId('Microsoft.Network/applicationGateways/backendHttpSettingsCollection', name, 'api-settings')
+var httpListenerId = resourceId('Microsoft.Network/applicationGateways/httpListeners', name, 'http-listener')
+var httpsListenerId = resourceId('Microsoft.Network/applicationGateways/httpListeners', name, 'https-listener')
+var pathMapId = resourceId('Microsoft.Network/applicationGateways/urlPathMaps', name, 'app-path-map')
+var redirectConfigId = resourceId('Microsoft.Network/applicationGateways/redirectConfigurations', name, 'http-to-https-redirect')
 
 resource virtualNetwork 'Microsoft.Network/virtualNetworks@2023-09-01' = {
   name: vnetName
@@ -49,7 +63,8 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2023-09-01' = {
 }
 
 resource appGatewaySubnet 'Microsoft.Network/virtualNetworks/subnets@2023-09-01' = {
-  name: '${virtualNetwork.name}/${subnetName}'
+  parent: virtualNetwork
+  name: subnetName
   properties: {
     addressPrefix: appGatewaySubnetPrefix
   }
@@ -59,13 +74,13 @@ resource publicIp 'Microsoft.Network/publicIPAddresses@2023-09-01' = {
   name: publicIpName
   location: location
   tags: tags
-  properties: {
-    publicIPAllocationMethod: 'Static'
-    publicIPAddressVersion: 'IPv4'
-  }
   sku: {
     name: 'Standard'
     tier: 'Regional'
+  }
+  properties: {
+    publicIPAllocationMethod: 'Static'
+    publicIPAddressVersion: 'IPv4'
   }
 }
 
@@ -75,7 +90,7 @@ resource wafPolicy 'Microsoft.Network/ApplicationGatewayWebApplicationFirewallPo
   tags: tags
   properties: {
     policySettings: {
-      enabledState: 'Enabled'
+      state: 'Enabled'
       mode: 'Prevention'
       requestBodyCheck: true
       fileUploadLimitInMb: 100
@@ -96,6 +111,11 @@ resource appGateway 'Microsoft.Network/applicationGateways@2023-09-01' = {
   name: name
   location: location
   tags: tags
+  sku: {
+    name: 'WAF_v2'
+    tier: 'WAF_v2'
+    capacity: 1
+  }
   properties: {
     enableHttp2: true
     sslPolicy: {
@@ -214,7 +234,7 @@ resource appGateway 'Microsoft.Network/applicationGateways@2023-09-01' = {
           requestTimeout: 30
           pickHostNameFromBackendAddress: true
           probe: {
-            id: '${appGateway.id}/probes/frontend-probe'
+            id: frontendProbeId
           }
         }
       }
@@ -226,7 +246,7 @@ resource appGateway 'Microsoft.Network/applicationGateways@2023-09-01' = {
           requestTimeout: 30
           pickHostNameFromBackendAddress: true
           probe: {
-            id: '${appGateway.id}/probes/api-probe'
+            id: apiProbeId
           }
         }
       }
@@ -237,10 +257,10 @@ resource appGateway 'Microsoft.Network/applicationGateways@2023-09-01' = {
           name: 'http-listener'
           properties: {
             frontendIPConfiguration: {
-              id: '${appGateway.id}/frontendIPConfigurations/publicFrontendIp'
+              id: frontendIpConfigId
             }
             frontendPort: {
-              id: '${appGateway.id}/frontendPorts/port-80'
+              id: httpPortId
             }
             protocol: 'Http'
           }
@@ -251,14 +271,14 @@ resource appGateway 'Microsoft.Network/applicationGateways@2023-09-01' = {
           name: 'https-listener'
           properties: {
             frontendIPConfiguration: {
-              id: '${appGateway.id}/frontendIPConfigurations/publicFrontendIp'
+              id: frontendIpConfigId
             }
             frontendPort: {
-              id: '${appGateway.id}/frontendPorts/port-443'
+              id: httpsPortId
             }
             protocol: 'Https'
             sslCertificate: {
-              id: '${appGateway.id}/sslCertificates/gateway-ssl-cert'
+              id: sslCertId
             }
           }
         }
@@ -269,10 +289,10 @@ resource appGateway 'Microsoft.Network/applicationGateways@2023-09-01' = {
         name: 'app-path-map'
         properties: {
           defaultBackendAddressPool: {
-            id: '${appGateway.id}/backendAddressPools/frontend-pool'
+            id: frontendPoolId
           }
           defaultBackendHttpSettings: {
-            id: '${appGateway.id}/backendHttpSettingsCollection/frontend-settings'
+            id: frontendSettingsId
           }
           pathRules: [
             {
@@ -283,10 +303,10 @@ resource appGateway 'Microsoft.Network/applicationGateways@2023-09-01' = {
                   '/api/*'
                 ]
                 backendAddressPool: {
-                  id: '${appGateway.id}/backendAddressPools/api-pool'
+                  id: apiPoolId
                 }
                 backendHttpSettings: {
-                  id: '${appGateway.id}/backendHttpSettingsCollection/api-settings'
+                  id: apiSettingsId
                 }
               }
             }
@@ -300,7 +320,7 @@ resource appGateway 'Microsoft.Network/applicationGateways@2023-09-01' = {
         properties: {
           redirectType: 'Permanent'
           targetListener: {
-            id: '${appGateway.id}/httpListeners/https-listener'
+            id: httpsListenerId
           }
           includePath: true
           includeQueryString: true
@@ -315,10 +335,10 @@ resource appGateway 'Microsoft.Network/applicationGateways@2023-09-01' = {
             priority: 90
             ruleType: 'Basic'
             httpListener: {
-              id: '${appGateway.id}/httpListeners/http-listener'
+              id: httpListenerId
             }
             redirectConfiguration: {
-              id: '${appGateway.id}/redirectConfigurations/http-to-https-redirect'
+              id: redirectConfigId
             }
           }
         }
@@ -331,11 +351,11 @@ resource appGateway 'Microsoft.Network/applicationGateways@2023-09-01' = {
             ruleType: 'PathBasedRouting'
             httpListener: {
               id: enableHttps
-                ? '${appGateway.id}/httpListeners/https-listener'
-                : '${appGateway.id}/httpListeners/http-listener'
+                ? httpsListenerId
+                : httpListenerId
             }
             urlPathMap: {
-              id: '${appGateway.id}/urlPathMaps/app-path-map'
+              id: pathMapId
             }
           }
         }
@@ -344,11 +364,6 @@ resource appGateway 'Microsoft.Network/applicationGateways@2023-09-01' = {
     firewallPolicy: {
       id: wafPolicy.id
     }
-  }
-  sku: {
-    name: 'WAF_v2'
-    tier: 'WAF_v2'
-    capacity: 1
   }
 }
 
