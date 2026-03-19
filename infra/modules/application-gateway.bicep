@@ -123,19 +123,15 @@ resource appGateway 'Microsoft.Network/applicationGateways@2023-09-01' = {
         }
       }
     ]
-    frontendPorts: concat(
-      [
-        {
-          name: 'port-80'
-          properties: {
-            port: 80
-          }
+    frontendPorts: [
+      {
+        name: 'port-80'
+        properties: {
+          port: 80
         }
-      ]
-    )
-    sslCertificates: []
       }
-    ] : []
+    ]
+    sslCertificates: []
     backendAddressPools: [
       {
         name: 'frontend-pool'
