@@ -19,17 +19,6 @@ param frontendFqdn string
 @description('FQDN du backend cible')
 param backendFqdn string
 
-@description('Active l\'ecoute HTTPS sur la gateway (necessite un certificat PFX)')
-param enableHttps bool = false
-
-@description('Certificat TLS au format PFX encode en base64 (obligatoire si enableHttps=true)')
-@secure()
-param sslCertificateData string = ''
-
-@description('Mot de passe du certificat TLS PFX (obligatoire si enableHttps=true)')
-@secure()
-param sslCertificatePassword string = ''
-
 var vnetName = 'vnet-${name}'
 var subnetName = 'appgw-subnet'
 var publicIpName = 'pip-${name}'
@@ -38,16 +27,12 @@ var frontendProbeId = resourceId('Microsoft.Network/applicationGateways/probes',
 var apiProbeId = resourceId('Microsoft.Network/applicationGateways/probes', name, 'api-probe')
 var frontendIpConfigId = resourceId('Microsoft.Network/applicationGateways/frontendIPConfigurations', name, 'publicFrontendIp')
 var httpPortId = resourceId('Microsoft.Network/applicationGateways/frontendPorts', name, 'port-80')
-var httpsPortId = resourceId('Microsoft.Network/applicationGateways/frontendPorts', name, 'port-443')
-var sslCertId = resourceId('Microsoft.Network/applicationGateways/sslCertificates', name, 'gateway-ssl-cert')
 var frontendPoolId = resourceId('Microsoft.Network/applicationGateways/backendAddressPools', name, 'frontend-pool')
 var apiPoolId = resourceId('Microsoft.Network/applicationGateways/backendAddressPools', name, 'api-pool')
 var frontendSettingsId = resourceId('Microsoft.Network/applicationGateways/backendHttpSettingsCollection', name, 'frontend-settings')
 var apiSettingsId = resourceId('Microsoft.Network/applicationGateways/backendHttpSettingsCollection', name, 'api-settings')
 var httpListenerId = resourceId('Microsoft.Network/applicationGateways/httpListeners', name, 'http-listener')
-var httpsListenerId = resourceId('Microsoft.Network/applicationGateways/httpListeners', name, 'https-listener')
 var pathMapId = resourceId('Microsoft.Network/applicationGateways/urlPathMaps', name, 'app-path-map')
-var redirectConfigId = resourceId('Microsoft.Network/applicationGateways/redirectConfigurations', name, 'http-to-https-redirect')
 
 resource virtualNetwork 'Microsoft.Network/virtualNetworks@2023-09-01' = {
   name: vnetName
@@ -118,10 +103,6 @@ resource appGateway 'Microsoft.Network/applicationGateways@2023-09-01' = {
   }
   properties: {
     enableHttp2: true
-    sslPolicy: {
-      policyType: 'Predefined'
-      policyName: 'AppGwSslPolicy20220101S'
-    }
     gatewayIPConfigurations: [
       {
         name: 'appGatewayIpConfig'
@@ -150,23 +131,9 @@ resource appGateway 'Microsoft.Network/applicationGateways@2023-09-01' = {
             port: 80
           }
         }
-      ],
-      enableHttps ? [
-        {
-          name: 'port-443'
-          properties: {
-            port: 443
-          }
-        }
-      ] : []
+      ]
     )
-    sslCertificates: enableHttps ? [
-      {
-        name: 'gateway-ssl-cert'
-        properties: {
-          data: sslCertificateData
-          password: sslCertificatePassword
-        }
+    sslCertificates: []
       }
     ] : []
     backendAddressPools: [
@@ -251,39 +218,20 @@ resource appGateway 'Microsoft.Network/applicationGateways@2023-09-01' = {
         }
       }
     ]
-    httpListeners: concat(
-      [
-        {
-          name: 'http-listener'
-          properties: {
-            frontendIPConfiguration: {
-              id: frontendIpConfigId
-            }
-            frontendPort: {
-              id: httpPortId
-            }
-            protocol: 'Http'
+    httpListeners: [
+      {
+        name: 'http-listener'
+        properties: {
+          frontendIPConfiguration: {
+            id: frontendIpConfigId
           }
-        }
-      ],
-      enableHttps ? [
-        {
-          name: 'https-listener'
-          properties: {
-            frontendIPConfiguration: {
-              id: frontendIpConfigId
-            }
-            frontendPort: {
-              id: httpsPortId
-            }
-            protocol: 'Https'
-            sslCertificate: {
-              id: sslCertId
-            }
+          frontendPort: {
+            id: httpPortId
           }
+          protocol: 'Http'
         }
-      ] : []
-    )
+      }
+    ]
     urlPathMaps: [
       {
         name: 'app-path-map'
@@ -314,53 +262,22 @@ resource appGateway 'Microsoft.Network/applicationGateways@2023-09-01' = {
         }
       }
     ]
-    redirectConfigurations: enableHttps ? [
+    redirectConfigurations: []
+    requestRoutingRules: [
       {
-        name: 'http-to-https-redirect'
+        name: 'path-based-routing-rule'
         properties: {
-          redirectType: 'Permanent'
-          targetListener: {
-            id: httpsListenerId
+          priority: 100
+          ruleType: 'PathBasedRouting'
+          httpListener: {
+            id: httpListenerId
           }
-          includePath: true
-          includeQueryString: true
+          urlPathMap: {
+            id: pathMapId
+          }
         }
       }
-    ] : []
-    requestRoutingRules: concat(
-      enableHttps ? [
-        {
-          name: 'http-redirect-rule'
-          properties: {
-            priority: 90
-            ruleType: 'Basic'
-            httpListener: {
-              id: httpListenerId
-            }
-            redirectConfiguration: {
-              id: redirectConfigId
-            }
-          }
-        }
-      ] : [],
-      [
-        {
-          name: 'path-based-routing-rule'
-          properties: {
-            priority: 100
-            ruleType: 'PathBasedRouting'
-            httpListener: {
-              id: enableHttps
-                ? httpsListenerId
-                : httpListenerId
-            }
-            urlPathMap: {
-              id: pathMapId
-            }
-          }
-        }
-      ]
-    )
+    ]
     firewallPolicy: {
       id: wafPolicy.id
     }
@@ -371,10 +288,10 @@ resource appGateway 'Microsoft.Network/applicationGateways@2023-09-01' = {
 output publicIpAddress string = publicIp.properties.ipAddress
 
 @description('URL du frontend via Application Gateway')
-output frontendUrl string = '${enableHttps ? 'https' : 'http'}://${publicIp.properties.ipAddress}'
+output frontendUrl string = 'http://${publicIp.properties.ipAddress}'
 
 @description('URL du backend API via Application Gateway')
-output apiUrl string = '${enableHttps ? 'https' : 'http'}://${publicIp.properties.ipAddress}/api'
+output apiUrl string = 'http://${publicIp.properties.ipAddress}/api'
 
 @description('Nom de l\'Application Gateway')
 output appGatewayName string = appGateway.name

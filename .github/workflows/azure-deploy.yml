@@ -151,9 +151,6 @@ jobs:
             containerRegistryPassword=${{ secrets.ACR_PASSWORD }}
             backendImageTag=${{ github.sha }}
             frontendImageTag=${{ github.sha }}
-            appGatewayEnableHttps=${{ secrets.APP_GATEWAY_ENABLE_HTTPS || 'false' }}
-            appGatewaySslCertificateData=${{ secrets.APP_GATEWAY_SSL_CERTIFICATE_DATA || '' }}
-            appGatewaySslCertificatePassword=${{ secrets.APP_GATEWAY_SSL_CERTIFICATE_PASSWORD || '' }}
           failOnStdErr: false
 
   # Déploiements post-infra en parallèle

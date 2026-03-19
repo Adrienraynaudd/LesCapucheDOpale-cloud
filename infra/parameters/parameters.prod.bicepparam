@@ -15,6 +15,3 @@ param containerRegistryUsername = ''
 param containerRegistryPassword = ''
 param backendImageTag = 'latest'
 param frontendImageTag = 'latest'
-param appGatewayEnableHttps = false
-param appGatewaySslCertificateData = ''
-param appGatewaySslCertificatePassword = ''

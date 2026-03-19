@@ -43,17 +43,6 @@ param containerRegistryUsername string
 @secure()
 param containerRegistryPassword string
 
-@description('Active HTTPS sur l\'Application Gateway (necessite un certificat PFX)')
-param appGatewayEnableHttps bool = false
-
-@description('Certificat TLS PFX encode en base64 pour l\'Application Gateway')
-@secure()
-param appGatewaySslCertificateData string = ''
-
-@description('Mot de passe du certificat TLS PFX pour l\'Application Gateway')
-@secure()
-param appGatewaySslCertificatePassword string = ''
-
 
 var resourcePrefix = '${projectName}-${environment}'
 var tags = {
@@ -61,9 +50,10 @@ var tags = {
   environment: environment
   managedBy: 'bicep'
 }
+var storageAccountName = 'st${replace(resourcePrefix, '-', '')}'
 var sqlConnectionString = 'sqlserver://${sqlDatabase.outputs.serverFqdn}:1433;database=${sqlDatabase.outputs.databaseName};user=${sqlAdminUsername};password=${sqlAdminPassword};encrypt=true;trustServerCertificate=true;connectionTimeout=30'
-var storageAccountKey = listKeys(storage.outputs.storageAccountId, '2023-01-01').keys[0].value
-var storageConnectionString = 'DefaultEndpointsProtocol=https;AccountName=${storage.outputs.storageAccountName};AccountKey=${storageAccountKey};EndpointSuffix=${environment().suffixes.storage}'
+var storageAccountKey = listKeys(resourceId('Microsoft.Storage/storageAccounts', storageAccountName), '2023-01-01').keys[0].value
+var storageConnectionString = 'DefaultEndpointsProtocol=https;AccountName=${storageAccountName};AccountKey=${storageAccountKey};EndpointSuffix=${az.environment().suffixes.storage}'
 
 
 // Module Key Vault
@@ -96,7 +86,7 @@ module appConfig 'modules/appconfig.bicep' = {
 module storage 'modules/storage.bicep' = {
   name: 'storage-deployment'
   params: {
-    name: 'st${replace(resourcePrefix, '-', '')}'
+    name: storageAccountName
     location: location
     tags: tags
   }
@@ -182,9 +172,6 @@ module applicationGateway 'modules/application-gateway.bicep' = {
     tags: tags
     frontendFqdn: frontendApp.outputs.fqdn
     backendFqdn: backendApp.outputs.fqdn
-    enableHttps: appGatewayEnableHttps
-    sslCertificateData: appGatewaySslCertificateData
-    sslCertificatePassword: appGatewaySslCertificatePassword
   }
 }
 
