@@ -88,6 +88,13 @@ Les Capuches d'Opale est une application web de gestion d'une guilde d'aventurie
 
 ## 3. Architecture et déploiement Azure
 
+Mise a jour recente:
+
+- Point d'entree unique via Application Gateway + WAF
+- Routage par chemin: `/` vers le frontend, `/api/*` vers le backend
+- Backend expose avec prefix global `/api`
+- Smoke tests de validation executes en parallele (direct + gateway + BDD)
+
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────────────┐
 │                                    AZURE CLOUD                                           │
@@ -129,10 +136,12 @@ Les Capuches d'Opale est une application web de gestion d'une guilde d'aventurie
 └─────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Ressources deployées :
+### Ressources deployees
 
 |Service|Nom|Rôle|
 |---------|-------|---------------|
+|Application Gateway|agw-capuchesdopale-dev|Point d'entree L7 + routage par chemins|
+|WAF Policy|waf-agw-capuchesdopale-dev|Protection OWASP 3.2 + regles custom|
 |Container Apps Env|cae-capuchesdopale-dev|Réseau partagé containers
 |Container App|ca-capuchesdopale-dev-web|Frontend Angular
 |Container App|ca-capuchesdopale-dev-api|Backend NestJS
@@ -305,98 +314,23 @@ Les Capuches d'Opale est une application web de gestion d'une guilde d'aventurie
 │               │                                       │                      │
 │               └───────────────────┬───────────────────┘                      │
 │                                   ▼                                          │
-│                    ┌────────────────────────┐                               │
-│                    │      smoke-tests       │                               │
-│                    │                        │                               │
-│                    │ • Get URLs from Azure  │                               │
-│                    │ • Health check Backend │                               │
-│                    │ • Health check Frontend│                               │
-│                    │ • Generate Summary     │                               │
-│                    └────────────────────────┘                               │
+│  ┌────────────────────────┐  ┌────────────────────────┐                     │
+│  │ smoke-backend-direct   │  │ smoke-frontend-direct  │                     │
+│  │ /api/health (direct)   │  │ / (direct)             │                     │
+│  └────────────────────────┘  └────────────────────────┘                     │
+│  ┌────────────────────────┐  ┌────────────────────────┐                     │
+│  │ smoke-backend-gateway  │  │ smoke-frontend-gateway │                     │
+│  │ /api/health (gateway)  │  │ / (gateway)            │                     │
+│  └────────────────────────┘  └────────────────────────┘                     │
+│  ┌────────────────────────┐  ┌────────────────────────┐                     │
+│  │ smoke-database         │  │ smoke-summary          │                     │
+│  │ /api/health/db         │  │ aggregation des tests  │                     │
+│  └────────────────────────┘  └────────────────────────┘                     │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 
 ### 6.4 Workflow Infrastructure seule
-
-## 7. Securite WAF et architecture reseau
-
-### 7.1 Architecture reseau securisee
-
-Flux principal:
-
-```
-Utilisateur Internet
-    |
-    v
-Application Gateway (WAF_v2 + WAF Policy)
-    |
-    +--> /           -> Container App Frontend (Angular)
-    |
-    +--> /api, /api/* -> Container App Backend (NestJS)
-                 |
-                 +--> Azure SQL Database
-                 +--> Storage Account
-```
-
-Cette architecture force un point d'entree unique pour filtrer les requetes HTTP avant d'atteindre les services applicatifs.
-
-### 7.2 Configuration WAF appliquee
-
-- Mode WAF: configurable (`Detection` ou `Prevention`), valeur recommandee en production: `Prevention`
-- Ruleset gere: OWASP CRS 3.2
-- Policy activee sur Application Gateway
-
-### 7.3 Regles WAF personnalisees
-
-Regles ajoutees dans la policy WAF:
-
-- `rate-limit-per-ip`
-: type `RateLimitRule`, blocage au-dela d'un seuil (par defaut 120 requetes/minute/IP)
-- `block-listed-ips`
-: type `MatchRule`, blocage d'une liste d'IP (IPv4/CIDR)
-- `geo-filter-block-countries`
-: type `MatchRule`, blocage par pays (codes ISO, ex: `RU`, `CN`)
-
-Parametres exposes dans Bicep:
-
-- `appGatewayWafMode`
-- `appGatewayBlockedIpAddresses`
-- `appGatewayBlockedCountryCodes`
-- `appGatewayRateLimitThreshold`
-
-### 7.4 Tests d'attaques et resultats
-
-Le script [scripts/test-waf-security.ps1](scripts/test-waf-security.ps1) envoie des payloads malveillants vers l'endpoint du gateway.
-
-Exemples testes:
-
-- SQL Injection (query string et body JSON)
-- XSS (query string et header)
-
-Resultat mesure (execution du 19/03/2026):
-
-- SQLi: bloque (HTTP 403)
-- XSS: bloque (HTTP 403)
-- Traversal: bloque (HTTP 403)
-- Command Injection: bloque (HTTP 403)
-
-Conclusion: les attaques OWASP courantes sont bien bloquees par le WAF en mode Prevention.
-
-### 7.5 Justification des choix
-
-Pourquoi Application Gateway plutot qu'un Load Balancer Azure:
-
-- Le Load Balancer (L4) ne fournit pas d'inspection HTTP avancee ni de WAF integre
-- Application Gateway (L7) apporte routage par chemin (`/` vs `/api/*`), probes HTTP, et WAF natif
-- Permet un controle de securite applicatif centralise sans modifier le code metier
-
-Pourquoi le tier WAF_v2:
-
-- Support natif WAF policy + OWASP managed rules
-- Performance/autoscaling adaptes a un service web expose Internet
-- Capacites avancees (custom rules, rate limiting, filtrage geographique)
-
 **Déclencheur** : Manuel uniquement
 
 |Étapes|Description|
@@ -419,4 +353,77 @@ Pourquoi le tier WAF_v2:
 |```SQL_ADMIN_PASSWORD```|Mot de passe SQL|
 |```JWT_SECRET```|Secret pour signer les JWT|
 |```JWT_SECRET_ADMIN```|Secret JWT admin|
+
+## 7. Securite WAF et architecture reseau
+
+### 7.1 Architecture reseau securisee
+
+Flux principal:
+
+```
+Utilisateur Internet
+    |
+    v
+Application Gateway (WAF_v2 + WAF Policy)
+    |
+    +--> /             -> Container App Frontend (Angular)
+    |
+    +--> /api, /api/*  -> Container App Backend (NestJS)
+                           |
+                           +--> Azure SQL Database
+                           +--> Storage Account
+```
+
+Cette architecture force un point d'entree unique pour filtrer les requetes HTTP avant d'atteindre les services applicatifs.
+
+### 7.2 Configuration WAF appliquee
+
+- Mode WAF configurable: `Detection` ou `Prevention` (recommande: `Prevention`)
+- Ruleset gere: OWASP CRS 3.2
+- Policy activee sur Application Gateway
+
+### 7.3 Regles WAF personnalisees
+
+Regles ajoutees dans la policy WAF:
+
+- `rate-limit-per-ip`: `RateLimitRule`, blocage au-dela d'un seuil (defaut 120 requetes/minute/IP)
+- `block-listed-ips`: `MatchRule`, blocage d'une liste d'IP (IPv4/CIDR)
+- `geo-filter-block-countries`: `MatchRule`, blocage par pays (codes ISO, ex: `RU`, `CN`)
+
+Parametres exposes dans Bicep:
+
+- `appGatewayWafMode`
+- `appGatewayBlockedIpAddresses`
+- `appGatewayBlockedCountryCodes`
+- `appGatewayRateLimitThreshold`
+
+### 7.4 Tests d'attaques et resultats
+
+Le script [scripts/test-waf-security.ps1](scripts/test-waf-security.ps1) envoie des payloads malveillants vers l'endpoint du gateway.
+
+Resultat mesure (execution du 19/03/2026):
+
+- 28/28 scenarios malveillants bloques (HTTP 403/406)
+- SQL Injection: bloque
+- XSS: bloque
+- Traversal/LFI/RFI: bloque
+- Command Injection/RCE: bloque
+- NoSQLi, SSRF, XXE, upload malicieux, JWT tampering: bloques
+- Rate limiting: blocage observe lors du burst test
+
+Conclusion: les attaques OWASP courantes sont bien bloquees par le WAF en mode Prevention.
+
+### 7.5 Justification des choix
+
+Pourquoi Application Gateway plutot qu'un Load Balancer Azure:
+
+- Le Load Balancer (L4) ne fournit pas d'inspection HTTP avancee ni de WAF integre
+- Application Gateway (L7) apporte routage par chemin (`/` vs `/api/*`), probes HTTP, et WAF natif
+- Permet un controle de securite applicatif centralise sans modifier le code metier
+
+Pourquoi le tier WAF_v2:
+
+- Support natif WAF policy + OWASP managed rules
+- Performance/autoscaling adaptes a un service web expose Internet
+- Capacites avancees (custom rules, rate limiting, filtrage geographique)
 
