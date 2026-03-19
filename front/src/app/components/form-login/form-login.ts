@@ -8,6 +8,7 @@ import {
 import { RouterModule, Router } from '@angular/router';
 
 import { AccountService } from '../../services/account/account.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-form-login',
@@ -19,6 +20,7 @@ import { AccountService } from '../../services/account/account.service';
 export class FormLogin {
   protected formulaire: FormGroup;
   protected errorMessage: string = '';
+  protected readonly githubAuthUrl = `${environment.apiUrl}/auth/github`;
 
   constructor(
     private readonly router: Router,
@@ -54,5 +56,9 @@ export class FormLogin {
         }
       },
     });
+  }
+
+  loginWithGithub() {
+    window.location.href = this.githubAuthUrl;
   }
 }

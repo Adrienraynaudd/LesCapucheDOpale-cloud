@@ -2,6 +2,19 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from './users.service';
 
+interface AuthUserPayload {
+  id: number;
+  email: string;
+  roleId: number;
+}
+
+export interface GithubOAuthUser {
+  email: string;
+  name: string;
+  githubId?: string;
+  avatarUrl?: string;
+}
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -18,26 +31,24 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const payload = {
-      sub: user.id,
-      email: user.email,
-      roleId: user.roleId,
-    };
+    const token = await this.signAccessToken(user);
 
-    let token: string;
-    if (user.roleId === 1) {
-      // Admin
-      token = await this.jwtService.signAsync(payload, {
-        secret: process.env.JWT_SECRET_ADMIN,
-        expiresIn: '4h',
-      });
-    } else {
-      token = await this.jwtService.signAsync(payload, {
-        secret: process.env.JWT_SECRET,
-        expiresIn: '1h',
+    return { access_token: token, username: user.name };
+  }
+
+  async loginWithGithubProfile(profile: GithubOAuthUser) {
+    const normalizedEmail = profile.email.trim().toLowerCase();
+    let user = await this.usersService.findByEmail(normalizedEmail);
+
+    if (!user) {
+      user = await this.usersService.createOAuthUser({
+        name: profile.name,
+        email: normalizedEmail,
+        roleId: 2,
       });
     }
 
+    const token = await this.signAccessToken(user);
     return { access_token: token, username: user.name };
   }
 
@@ -58,5 +69,25 @@ export class AuthService {
     } catch {
       throw new UnauthorizedException('Invalid token');
     }
+  }
+
+  private async signAccessToken(user: AuthUserPayload) {
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      roleId: user.roleId,
+    };
+
+    if (user.roleId === 1) {
+      return this.jwtService.signAsync(payload, {
+        secret: process.env.JWT_SECRET_ADMIN,
+        expiresIn: '4h',
+      });
+    }
+
+    return this.jwtService.signAsync(payload, {
+      secret: process.env.JWT_SECRET,
+      expiresIn: '1h',
+    });
   }
 }

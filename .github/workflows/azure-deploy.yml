@@ -136,6 +136,7 @@ jobs:
       - name: Deploy Bicep
         uses: azure/arm-deploy@v2
         with:
+          scope: resourcegroup
           resourceGroupName: rg-${{ env.PROJECT_NAME }}-${{ github.event.inputs.environment || 'dev' }}
           template: ./infra/main.bicep
           parameters: >
@@ -146,6 +147,8 @@ jobs:
             sqlAdminPassword=${{ secrets.SQL_ADMIN_PASSWORD }}
             jwtSecret=${{ secrets.JWT_SECRET }}
             jwtSecretAdmin=${{ secrets.JWT_SECRET_ADMIN }}
+            githubClientId=${{ secrets.OAUTH_GITHUB_CLIENT_ID }}
+            githubClientSecret=${{ secrets.OAUTH_GITHUB_CLIENT_SECRET }}
             containerRegistryUrl=${{ secrets.ACR_LOGIN_SERVER }}
             containerRegistryUsername=${{ secrets.ACR_USERNAME }}
             containerRegistryPassword=${{ secrets.ACR_PASSWORD }}

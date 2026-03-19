@@ -45,6 +45,19 @@ param appConfigEndpoint string
 @description('URL de la Function App pour les logs')
 param logFunctionUrl string = ''
 
+@description('GitHub OAuth Client ID')
+param githubClientId string
+
+@description('GitHub OAuth Client Secret')
+@secure()
+param githubClientSecret string
+
+@description('URL de callback OAuth GitHub')
+param githubCallbackUrl string = ''
+
+@description('URL de redirection frontend apres succes OAuth')
+param frontendOAuthSuccessUrl string = ''
+
 var storageConnectionString = 'DefaultEndpointsProtocol=https;AccountName=${storageAccountName};AccountKey=${listKeys(resourceId('Microsoft.Storage/storageAccounts', storageAccountName), '2023-01-01').keys[0].value};EndpointSuffix=${az.environment().suffixes.storage}'
 
 // CONTAINER APP - BACKEND API
@@ -91,6 +104,10 @@ resource backendApp 'Microsoft.App/containerApps@2023-05-01' = {
         {
           name: 'storage-connection'
           value: storageConnectionString
+        }
+        {
+          name: 'github-client-secret'
+          value: githubClientSecret
         }
       ]
       registries: [
@@ -142,6 +159,22 @@ resource backendApp 'Microsoft.App/containerApps@2023-05-01' = {
             {
               name: 'LOG_FUNCTION_URL'
               value: logFunctionUrl
+            }
+            {
+              name: 'OAUTH_GITHUB_CLIENT_ID'
+              value: githubClientId
+            }
+            {
+              name: 'OAUTH_GITHUB_CLIENT_SECRET'
+              secretRef: 'github-client-secret'
+            }
+            {
+              name: 'GITHUB_CALLBACK_URL'
+              value: githubCallbackUrl
+            }
+            {
+              name: 'FRONTEND_OAUTH_SUCCESS_URL'
+              value: frontendOAuthSuccessUrl
             }
           ]
           probes: [

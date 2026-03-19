@@ -8,6 +8,7 @@ import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { hashPassword, comparePassword } from '../utils/password.util';
 import { JwtService } from '@nestjs/jwt';
+import { randomBytes } from 'crypto';
 
 @Injectable()
 export class UsersService {
@@ -115,5 +116,27 @@ export class UsersService {
 
     const { id, name, email: userEmail, roleId } = user;
     return { id, name, email: userEmail, roleId };
+  }
+
+  async findByEmail(email: string) {
+    return this.prisma.user.findUnique({
+      where: { email },
+      select: { id: true, name: true, email: true, roleId: true },
+    });
+  }
+
+  async createOAuthUser(params: { name: string; email: string; roleId?: number }) {
+    const temporaryPassword = randomBytes(32).toString('hex');
+    const hashedPassword = await hashPassword(temporaryPassword);
+
+    return this.prisma.user.create({
+      data: {
+        name: params.name,
+        email: params.email,
+        password: hashedPassword,
+        roleId: params.roleId ?? 2,
+      },
+      select: { id: true, name: true, email: true, roleId: true },
+    });
   }
 }
