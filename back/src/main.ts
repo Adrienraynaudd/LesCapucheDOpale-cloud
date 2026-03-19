@@ -103,6 +103,7 @@ async function bootstrap() {
   // GlobalExceptionFilter is registered via APP_FILTER in AppModule for dependency injection
 
   app.enableCors();
+  app.setGlobalPrefix('api');
 
   const port = Number(process.env.PORT ?? 3000);
   await app.listen(port);

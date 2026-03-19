@@ -174,7 +174,7 @@ resource appGateway 'Microsoft.Network/applicationGateways@2022-09-01' = {
         name: 'api-probe'
         properties: {
           protocol: 'Https'
-          path: '/health'
+          path: '/api/health'
           interval: 30
           timeout: 30
           unhealthyThreshold: 3
