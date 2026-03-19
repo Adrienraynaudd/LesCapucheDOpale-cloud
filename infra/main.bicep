@@ -43,6 +43,19 @@ param containerRegistryUsername string
 @secure()
 param containerRegistryPassword string
 
+@description('Mode WAF de l\'Application Gateway: Detection ou Prevention')
+@allowed(['Detection', 'Prevention'])
+param appGatewayWafMode string = 'Prevention'
+
+@description('Liste d\'IP a bloquer via regle WAF personnalisee')
+param appGatewayBlockedIpAddresses array = []
+
+@description('Liste des codes pays ISO a bloquer via regle WAF personnalisee')
+param appGatewayBlockedCountryCodes array = []
+
+@description('Seuil de rate limiting par minute et par IP')
+param appGatewayRateLimitThreshold int = 120
+
 
 var resourcePrefix = '${projectName}-${environment}'
 var tags = {
@@ -170,6 +183,10 @@ module applicationGateway 'modules/application-gateway.bicep' = {
     tags: tags
     frontendFqdn: frontendApp.outputs.fqdn
     backendFqdn: backendApp.outputs.fqdn
+    wafMode: appGatewayWafMode
+    blockedIpAddresses: appGatewayBlockedIpAddresses
+    blockedCountryCodes: appGatewayBlockedCountryCodes
+    rateLimitThreshold: appGatewayRateLimitThreshold
   }
 }
 

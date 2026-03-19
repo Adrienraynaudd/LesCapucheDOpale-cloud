@@ -15,3 +15,7 @@ param containerRegistryUsername = ''
 param containerRegistryPassword = ''
 param backendImageTag = 'latest'
 param frontendImageTag = 'latest'
+param appGatewayWafMode = 'Prevention'
+param appGatewayBlockedIpAddresses = []
+param appGatewayBlockedCountryCodes = []
+param appGatewayRateLimitThreshold = 120

@@ -19,6 +19,22 @@ param frontendFqdn string
 @description('FQDN du backend cible')
 param backendFqdn string
 
+@description('Mode WAF: Detection ou Prevention')
+@allowed([
+  'Detection'
+  'Prevention'
+])
+param wafMode string = 'Prevention'
+
+@description('Liste d\'adresses IP publiques a bloquer (ex: 1.2.3.4, 5.6.7.0/24)')
+param blockedIpAddresses array = []
+
+@description('Liste de codes pays ISO a bloquer (ex: RU, CN)')
+param blockedCountryCodes array = []
+
+@description('Seuil de limitation de debit par minute et par IP')
+param rateLimitThreshold int = 120
+
 var vnetName = 'vnet-${name}'
 var subnetName = 'appgw-subnet'
 var publicIpName = 'pip-${name}'
@@ -76,10 +92,91 @@ resource wafPolicy 'Microsoft.Network/ApplicationGatewayWebApplicationFirewallPo
   properties: {
     policySettings: {
       state: 'Enabled'
-      mode: 'Prevention'
+      mode: wafMode
       requestBodyCheck: true
       fileUploadLimitInMb: 100
       maxRequestBodySizeInKb: 128
+    }
+    customRules: {
+      rules: concat(
+        [
+          {
+            name: 'rate-limit-per-ip'
+            priority: 10
+            ruleType: 'RateLimitRule'
+            action: 'Block'
+            state: 'Enabled'
+            rateLimitDuration: 'OneMin'
+            rateLimitThreshold: rateLimitThreshold
+            groupByUserSession: [
+              {
+                groupByVariables: [
+                  {
+                    variableName: 'ClientAddr'
+                  }
+                ]
+              }
+            ]
+            matchConditions: [
+              {
+                matchVariables: [
+                  {
+                    variableName: 'RequestUri'
+                  }
+                ]
+                operator: 'Contains'
+                matchValues: [
+                  '/'
+                ]
+              }
+            ]
+          }
+        ],
+        length(blockedIpAddresses) > 0
+          ? [
+              {
+                name: 'block-listed-ips'
+                priority: 20
+                ruleType: 'MatchRule'
+                action: 'Block'
+                state: 'Enabled'
+                matchConditions: [
+                  {
+                    matchVariables: [
+                      {
+                        variableName: 'RemoteAddr'
+                      }
+                    ]
+                    operator: 'IPMatch'
+                    matchValues: blockedIpAddresses
+                  }
+                ]
+              }
+            ]
+          : [],
+        length(blockedCountryCodes) > 0
+          ? [
+              {
+                name: 'geo-filter-block-countries'
+                priority: 30
+                ruleType: 'MatchRule'
+                action: 'Block'
+                state: 'Enabled'
+                matchConditions: [
+                  {
+                    matchVariables: [
+                      {
+                        variableName: 'RemoteAddr'
+                      }
+                    ]
+                    operator: 'GeoMatch'
+                    matchValues: blockedCountryCodes
+                  }
+                ]
+              }
+            ]
+          : []
+      )
     }
     managedRules: {
       managedRuleSets: [
