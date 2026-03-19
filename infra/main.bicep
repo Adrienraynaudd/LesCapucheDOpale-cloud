@@ -229,6 +229,12 @@ output backendUrl string = applicationGateway.outputs.apiUrl
 @description('IP publique de l\'Application Gateway')
 output appGatewayPublicIp string = applicationGateway.outputs.publicIpAddress
 
+@description('URL de depart OAuth GitHub via Application Gateway')
+output githubAuthUrl string = 'http://${applicationGateway.outputs.publicIpAddress}/api/auth/github'
+
+@description('URL de callback OAuth GitHub via Application Gateway')
+output githubAuthCallbackUrl string = 'http://${applicationGateway.outputs.publicIpAddress}/api/auth/github/callback'
+
 @description('URL de la Function App')
 output functionAppUrl string = functionApp.outputs.functionAppUrl
 
