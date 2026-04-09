@@ -27,8 +27,6 @@ services:
             JWT_SECRET_ADMIN: ${JWT_SECRET_ADMIN}
             OAUTH_GITHUB_CLIENT_ID: ${OAUTH_GITHUB_CLIENT_ID}
             OAUTH_GITHUB_CLIENT_SECRET: ${OAUTH_GITHUB_CLIENT_SECRET}
-            GITHUB_CALLBACK_URL: ${GITHUB_CALLBACK_URL}
-            FRONTEND_OAUTH_SUCCESS_URL: ${FRONTEND_OAUTH_SUCCESS_URL}
         depends_on:
             db:
                 condition: service_healthy

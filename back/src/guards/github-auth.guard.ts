@@ -24,18 +24,18 @@ export class GithubAuthGuard extends AuthGuard('github') {
 	}
 
 	getAuthenticateOptions(context: ExecutionContext) {
-		const configuredCallbackUrl = process.env.GITHUB_CALLBACK_URL;
+		const configuredCallbackUrl = process.env.GITHUB_CALLBACK_URL?.trim();
 		if (configuredCallbackUrl) {
 			return { callbackURL: configuredCallbackUrl };
 		}
 
 		const req = context.switchToHttp().getRequest<Request>();
+		const host = this.getPublicHost(req);
 		const forwardedProtoHeader = req.headers['x-forwarded-proto'];
 		const forwardedProto = Array.isArray(forwardedProtoHeader)
 			? forwardedProtoHeader[0]
 			: forwardedProtoHeader;
 		const protocol = forwardedProto?.split(',')[0]?.trim() || req.protocol || 'http';
-		const host = req.get('host');
 
 		if (!host) {
 			return {};
@@ -44,5 +44,14 @@ export class GithubAuthGuard extends AuthGuard('github') {
 		return {
 			callbackURL: `${protocol}://${host}/api/auth/github/callback`,
 		};
+	}
+
+	private getPublicHost(req: Request): string | undefined {
+		const forwardedHostHeader = req.headers['x-forwarded-host'];
+		const forwardedHost = Array.isArray(forwardedHostHeader)
+			? forwardedHostHeader[0]
+			: forwardedHostHeader;
+
+		return forwardedHost?.split(',')[0]?.trim() || req.get('host') || undefined;
 	}
 }

@@ -353,8 +353,8 @@ Les Capuches d'Opale est une application web de gestion d'une guilde d'aventurie
 |```JWT_SECRET_ADMIN```|Secret JWT admin|
 |```OAUTH_GITHUB_CLIENT_ID```|Client ID OAuth GitHub|
 |```OAUTH_GITHUB_CLIENT_SECRET```|Client Secret OAuth GitHub|
-|```GITHUB_CALLBACK_URL```|URL de callback OAuth GitHub exposee publiquement|
-|```FRONTEND_OAUTH_SUCCESS_URL```|URL frontend de redirection apres login OAuth|
+
+Les URLs OAuth ne sont plus a fournir comme secrets. L'application deduit automatiquement le callback GitHub et l'URL de retour frontend a partir du host public, sauf si tu souhaites forcer une valeur specifique.
 
 ## 7. Securite WAF et architecture reseau
 

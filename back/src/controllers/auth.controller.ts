@@ -53,10 +53,13 @@ export class AuthController {
     const separator = frontendSuccessUrl.includes('?') ? '&' : '?';
     const redirectUrl = `${frontendSuccessUrl}${separator}access_token=${encodeURIComponent(authResult.access_token)}&username=${encodeURIComponent(authResult.username)}`;
     return res.redirect(redirectUrl);
-
   }
 
   private getPublicBaseUrl(req: Request): string {
+    const forwardedHostHeader = req.headers['x-forwarded-host'];
+    const forwardedHost = Array.isArray(forwardedHostHeader)
+      ? forwardedHostHeader[0]
+      : forwardedHostHeader;
     const forwardedProtoHeader = req.headers['x-forwarded-proto'];
     const forwardedProto = Array.isArray(forwardedProtoHeader)
       ? forwardedProtoHeader[0]
@@ -64,7 +67,7 @@ export class AuthController {
 
     const protocol =
       forwardedProto?.split(',')[0]?.trim() || req.protocol || 'http';
-    const host = req.get('host') || 'localhost';
+    const host = forwardedHost?.split(',')[0]?.trim() || req.get('host') || 'localhost';
 
     return `${protocol}://${host}`;
   }

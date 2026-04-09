@@ -9,10 +9,10 @@ export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
   private readonly configured: boolean;
 
   constructor() {
-    const clientID = process.env.OAUTH_GITHUB_CLIENT_ID ?? '';
-    const clientSecret = process.env.OAUTH_GITHUB_CLIENT_SECRET ?? '';
+    const clientID = process.env.OAUTH_GITHUB_CLIENT_ID?.trim() ?? '';
+    const clientSecret = process.env.OAUTH_GITHUB_CLIENT_SECRET?.trim() ?? '';
     const callbackURL =
-      process.env.GITHUB_CALLBACK_URL ??
+      process.env.GITHUB_CALLBACK_URL?.trim() ||
       'http://localhost/api/auth/github/callback';
 
     const configured = Boolean(clientID && clientSecret);
