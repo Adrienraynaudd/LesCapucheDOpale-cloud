@@ -193,13 +193,13 @@ jobs:
       - name: Run Prisma
         working-directory: ./back
         env:
-          DATABASE_URL: "sqlserver://sql-${{ env.PROJECT_NAME }}-${{ github.event.inputs.environment || 'dev' }}.database.windows.net:1433;database=guild-db;user=${{ secrets.SQL_ADMIN_USERNAME }};password=${{ secrets.SQL_ADMIN_PASSWORD }};encrypt=true;trustServerCertificate=false"
+          DATABASE_URL: "sqlserver://sql-${{ env.PROJECT_NAME }}-${{ github.event.inputs.environment || 'dev' }}.database.windows.net:1433;database=guild-db;user=${{ secrets.SQL_ADMIN_USERNAME }}@sql-${{ env.PROJECT_NAME }}-${{ github.event.inputs.environment || 'dev' }};password=${{ secrets.SQL_ADMIN_PASSWORD }};encrypt=true;trustServerCertificate=false"
         run: npx prisma generate && npx prisma db push --accept-data-loss
         continue-on-error: true
       - name: Run Database Seed
         working-directory: ./back
         env:
-          DATABASE_URL: "sqlserver://sql-${{ env.PROJECT_NAME }}-${{ github.event.inputs.environment || 'dev' }}.database.windows.net:1433;database=guild-db;user=${{ secrets.SQL_ADMIN_USERNAME }};password=${{ secrets.SQL_ADMIN_PASSWORD }};encrypt=true;trustServerCertificate=false"
+          DATABASE_URL: "sqlserver://sql-${{ env.PROJECT_NAME }}-${{ github.event.inputs.environment || 'dev' }}.database.windows.net:1433;database=guild-db;user=${{ secrets.SQL_ADMIN_USERNAME }}@sql-${{ env.PROJECT_NAME }}-${{ github.event.inputs.environment || 'dev' }};password=${{ secrets.SQL_ADMIN_PASSWORD }};encrypt=true;trustServerCertificate=false"
         run: npx prisma db seed
         continue-on-error: true
 
@@ -323,3 +323,4 @@ jobs:
           | Frontend gateway | ${{ needs.collect-endpoints.outputs.frontend-gateway }} | ${{ needs.smoke-frontend-gateway.result }} |
           | BDD | ${{ needs.collect-endpoints.outputs.backend-direct }}/api/health/db | ${{ needs.smoke-database.result }} |
           EOF
+

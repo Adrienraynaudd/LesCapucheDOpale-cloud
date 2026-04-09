@@ -77,7 +77,7 @@ var tags = {
   managedBy: 'bicep'
 }
 var storageAccountName = 'st${replace(resourcePrefix, '-', '')}'
-var sqlConnectionString = 'sqlserver://${sqlDatabase.outputs.serverFqdn}:1433;database=${sqlDatabase.outputs.databaseName};user=${sqlAdminUsername};password=${sqlAdminPassword};encrypt=true;trustServerCertificate=true;connectionTimeout=30'
+var sqlConnectionString = 'sqlserver://${sqlDatabase.outputs.serverFqdn}:1433;database=${sqlDatabase.outputs.databaseName};user=${sqlAdminUsername}@${sqlDatabase.outputs.serverName};password=${sqlAdminPassword};encrypt=true;trustServerCertificate=false;connectionTimeout=30'
 
 
 // Module Key Vault
