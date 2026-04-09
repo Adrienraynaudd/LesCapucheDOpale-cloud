@@ -134,9 +134,11 @@ jobs:
             --location ${{ env.AZURE_LOCATION }}
 
       - name: Deploy Bicep
+        id: deploy_bicep
         uses: azure/arm-deploy@v2
         with:
           scope: resourcegroup
+          deploymentName: infra-${{ github.run_id }}-${{ github.run_attempt }}
           resourceGroupName: rg-${{ env.PROJECT_NAME }}-${{ github.event.inputs.environment || 'dev' }}
           template: ./infra/main.bicep
           parameters: >
@@ -155,6 +157,25 @@ jobs:
             backendImageTag=${{ github.sha }}
             frontendImageTag=${{ github.sha }}
           failOnStdErr: false
+
+      - name: Apply OAuth URLs from Bicep outputs
+        run: |
+          ENV="${{ github.event.inputs.environment || 'dev' }}"
+          RG="rg-${{ env.PROJECT_NAME }}-${ENV}"
+          DEPLOYMENT_NAME="infra-${{ github.run_id }}-${{ github.run_attempt }}"
+
+          FRONTEND_OAUTH_SUCCESS_URL=$(az deployment group show --name "$DEPLOYMENT_NAME" --resource-group "$RG" --query "properties.outputs.frontendOAuthSuccessUrl.value" -o tsv)
+          GITHUB_CALLBACK_URL=$(az deployment group show --name "$DEPLOYMENT_NAME" --resource-group "$RG" --query "properties.outputs.githubCallbackUrl.value" -o tsv)
+
+          if [ -z "$FRONTEND_OAUTH_SUCCESS_URL" ] || [ -z "$GITHUB_CALLBACK_URL" ]; then
+            echo "Missing OAuth outputs from Bicep deployment"
+            exit 1
+          fi
+
+          az containerapp update \
+            --name "ca-${{ env.PROJECT_NAME }}-${ENV}-api" \
+            --resource-group "$RG" \
+            --set-env-vars FRONTEND_OAUTH_SUCCESS_URL="$FRONTEND_OAUTH_SUCCESS_URL" GITHUB_CALLBACK_URL="$GITHUB_CALLBACK_URL"
 
   # Déploiements post-infra en parallèle
   

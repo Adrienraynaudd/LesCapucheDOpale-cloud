@@ -354,7 +354,7 @@ Les Capuches d'Opale est une application web de gestion d'une guilde d'aventurie
 |```OAUTH_GITHUB_CLIENT_ID```|Client ID OAuth GitHub|
 |```OAUTH_GITHUB_CLIENT_SECRET```|Client Secret OAuth GitHub|
 
-Les URLs OAuth ne sont plus a fournir comme secrets. L'application deduit automatiquement le callback GitHub et l'URL de retour frontend a partir du host public, sauf si tu souhaites forcer une valeur specifique.
+Les URLs OAuth ne sont plus a fournir comme secrets. Le Bicep les expose maintenant en sortie a partir de l'IP publique de l'Application Gateway, et l'application deduit automatiquement le callback GitHub et l'URL de retour frontend a partir du host public si les variables restent vides.
 
 ## 7. Securite WAF et architecture reseau
 
