@@ -203,11 +203,6 @@ module applicationGateway 'modules/application-gateway.bicep' = {
     tags: tags
     frontendFqdn: frontendApp.outputs.fqdn
     backendFqdn: backendApp.outputs.fqdn
-    wafMode: appGatewayWafMode
-    blockedIpAddresses: appGatewayBlockedIpAddresses
-    blockedCountryCodes: appGatewayBlockedCountryCodes
-    rateLimitThreshold: appGatewayRateLimitThreshold
-    enableRateLimit: appGatewayEnableRateLimit
   }
 }
 
