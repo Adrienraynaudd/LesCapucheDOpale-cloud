@@ -95,7 +95,7 @@ resource wafPolicy 'Microsoft.Network/ApplicationGatewayWebApplicationFirewallPo
       mode: wafMode
       requestBodyCheck: true
       fileUploadLimitInMb: 100
-      maxRequestBodySizeInKb: 128
+      maxRequestBodySizeInKb: 2048
     }
     customRules: concat(
       [
@@ -177,6 +177,13 @@ resource wafPolicy 'Microsoft.Network/ApplicationGatewayWebApplicationFirewallPo
         : []
     )
     managedRules: {
+      exclusions: [
+        {
+          matchVariable: 'RequestHeaderNames'
+          selectorMatchOperator: 'Equals'
+          selector: 'Authorization'
+        }
+      ]
       managedRuleSets: [
         {
           ruleSetType: 'OWASP'
