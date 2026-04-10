@@ -23,3 +23,4 @@ param appGatewayWafMode = 'Prevention'
 param appGatewayBlockedIpAddresses = []
 param appGatewayBlockedCountryCodes = []
 param appGatewayRateLimitThreshold = 600
+param appGatewayEnableRateLimit = false

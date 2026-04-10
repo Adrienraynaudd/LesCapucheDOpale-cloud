@@ -69,6 +69,9 @@ param appGatewayBlockedCountryCodes array = []
 @description('Seuil de rate limiting par minute et par IP')
 param appGatewayRateLimitThreshold int = 600
 
+@description('Active la regle WAF de rate limiting')
+param appGatewayEnableRateLimit bool = false
+
 
 var resourcePrefix = '${projectName}-${environment}'
 var tags = {
@@ -204,6 +207,7 @@ module applicationGateway 'modules/application-gateway.bicep' = {
     blockedIpAddresses: appGatewayBlockedIpAddresses
     blockedCountryCodes: appGatewayBlockedCountryCodes
     rateLimitThreshold: appGatewayRateLimitThreshold
+    enableRateLimit: appGatewayEnableRateLimit
   }
 }
 
