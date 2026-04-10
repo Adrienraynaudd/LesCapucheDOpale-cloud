@@ -33,7 +33,7 @@ param blockedIpAddresses array = []
 param blockedCountryCodes array = []
 
 @description('Seuil de limitation de debit par minute et par IP')
-param rateLimitThreshold int = 120
+param rateLimitThreshold int = 600
 
 var vnetName = 'vnet-${name}'
 var subnetName = 'appgw-subnet'
@@ -125,7 +125,7 @@ resource wafPolicy 'Microsoft.Network/ApplicationGatewayWebApplicationFirewallPo
               ]
               operator: 'Contains'
               matchValues: [
-                '/'
+                '/api'
               ]
             }
           ]

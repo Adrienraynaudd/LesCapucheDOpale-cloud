@@ -67,7 +67,7 @@ param appGatewayBlockedIpAddresses array = []
 param appGatewayBlockedCountryCodes array = []
 
 @description('Seuil de rate limiting par minute et par IP')
-param appGatewayRateLimitThreshold int = 120
+param appGatewayRateLimitThreshold int = 600
 
 
 var resourcePrefix = '${projectName}-${environment}'

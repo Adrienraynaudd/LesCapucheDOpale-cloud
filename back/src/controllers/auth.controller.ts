@@ -48,7 +48,7 @@ export class AuthController {
     const authResult = await this.authService.loginWithGithubProfile(req.user);
     const frontendSuccessUrl =
       process.env.FRONTEND_OAUTH_SUCCESS_URL?.trim() ||
-      `http://biscord.xyz`;
+      ``;
     console.log('Redirecting to frontend URL:', frontendSuccessUrl);
 
     const separator = frontendSuccessUrl.includes('?') ? '&' : '?';
