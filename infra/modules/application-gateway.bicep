@@ -24,7 +24,7 @@ param backendFqdn string
   'Detection'
   'Prevention'
 ])
-param wafMode string = 'Prevention'
+param wafMode string = 'Detection'
 
 @description('Liste d\'adresses IP publiques a bloquer (ex: 1.2.3.4, 5.6.7.0/24)')
 param blockedIpAddresses array = []
@@ -77,11 +77,11 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2023-09-01' = {
 resource publicIp 'Microsoft.Network/publicIPAddresses@2023-09-01' = {
   name: publicIpName
   location: location
-  tags: tags
   sku: {
     name: 'Standard'
     tier: 'Regional'
   }
+  tags: tags
   properties: {
     publicIPAllocationMethod: 'Static'
     publicIPAddressVersion: 'IPv4'

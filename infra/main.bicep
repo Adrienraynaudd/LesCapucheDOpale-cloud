@@ -58,7 +58,7 @@ param containerRegistryPassword string
 
 @description('Mode WAF de l\'Application Gateway: Detection ou Prevention')
 @allowed(['Detection', 'Prevention'])
-param appGatewayWafMode string = 'Prevention'
+param appGatewayWafMode string = 'Detection'
 
 @description('Liste d\'IP a bloquer via regle WAF personnalisee')
 param appGatewayBlockedIpAddresses array = []
