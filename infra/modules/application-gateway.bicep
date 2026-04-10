@@ -38,9 +38,13 @@ param rateLimitThreshold int = 600
 @description('Active la regle WAF de rate limiting')
 param enableRateLimit bool = false
 
+@description('ID du workspace Log Analytics pour les diagnostics')
+param logAnalyticsWorkspaceId string = ''
+
 var vnetName = 'vnet-${name}'
 var subnetName = 'appgw-subnet'
 var publicIpName = 'pip-${name}'
+var wafPolicyName = 'waf-${name}'
 var frontendProbeId = resourceId('Microsoft.Network/applicationGateways/probes', name, 'frontend-probe')
 var apiProbeId = resourceId('Microsoft.Network/applicationGateways/probes', name, 'api-probe')
 var frontendIpConfigId = resourceId('Microsoft.Network/applicationGateways/frontendIPConfigurations', name, 'publicFrontendIp')
@@ -87,17 +91,131 @@ resource publicIp 'Microsoft.Network/publicIPAddresses@2023-09-01' = {
   }
 }
 
+resource wafPolicy 'Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies@2023-09-01' = {
+  name: wafPolicyName
+  location: location
+  tags: tags
+  properties: {
+    policySettings: {
+      state: 'Enabled'
+      mode: wafMode
+      requestBodyCheck: true
+      fileUploadLimitInMb: 100
+      maxRequestBodySizeInKb: 2048
+    }
+    customRules: concat(
+      enableRateLimit
+        ? [
+            {
+              name: 'rate-limit-per-ip'
+              priority: 10
+              ruleType: 'RateLimitRule'
+              action: 'Block'
+              state: 'Enabled'
+              rateLimitDuration: 'OneMin'
+              rateLimitThreshold: rateLimitThreshold
+              groupByUserSession: [
+                {
+                  groupByVariables: [
+                    {
+                      variableName: 'ClientAddr'
+                    }
+                  ]
+                }
+              ]
+              matchConditions: [
+                {
+                  matchVariables: [
+                    {
+                      variableName: 'RequestUri'
+                    }
+                  ]
+                  operator: 'Contains'
+                  matchValues: [
+                    '/api'
+                  ]
+                }
+              ]
+            }
+          ]
+        : [],
+      length(blockedIpAddresses) > 0
+        ? [
+            {
+              name: 'block-listed-ips'
+              priority: 20
+              ruleType: 'MatchRule'
+              action: 'Block'
+              state: 'Enabled'
+              matchConditions: [
+                {
+                  matchVariables: [
+                    {
+                      variableName: 'RemoteAddr'
+                    }
+                  ]
+                  operator: 'IPMatch'
+                  matchValues: blockedIpAddresses
+                }
+              ]
+            }
+          ]
+        : [],
+      length(blockedCountryCodes) > 0
+        ? [
+            {
+              name: 'geo-filter-block-countries'
+              priority: 30
+              ruleType: 'MatchRule'
+              action: 'Block'
+              state: 'Enabled'
+              matchConditions: [
+                {
+                  matchVariables: [
+                    {
+                      variableName: 'RemoteAddr'
+                    }
+                  ]
+                  operator: 'GeoMatch'
+                  matchValues: blockedCountryCodes
+                }
+              ]
+            }
+          ]
+        : []
+    )
+    managedRules: {
+      exclusions: [
+        {
+          matchVariable: 'RequestHeaderNames'
+          selectorMatchOperator: 'Equals'
+          selector: 'Authorization'
+        }
+      ]
+      managedRuleSets: [
+        {
+          ruleSetType: 'OWASP'
+          ruleSetVersion: '3.2'
+        }
+      ]
+    }
+  }
+}
+
 resource appGateway 'Microsoft.Network/applicationGateways@2022-09-01' = {
   name: name
   location: location
-  sku: {
-    name: 'Standard_v2'
-    tier: 'Standard_v2'
-    capacity: 1
-  }
   tags: tags
   properties: {
+    sku: {
+      name: 'WAF_v2'
+      tier: 'WAF_v2'
+      capacity: 1
+    }
     enableHttp2: true
+    firewallPolicy: {
+      id: wafPolicy.id
+    }
     gatewayIPConfigurations: [
       {
         name: 'appGatewayIpConfig'
@@ -281,3 +399,28 @@ output apiUrl string = 'http://${publicIp.properties.ipAddress}/api'
 
 @description('Nom de l\'Application Gateway')
 output appGatewayName string = appGateway.name
+
+// Diagnostic settings pour envoyer les logs WAF a Log Analytics
+resource appGatewayDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = if (!empty(logAnalyticsWorkspaceId)) {
+  name: '${name}-diagnostics'
+  scope: appGateway
+  properties: {
+    workspaceId: logAnalyticsWorkspaceId
+    logs: [
+      {
+        category: 'ApplicationGatewayAccessLog'
+        enabled: true
+      }
+      {
+        category: 'ApplicationGatewayFirewallLog'
+        enabled: true
+      }
+    ]
+    metrics: [
+      {
+        category: 'AllMetrics'
+        enabled: true
+      }
+    ]
+  }
+}

@@ -207,6 +207,7 @@ module applicationGateway 'modules/application-gateway.bicep' = {
     blockedCountryCodes: appGatewayBlockedCountryCodes
     rateLimitThreshold: appGatewayRateLimitThreshold
     enableRateLimit: appGatewayEnableRateLimit
+    logAnalyticsWorkspaceId: logAnalytics.outputs.workspaceId
   }
 }
 
