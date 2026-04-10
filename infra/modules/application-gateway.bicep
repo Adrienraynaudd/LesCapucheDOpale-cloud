@@ -33,7 +33,10 @@ param blockedIpAddresses array = []
 param blockedCountryCodes array = []
 
 @description('Seuil de limitation de debit par minute et par IP')
-param rateLimitThreshold int = 120
+param rateLimitThreshold int = 600
+
+@description('Active la regle WAF de rate limiting')
+param enableRateLimit bool = false
 
 var vnetName = 'vnet-${name}'
 var subnetName = 'appgw-subnet'
@@ -98,39 +101,41 @@ resource wafPolicy 'Microsoft.Network/ApplicationGatewayWebApplicationFirewallPo
       maxRequestBodySizeInKb: 2048
     }
     customRules: concat(
-      [
-        {
-          name: 'rate-limit-per-ip'
-          priority: 10
-          ruleType: 'RateLimitRule'
-          action: 'Block'
-          state: 'Enabled'
-          rateLimitDuration: 'OneMin'
-          rateLimitThreshold: rateLimitThreshold
-          groupByUserSession: [
+      enableRateLimit
+        ? [
             {
-              groupByVariables: [
+              name: 'rate-limit-per-ip'
+              priority: 10
+              ruleType: 'RateLimitRule'
+              action: 'Block'
+              state: 'Enabled'
+              rateLimitDuration: 'OneMin'
+              rateLimitThreshold: rateLimitThreshold
+              groupByUserSession: [
                 {
-                  variableName: 'ClientAddr'
+                  groupByVariables: [
+                    {
+                      variableName: 'ClientAddr'
+                    }
+                  ]
+                }
+              ]
+              matchConditions: [
+                {
+                  matchVariables: [
+                    {
+                      variableName: 'RequestUri'
+                    }
+                  ]
+                  operator: 'Contains'
+                  matchValues: [
+                    '/api'
+                  ]
                 }
               ]
             }
           ]
-          matchConditions: [
-            {
-              matchVariables: [
-                {
-                  variableName: 'RequestUri'
-                }
-              ]
-              operator: 'Contains'
-              matchValues: [
-                '/'
-              ]
-            }
-          ]
-        }
-      ],
+        : [],
       length(blockedIpAddresses) > 0
         ? [
             {

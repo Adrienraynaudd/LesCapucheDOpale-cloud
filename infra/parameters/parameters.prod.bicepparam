@@ -22,4 +22,5 @@ param frontendImageTag = 'latest'
 param appGatewayWafMode = 'Prevention'
 param appGatewayBlockedIpAddresses = []
 param appGatewayBlockedCountryCodes = []
-param appGatewayRateLimitThreshold = 120
+param appGatewayRateLimitThreshold = 600
+param appGatewayEnableRateLimit = false
